@@ -1,0 +1,29 @@
+NAME
+    Poet -- A flexible application environment
+
+SYNOPSIS
+        # In a module...
+        use Poet qw($conf $env $log);
+
+DESCRIPTION
+    Poet provides a flexible environment for a web or standalone
+    application. It gives you
+
+    *   A standard root directory with conf, lib, bin, etc., autodetected
+        from any script inside the environment
+
+    *   A multi-file configuration layout with knowledge of different
+        application "layers"
+
+    *   Easy one-line access to environment, configuration, caching and
+        logging objects
+
+ACKNOWLEDGEMENTS
+    Poet was originally designed and developed for the Digital Media group
+    of the Hearst Corporation, a diversified media company based in New York
+    City. Many thanks to Hearst management for agreeing to this open source
+    release.
+
+AUTHOR
+    Jonathan Swartz
+
