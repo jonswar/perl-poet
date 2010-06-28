@@ -132,7 +132,9 @@ Poet::Script
 
 Poet was originally designed and developed for the Digital Media group of the
 Hearst Corporation, a diversified media company based in New York City.  Many
-thanks to Hearst management for agreeing to this open source release.
+thanks to Hearst for agreeing to this open source release. Hearst has no direct
+involvement with this open source release and bears no responsibility for its
+support or maintenance.
 
 =head1 AUTHOR
 

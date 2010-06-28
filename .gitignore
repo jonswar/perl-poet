@@ -6,7 +6,6 @@ MANIFEST.bak
 META.yml
 Makefile
 Makefile.old
-README
 TODO
 VERSION
 _build*
