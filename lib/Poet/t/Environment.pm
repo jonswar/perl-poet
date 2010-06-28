@@ -1,24 +1,25 @@
 package Poet::t::Environment;
+use File::Slurp;
+use Poet::Environment::Generator;
+use Poet::Test::Util;
+use Test::More;
+use YAML::XS;
 use strict;
 use warnings;
 use base qw(Test::Class);
 
-require Poet;
-
-sub test_environment : Tests(50) {
+sub test_environment : Tests(7) {
     my $self = shift;
 
-    my $root_dir =
-      Poet::Environment::Generator->generate_environment_directory(
-        root_dir => 'TEMP' );
-    foreach my $subdir qw(bin conf lib) {
-        ok( -d "$root_dir/$subdir", "$subdir exists" );
-    }
-    my $env = Poet->initialize_environment($root_dir);
+    my $env      = temp_env();
+    my $root_dir = $env->root_dir;
+
     foreach my $subdir qw(bin conf lib) {
         my $subdir_method = $subdir . "_dir";
         is( $env->$subdir_method, "$root_dir/$subdir", $subdir_method );
+        ok( -d $env->$subdir_method, "$subdir exists" );
     }
+    is( $env->layer, 'personal', "layer" );
 }
 
 1;

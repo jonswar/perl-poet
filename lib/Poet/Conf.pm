@@ -1,4 +1,4 @@
-npackage Poet::Conf;
+package Poet::Conf;
 use Carp;
 use Carp::Assert;
 use Cwd qw(realpath);
@@ -84,31 +84,38 @@ sub parse_config_files {
 }
 
 sub determine_layer {
+    my $self = shift;
+
     my $conf_dir = $self->conf_dir;
-    my $layer_cfg_file = catfile( $conf_dir, "local.cfg" );
-    my $layer_cfg =
-      ( -f $layer_cfg_file )
-      ? Load( $self->_read_yaml_file($layer_cfg_file) )
+    my $local_cfg_file = catfile( $conf_dir, "local.cfg" );
+    my $local_cfg =
+      ( -f $local_cfg_file )
+      ? Load( $self->_read_yaml_file($local_cfg_file) )
       : {};
-    my $layer = $layer_cfg->{layer}
-      || die "must specify layer in '$layer_cfg_file'";
+    my $layer = $local_cfg->{layer}
+      || die "must specify layer in '$local_cfg_file'";
     die "invalid layer '$layer' - no such file '$conf_dir/layer/$layer.cfg'"
       unless -f "$conf_dir/layer/$layer.cfg";
+
+    return $layer;
 }
 
 sub determine_is_internal {
+    my $self = shift;
+
     return $self->layer =~ /^(?:personal|development)$/;
 }
 
 sub ordered_conf_files {
-    my ($self)   = @_;
+    my $self = shift;
+
     my $conf_dir = $self->conf_dir();
     my $layer    = $self->layer();
 
     return (
         glob("$conf_dir/global/*.cfg"),
         (
-            $is_internal
+            $self->is_internal
             ? ("$conf_dir/layer/internal.cfg")
             : ("$conf_dir/layer/live.cfg")
         ),
@@ -247,9 +254,11 @@ sub set_local {
     while ( my ( $key, $value ) = each(%$pairs) ) {
         $self->{app_conf}->set( $key, $value );
     }
+    $self->conf_has_changed();
 
     # Restore configuration when $guard goes out of scope
-    my $guard = guard { $self->{app_conf} = $orig_app_conf };
+    my $guard =
+      guard { $self->{app_conf} = $orig_app_conf; $self->conf_has_changed() };
     return $guard;
 }
 
@@ -263,6 +272,14 @@ sub dump_conf {
     my ( $self, ) = @_;
 
     return $self->{app_conf}->dump;
+}
+
+# Things we need to do whenever the conf changes.
+#
+sub conf_has_changed {
+    my ($self) = @_;
+
+    $self->flush_memoize_cache();
 }
 
 1;

@@ -13,21 +13,7 @@ has 'conf'    => ( is => 'ro' );
 has 'name'    => ( is => 'ro' );
 has 'version' => ( is => 'ro', lazy_build => 1 );
 
-foreach my $subdir ( 'root', @{ $self->subdirs() } ) {
-    my $dir_method = $subdir . "_dir";
-    has $dir_method =>
-      ( is => 'ro', ( $subdir eq 'root' ? ( required => 1 ) : () ) );
-    my $path_method = $subdir . "_path";
-    __PACKAGE__->meta->add_method(
-        $path_method,
-        sub {
-            my ( $self, $relpath ) = @_;
-            croak "$path_method expects relative path as argument"
-              unless defined($relpath);
-            return $self->$dir_method . "/" . $relpath;
-        }
-    );
-}
+__PACKAGE__->generate_subdir_methods();
 
 __PACKAGE__->meta->make_immutable();
 
@@ -53,6 +39,12 @@ sub get_environment {
     return $current_env;
 }
 
+sub layer {
+    my ($self) = @_;
+
+    return $self->conf->layer;
+}
+
 sub BUILD {
     my ($self) = @_;
 
@@ -76,6 +68,26 @@ sub BUILD {
         my $method = $subdir . "_dir";
         $self->{$method} =
           rel2abs( $conf->get( "env.$method" => $subdir ), $root_dir );
+    }
+}
+
+sub generate_subdir_methods {
+    my $class = shift;
+
+    foreach my $subdir ( 'root', @{ $class->subdirs() } ) {
+        my $dir_method = $subdir . "_dir";
+        has $dir_method =>
+          ( is => 'ro', ( $subdir eq 'root' ? ( required => 1 ) : () ) );
+        my $path_method = $subdir . "_path";
+        __PACKAGE__->meta->add_method(
+            $path_method,
+            sub {
+                my ( $self, $relpath ) = @_;
+                croak "$path_method expects relative path as argument"
+                  unless defined($relpath);
+                return $self->$dir_method . "/" . $relpath;
+            }
+        );
     }
 }
 
