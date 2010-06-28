@@ -30,6 +30,7 @@ sub initialize_current_environment {
             "initialize_current_environment called when current_env already set (%s)",
             $current_env->root_dir() );
     }
+    die "must pass existing root_dir" unless defined($root_dir) && -d $root_dir;
     $current_env = $class->new( root_dir => $root_dir );
 }
 

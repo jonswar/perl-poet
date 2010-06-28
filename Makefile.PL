@@ -10,6 +10,7 @@ perl_version '5.006';
 build_requires 'Test::Class' => 0;
 build_requires 'Test::More' => 0;
 
+requires 'Capture::Tiny' => 0;
 requires 'File::Slurp' => 0;
 requires 'Moose' => 0;
 requires 'Text::Trim' => 0;

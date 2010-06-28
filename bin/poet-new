@@ -1,0 +1,29 @@
+#!/usr/bin/env perl
+use Poet::Environment::Generator;
+
+my $root_dir = shift(@ARGV) or die "usage: $0 root_dir";
+Poet::Environment::Generator->generate_environment_directory(root_dir => $root_dir);
+
+__END__
+
+=head1 NAME
+
+poet_new.pl - Generate a Poet environment
+
+=head1 SYNOPSIS
+
+   poet_new rootdir
+
+=head1 DESCRIPTION
+
+This script generates a skeleton Poet environment in the specified directory.
+
+=head1 SEE ALSO
+
+Poet
+
+=head1 AUTHOR
+
+Jonathan Swartz
+
+=cut

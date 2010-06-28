@@ -12,9 +12,12 @@ sub import {
 
     my $root_dir = determine_root_dir();
     my $lib_dir  = "$root_dir/lib";
+    unless ( $INC[0] eq $lib_dir ) {
+        unshift( @INC, $lib_dir );
+    }
 
     require Poet;
-    Poet->initialize_environment( run_mode => $run_mode );
+    Poet->initialize_environment($root_dir);
     Poet->export_to_level( 1, undef, @_ );
 }
 
@@ -40,3 +43,33 @@ sub determine_root_dir {
 }
 
 1;
+
+=pod
+
+=head1 NAME
+
+Poet::Script -- Intialize the Poet environment for a script
+
+=head1 SYNOPSIS
+
+    # In a script...
+    use Poet::Script qw($conf $env $log);
+
+=head1 DESCRIPTION
+
+Poet::Script initializes the Poet environment for a script. It determines the
+environment root by looking upwards from the directory of the current script
+($0) until it finds the Poet marker file (.poet_root). It then shifts the lib/
+subdirectory of the environment root onto @INC.
+
+Imports such as '$conf' and $env' are handled the same way as in 'use Poet' -
+see L<Poet/IMPORTS>.
+
+=head1 SEE ALSO
+
+Poet
+
+=head1 AUTHOR
+
+Jonathan Swartz
+
