@@ -11,8 +11,8 @@ use strict;
 use warnings;
 
 my (
-    $root_marker_template, $local_cfg_template,
-    $layer_cfg_template,   $global_cfg_template
+    $app_psgi_template,  $global_cfg_template, $layer_cfg_template,
+    $local_cfg_template, $root_marker_template
 );
 
 method generate_environment_directory ($class: %params) {
