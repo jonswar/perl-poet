@@ -8,11 +8,11 @@ __END__
 
 =head1 NAME
 
-poet_new.pl - Generate a Poet environment
+poet - Generate a Poet environment
 
 =head1 SYNOPSIS
 
-   poet_new rootdir
+   poet <dir>
 
 =head1 DESCRIPTION
 

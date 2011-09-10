@@ -6,46 +6,36 @@ use File::Basename;
 use File::Slurp qw(read_file);
 use File::Spec::Functions qw(catfile);
 use Guard;
-use Memoize;
-use Moose;
+use Poet::Moose;
+use Try::Tiny;
 use YAML::AppConfig;
-use YAML::XS qw(Load);
+use YAML::XS;
 use strict;
 use warnings;
 
-has 'app_conf'    => ( is => 'ro', init_arg => undef );
-has 'conf_dir'    => ( is => 'ro', required => 1 );
-has 'is_internal' => ( is => 'ro', init_arg => undef );
-has 'is_live'     => ( is => 'ro', init_arg => undef );
-has 'layer'       => ( is => 'ro', init_arg => undef );
+has 'conf_dir'    => ( required => 1 );
+has 'data'        => ( init_arg => undef );
+has 'is_internal' => ( init_arg => undef );
+has 'is_live'     => ( init_arg => undef );
+has 'layer'       => ( init_arg => undef );
 
-__PACKAGE__->meta->make_immutable();
+our %get_cache;
 
-our $log;
-
-sub BUILD {
-    my ( $self, $params ) = @_;
-
+method BUILD () {
     $self->{layer}       = $self->determine_layer();
     $self->{is_internal} = $self->determine_is_internal();
     $self->{is_live}     = !$self->{is_internal};
-    $self->{app_conf}    = $self->parse_config_files();
+    $self->{data}        = $self->parse_config_files();
 }
 
-sub parse_config_files {
-    my ($self) = @_;
-
+method parse_config_files () {
     my $conf_dir = $self->conf_dir();
-
-    # Unfortunately YAML::AppConfig crashes on empty config files, or config files with
-    # nothing but comments. We add a single "_init: 0" pair to prevent this.
-    #
-    my $app_conf =
-      YAML::AppConfig->new( string => "_init: 0", yaml_class => 'YAML::XS' );
+    my %data     = ();
 
     # Provide some convenience globals.
     #
-    $app_conf->set( root_dir => realpath( dirname($conf_dir) ) );
+    $data{root_dir} = realpath( dirname($conf_dir) );
+    $data{user} = getlogin || getpwuid($<);
 
     # Collect list of config files in appropriate order
     #
@@ -57,14 +47,13 @@ sub parse_config_files {
 
     foreach my $file (@conf_files) {
         if ( defined $file && -f $file ) {
-            my $yaml = $self->_read_yaml_file($file);
-            $app_conf->merge( string => $yaml );
+            my $new_data = $self->_read_yaml_file($file);
+            %data = ( %data, %$new_data );
 
             # Make sure no keys are defined in multiple global config files
             #
             if ( $file =~ m{/global/} ) {
-                my $global_cfg = Load($yaml);
-                foreach my $key ( keys(%$global_cfg) ) {
+                foreach my $key ( keys(%$new_data) ) {
                     next if $key eq '_init';
                     if ( my $previous_file = $global_keys{$key} ) {
                         die sprintf(
@@ -77,20 +66,18 @@ sub parse_config_files {
                 }
             }
         }
-        flush_memoize_cache();
+        $self->_flush_get_cache();
     }
 
-    return $app_conf;
+    return \%data;
 }
 
-sub determine_layer {
-    my $self = shift;
-
+method determine_layer () {
     my $conf_dir = $self->conf_dir;
     my $local_cfg_file = catfile( $conf_dir, "local.cfg" );
     my $local_cfg =
       ( -f $local_cfg_file )
-      ? Load( $self->_read_yaml_file($local_cfg_file) )
+      ? $self->_read_yaml_file($local_cfg_file)
       : {};
     my $layer = $local_cfg->{layer}
       || die "must specify layer in '$local_cfg_file'";
@@ -100,19 +87,16 @@ sub determine_layer {
     return $layer;
 }
 
-sub determine_is_internal {
-    my $self = shift;
-
+method determine_is_internal () {
     return $self->layer =~ /^(?:personal|development)$/;
 }
 
-sub ordered_conf_files {
-    my $self = shift;
-
+method ordered_conf_files () {
     my $conf_dir = $self->conf_dir();
     my $layer    = $self->layer();
 
     return (
+        "$conf_dir/global.cfg",
         glob("$conf_dir/global/*.cfg"),
         (
             $self->is_internal
@@ -125,53 +109,48 @@ sub ordered_conf_files {
     );
 }
 
-sub _read_yaml_file {
-    my ( $self, $file ) = @_;
+method _read_yaml_file ($file) {
 
-    # Read a yaml file, adding a dummy key pair to handle empty files or files with
-    # nothing but comments. Check for errors before returning. This means parsing
-    # files twice (here and above) but makes the code cleaner.
+    # Read a yaml file into a hash, adding a dummy key pair to handle empty
+    # files or files with nothing but comments, and checking for errors.
+    # Return the hash.
     #
     my $yaml = read_file($file) . "\n\n_init: 0";
-    eval { my $conf = Load($yaml) };
-    if ( my $error = $@ ) {
-        $error =~ s/Syck parser //g;
-        $error =~ s/at \S+\/Syck\.pm line .*//g;
-        die "error parsing config file '$file': $error";
+    my $hash;
+    try {
+        $hash = YAML::XS::Load($yaml);
     }
-    return $yaml;
+    catch {
+        die "error parsing config file '$file': $_";
+    };
+    die "'$file' did not parse to a hash" unless ref($hash) eq 'HASH';
+    return $hash;
 }
 
-# Memoize _get, since conf can normally not change at runtime. This will
+# Memoize get, since conf can normally not change at runtime. This will
 # benefit all get() and get_*() calls. Clear cache on set_local.
 #
-memoize( __PACKAGE__ . "::_get" );
-
-sub flush_memoize_cache {
-    Memoize::flush_cache( __PACKAGE__ . "::_get" );
+method _flush_get_cache () {
+    %get_cache = ();
 }
 
-sub _get {
-    my ( $self, $key ) = @_;
-
-    return $self->app_conf->get($key);
-}
-
-sub get {
-    my ( $self, $key, $default ) = @_;
-
-    if ( defined( my $value = $self->_get($key) ) ) {
-        return $value;
+method get ($key, $default) {
+    return $get_cache{$key} if exists( $get_cache{$key} );
+    my $value = $self->data->{$key};
+    if ( defined($value) ) {
+        while ( my ( $var_decl, $var_key ) =
+            ( $value =~ /(\$ (?: (\w\.\-+) | \{(\w\.\-+)\} ) )/x ) )
+        {
+            my $var_value = $self->get($var_key);
+            $value =~ s/$var_decl/$var_value/g;
+        }
     }
-    else {
-        return $default;
-    }
+    $get_cache{$key} = $value;
+    return defined($value) ? $value : $default;
 }
 
-sub get_or_die {
-    my ( $self, $key ) = @_;
-
-    if ( defined( my $value = $self->_get($key) ) ) {
+method get_or_die ($key) {
+    if ( defined( my $value = $self->get($key) ) ) {
         return $value;
     }
     else {
@@ -179,10 +158,8 @@ sub get_or_die {
     }
 }
 
-sub get_list {
-    my ( $self, $key, $default ) = @_;
-
-    if ( defined( my $value = $self->_get($key) ) ) {
+method get_list ($key, $default) {
+    if ( defined( my $value = $self->get($key) ) ) {
         if ( ref($value) eq 'ARRAY' ) {
             return $value;
         }
@@ -190,8 +167,7 @@ sub get_list {
             my $error = sprintf(
                 "list value expected for config key '%s', got non-list '%s'",
                 $key, $value );
-            $self->handle_conf_error($error);
-            return [];
+            croak($error);
         }
     }
     elsif ( defined $default ) {
@@ -202,10 +178,8 @@ sub get_list {
     }
 }
 
-sub get_hash {
-    my ( $self, $key, $default ) = @_;
-
-    if ( defined( my $value = $self->_get($key) ) ) {
+method get_hash ($key, $default) {
+    if ( defined( my $value = $self->get($key) ) ) {
         if ( ref($value) eq 'HASH' ) {
             return $value;
         }
@@ -213,8 +187,7 @@ sub get_hash {
             my $error = sprintf(
                 "hash value expected for config key '%s', got non-hash '%s'",
                 $key, $value );
-            $self->handle_conf_error($error);
-            return {};
+            croak($error);
         }
     }
     elsif ( defined $default ) {
@@ -225,62 +198,58 @@ sub get_hash {
     }
 }
 
-sub handle_conf_error {
-    my ( $self, $msg ) = @_;
+method get_hash_from_common_prefix ($prefix) {
 
-    my $env = Poet::Environment->get_environment;
-    if ( !$env || $env->is_live ) {
-        $log->warn($msg);
-    }
-    else {
-        croak $msg;
-    }
+    # Find all keys with the given prefix, and return a hashref containing just
+    # those keys and values with the prefix stripped off.
+    #
+    my $prefix_length = length($prefix);
+    return {
+        map { ( substr( $_, $prefix_length ), $self->get($_) ) }
+        grep { /^\Q$prefix\E(.+)$/ } $self->get_keys
+    };
 }
 
-sub get_boolean {
-    my ( $self, $key ) = @_;
-
-    return $self->_get($key) ? 1 : 0;
+method get_boolean ($key) {
+    return $self->get($key) ? 1 : 0;
 }
 
-sub set_local {
-    my ( $self, $pairs ) = @_;
-
+method set_local ($pairs) {
     if ( !defined(wantarray) ) {
         warn "result of set_local must be assigned!";
     }
-    my $orig_app_conf = $self->{app_conf};
-    $self->{app_conf} = YAML::AppConfig->new( object => $orig_app_conf );
+    die "set_local expects hashref" unless ref($pairs) eq 'HASH';
+
+    # Make a copy of current data, then apply the pairs
+    #
+    my $orig_data = { %{ $self->{data} } };
     while ( my ( $key, $value ) = each(%$pairs) ) {
-        $self->{app_conf}->set( $key, $value );
+        $self->{data}->{$key} = $value;
     }
     $self->conf_has_changed();
 
-    # Restore configuration when $guard goes out of scope
-    my $guard =
-      guard { $self->{app_conf} = $orig_app_conf; $self->conf_has_changed() };
+    # Restore original data when $guard goes out of scope
+    #
+    my $guard = guard { $self->{data} = $orig_data; $self->conf_has_changed() };
     return $guard;
 }
 
-sub keys {
-    my ($self) = @_;
-
-    return keys( %{ $self->{app_conf}->config } );
+method get_keys () {
+    return keys( %{ $self->{data} } );
 }
 
-sub dump_conf {
-    my ( $self, ) = @_;
-
-    return $self->{app_conf}->dump;
+method dump () {
+    return YAML::XS::Dump( { map { "$_: " . $self->get($_) } $self->get_keys } )
+      . "\n";
 }
 
 # Things we need to do whenever the conf changes.
 #
-sub conf_has_changed {
-    my ($self) = @_;
-
-    $self->flush_memoize_cache();
+method conf_has_changed () {
+    $self->_flush_get_cache();
 }
+
+__PACKAGE__->meta->make_immutable();
 
 1;
 
@@ -306,9 +275,12 @@ Poet::Conf -- Access to Poet configuration
 
     my $listref = $conf->get_list('key', ['default']);
     my $hashref = $conf->get_hash('key', {'default' => 5});
+    my $hashref = $conf->get_hash_from_common_prefix('cache.defaults.');
     my $bool = $conf->get_boolean('key');
 
-    my @keys = grep { /^foo\./ } $conf->keys;
+    my @keys = grep { /^foo\./ } $conf->get_keys;
+
+    print $conf->dump;
 
     { 
        my $lex = $conf->set_local({'key' => 'new_value'});
@@ -328,6 +300,7 @@ Poet configuration files are found in the conf/ subdirectory of the environment
 root:
 
   conf/
+    global.cfg
     global/
       something.cfg
       something_else.cfg
@@ -455,6 +428,27 @@ warning.
 
 If I<key> is unavailable, return the I<default>, or an empty hash reference if
 no default is given.
+
+=item get_hash_from_common_prefix (I<prefix>)
+
+    my $hashref = $conf->get_hash_from_common_prefix('cache.defaults.');
+
+Find all keys with the given I<prefix>, and return a hashref containing just
+those keys and values with the prefix stripped off. e.g. if these configuration
+entries exist (in any files):
+
+    cache.defaults.depth: 3
+    cache.defaults.expires_variance: 0.2
+    cache.defaults.namespace: Default
+
+then the call above would return
+
+    { depth => 3, expires_variance => 0.2, namespace => 'Default' }
+
+If no keys have the given prefix, an empty hashref is returned.
+
+Using a common prefix is often preferable to specifying a single hash, because
+the individual entries can be overriden.
 
 =item get_boolean
 

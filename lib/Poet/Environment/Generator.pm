@@ -5,6 +5,7 @@ use File::Slurp;
 use File::Temp qw(tempdir);
 use File::Spec::Functions qw(catdir);
 use Poet::Environment;
+use Poet::Moose;
 use Text::Trim qw(trim);
 use strict;
 use warnings;
@@ -14,9 +15,7 @@ my (
     $layer_cfg_template,   $global_cfg_template
 );
 
-sub generate_environment_directory {
-    my ( $class, %params ) = @_;
-
+method generate_environment_directory ($class: %params) {
     my $root_dir = $params{root_dir};
     die "must specify root_dir" unless defined $root_dir;
     if ( $root_dir eq 'TEMP' ) {

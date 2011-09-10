@@ -2,79 +2,20 @@
 #
 package Poet::Environment;
 use Carp;
-use Carp::Assert;
 use Poet::Conf;
 use File::Basename;
 use File::Path;
 use File::Spec::Functions qw(catdir rel2abs);
-use Moose;
+use Poet::Moose;
 
-has 'conf'    => ( is => 'ro' );
-has 'name'    => ( is => 'ro' );
-has 'version' => ( is => 'ro', lazy_build => 1 );
+has 'conf' => ();
+has 'name' => ();
 
-__PACKAGE__->generate_subdir_methods();
+method subdirs ()        { [qw(bin comps conf data lib logs static t)] }
+method static_subdirs () { [qw(css images js)] }
+method root_marker_filename () { '.poet_root' }
 
-__PACKAGE__->meta->make_immutable();
-
-my ($current_env);
-
-sub subdirs              { [qw(bin conf lib logs state)] }
-sub root_marker_filename { '.poet_root' }
-
-sub initialize_current_environment {
-    my ( $class, $root_dir ) = @_;
-
-    if ( defined($current_env) ) {
-        die sprintf(
-            "initialize_current_environment called when current_env already set (%s)",
-            $current_env->root_dir() );
-    }
-    die "must pass existing root_dir" unless defined($root_dir) && -d $root_dir;
-    $current_env = $class->new( root_dir => $root_dir );
-}
-
-sub get_environment {
-    my ($class) = @_;
-
-    return $current_env;
-}
-
-sub layer {
-    my ($self) = @_;
-
-    return $self->conf->layer;
-}
-
-sub BUILD {
-    my ($self) = @_;
-
-    my $root_dir             = $self->root_dir();
-    my $root_marker_filename = $self->root_marker_filename();
-    die
-      "$root_dir is missing marker file $root_marker_filename - is it really an Poet environment root?"
-      unless -f "$root_dir/$root_marker_filename";
-    $self->{name} = basename($root_dir);
-
-    # Initialize configuration
-    #
-    $self->{conf} = Poet::Conf->new( conf_dir => catdir( $root_dir, "conf" ) );
-    my $conf = $self->{conf};
-
-    # Determine where our standard subdirectories (bin, comps, etc.)
-    # are. Can override in configuration with env.bin_dir, env.comps_dir, etc.,
-    # which may be absolute or relative to root dir. Otherwise use obvious defaults.
-    #
-    foreach my $subdir ( @{ $self->subdirs() } ) {
-        my $method = $subdir . "_dir";
-        $self->{$method} =
-          rel2abs( $conf->get( "env.$method" => $subdir ), $root_dir );
-    }
-}
-
-sub generate_subdir_methods {
-    my $class = shift;
-
+method generate_subdir_methods ($class:) {
     foreach my $subdir ( 'root', @{ $class->subdirs() } ) {
         my $dir_method = $subdir . "_dir";
         has $dir_method =>
@@ -91,6 +32,57 @@ sub generate_subdir_methods {
         );
     }
 }
+
+my ($current_env);
+
+method initialize_current_environment ($class: $root_dir) {
+    if ( defined($current_env) ) {
+        die sprintf(
+            "initialize_current_environment called when current_env already set (%s)",
+            $current_env->root_dir() );
+    }
+    die "must pass existing root_dir" unless defined($root_dir) && -d $root_dir;
+    $current_env = $class->new( root_dir => $root_dir );
+}
+
+method get_environment ($class:) {
+    return $current_env;
+}
+
+method layer () {
+    return $self->conf->layer;
+}
+
+method BUILD () {
+    my $root_dir             = $self->root_dir();
+    my $root_marker_filename = $self->root_marker_filename();
+    die
+      "$root_dir is missing marker file $root_marker_filename - is it really an Poet environment root?"
+      unless -f "$root_dir/$root_marker_filename";
+    $self->{name} = basename($root_dir);
+
+    # Initialize configuration
+    #
+    $self->{conf} = Poet::Conf->new( conf_dir => catdir( $root_dir, "conf" ) );
+    my $conf = $self->{conf};
+
+    # Determine where our standard subdirectories (bin, comps, etc.)
+    # are. Can override in configuration with env.bin_dir, env.comps_dir,
+    # etc.  Otherwise use obvious defaults.
+    #
+    foreach my $subdir ( @{ $self->subdirs() } ) {
+        my $method = $subdir . "_dir";
+        $self->{$method} = $conf->get( "env.$method" => "$root_dir/$subdir" );
+    }
+    my $static_dir = $self->{static_dir};
+    foreach my $subdir ( @{ $self->static_subdirs() } ) {
+        my $method = $subdir . "_dir";
+        $self->{$method} = $conf->get( "env.$method" => "$static_dir/$subdir" );
+    }
+}
+
+__PACKAGE__->generate_subdir_methods();
+__PACKAGE__->meta->make_immutable();
 
 1;
 
@@ -123,8 +115,8 @@ current environment such as directory paths and layer.
 
 =item layer
 
-Returns the current layer of the environment. The full list of layers is
-defined by the files in conf/layer.
+Returns the current layer of the environment, e.g. 'development' or
+'production'. The full list of layers is defined by the files in conf/layer.
 
 =item root_dir
 
@@ -133,30 +125,49 @@ located.
 
 =item bin_dir
 
+=item comps_dir
+
 =item conf_dir
+
+=item css_dir
+
+=item data_dir
+
+=item images_dir
+
+=item js_dir
 
 =item lib_dir
 
 =item logs_dir
 
-=item state_dir
+=item static_dir
 
 Returns the specified subdirectory, which by default will be in the obvious
-place just below the root directory. Any of these other than conf_dir can be
+place (just below the root directory for most, just below the static directory
+for C<css>, C<images> and C<js>). Any of these other than conf_dir can be
 overriden in configuration. e.g.
 
     # Override bin_dir
-    bin_dir: /some/other/bin/dir
+    env.bin_dir: /some/other/bin/dir
 
 =item bin_path (path)
 
 =item conf_path (path)
 
+=item css_path (path)
+
+=item data_path (path)
+
+=item images_path (path)
+
+=item js_path (path)
+
 =item lib_path (path)
 
 =item logs_path (path)
 
-=item state_path (path)
+=item static_path (path)
 
 Returns the specified subdirectory with a relative path added. e.g.
 

@@ -10,6 +10,8 @@ sub import {
     $pkg->export_to_level( 1, undef, @_ );
 }
 
+my %cache_defaults;
+
 sub export_to_level {
     my ( $pkg, $level, $ignore, @params ) = @_;
 
@@ -19,19 +21,24 @@ sub export_to_level {
     my @valid_import_params = qw($cache $conf $env $log);
     if (@vars) {
         my ($caller) = caller($level);
+        my $env = Poet::Environment->get_environment()
+          or die "environment has not been initialized!";
 
         foreach my $var (@vars) {
             my $value;
             if ( $var eq '$conf' ) {
-                $value = Poet::Environment->get_environment()->conf()
-                  or die "configuration has not been initialized!";
+                $value = $env->conf();
             }
             elsif ( $var eq '$env' ) {
-                $value = Poet::Environment->get_environment()
-                  or die "environment has not been initialized!";
+                $value = $env;
             }
             elsif ( $var eq '$log' ) {
+                require Log::Any;
                 $value = Log::Any->get_logger( category => $caller );
+            }
+            elsif ( $var eq '$cache' ) {
+                initialize_caching($env);
+                $value = CHI->new( %cache_defaults, namespace => $caller );
             }
             else {
                 die sprintf(
@@ -45,15 +52,16 @@ sub export_to_level {
     }
 }
 
-sub initialize_environment {
-    my ( $class, $root_dir ) = @_;
-    Poet::Environment->initialize_current_environment($root_dir);
-}
-
-sub initialize_environment_if_needed {
-    my $class = shift;
-    if ( !Poet::Environment->get_environment() ) {
-        Poet::Environment->initialize_current_environment(@_);
+sub initialize_caching {
+    my $env = shift;
+    require CHI;
+    my %cache_defaults =
+      %{ $env->conf->get_hash_from_common_prefix('cache.defaults.') };
+    if ( !%cache_defaults ) {
+        %cache_defaults = (
+            driver   => 'File',
+            root_dir => $env->data_path("cache")
+        );
     }
 }
 

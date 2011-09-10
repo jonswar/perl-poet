@@ -17,7 +17,8 @@ sub import {
     }
 
     require Poet;
-    Poet->initialize_environment($root_dir);
+    require Poet::Environment;
+    Poet::Environment->initialize_current_environment($root_dir);
     Poet->export_to_level( 1, undef, @_ );
 }
 
