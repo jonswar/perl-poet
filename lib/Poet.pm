@@ -1,67 +1,24 @@
 package Poet;
 use Poet::Environment;
+use Poet::Importer;
+use Method::Signatures::Simple;
 use strict;
 use warnings;
 
-our $VERSION = '6.0.0';
-
-sub import {
-    my $pkg = shift;
-    $pkg->export_to_level( 1, undef, @_ );
+method import ($class:) {
+    $class->export_to_level( 1, undef, @_ );
 }
 
-my %cache_defaults;
-
-sub export_to_level {
-    my ( $pkg, $level, $ignore, @params ) = @_;
+method export_to_level ($class: $level, $ignore, @params) {
 
     # Import requested globals into caller.
     #
-    my @vars = grep { /^\$/ } @params;
-    my @valid_import_params = qw($cache $conf $env $log);
-    if (@vars) {
+    if ( my @vars = grep { /^\$/ } @params ) {
         my ($caller) = caller($level);
         my $env = Poet::Environment->get_environment()
           or die "environment has not been initialized!";
-
-        foreach my $var (@vars) {
-            my $value;
-            if ( $var eq '$conf' ) {
-                $value = $env->conf();
-            }
-            elsif ( $var eq '$env' ) {
-                $value = $env;
-            }
-            elsif ( $var eq '$log' ) {
-                require Log::Any;
-                $value = Log::Any->get_logger( category => $caller );
-            }
-            elsif ( $var eq '$cache' ) {
-                initialize_caching($env);
-                $value = CHI->new( %cache_defaults, namespace => $caller );
-            }
-            else {
-                die sprintf(
-                    "unknown import parameter '$var' passed to Poet: valid import parameters are %s",
-                    join( ", ", map { "'$_'" } @valid_import_params ) );
-            }
-            my $no_sigil_var = substr( $var, 1 );
-            no strict 'refs';
-            *{"$caller\::$no_sigil_var"} = \$value;
-        }
-    }
-}
-
-sub initialize_caching {
-    my $env = shift;
-    require CHI;
-    my %cache_defaults =
-      %{ $env->conf->get_hash_from_common_prefix('cache.defaults.') };
-    if ( !%cache_defaults ) {
-        %cache_defaults = (
-            driver   => 'File',
-            root_dir => $env->data_path("cache")
-        );
+        my $importer = Poet::Importer->new( env => $env, caller => $caller );
+        $importer->import(@vars);
     }
 }
 
@@ -78,7 +35,7 @@ Poet -- A flexible application environment
 =head1 SYNOPSIS
 
     # In a module...
-    use Poet qw($conf $env $log);
+    use Poet qw($cache $conf $env $log);
 
 =head1 DESCRIPTION
 
@@ -114,6 +71,10 @@ initializing a script.
 The variables are:
 
 =over
+
+=item $cache
+
+The cache for the current package, provided by L<CHI|CHI>.
 
 =item $conf
 

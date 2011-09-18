@@ -54,7 +54,7 @@ Poet::Script -- Intialize the Poet environment for a script
 =head1 SYNOPSIS
 
     # In a script...
-    use Poet::Script qw($conf $env $log);
+    use Poet::Script qw($cache $conf $env $log);
 
 =head1 DESCRIPTION
 

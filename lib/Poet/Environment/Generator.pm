@@ -29,8 +29,12 @@ method generate_environment_directory ($class: %params) {
       "cannot generate environment in $root_dir - directory exists and is non-empty"
       if ( -d $root_dir && @{ read_dir($root_dir) } );
 
-    my @standard_subdirs = @{ Poet::Environment->subdirs() };
-    foreach my $subdir ( @standard_subdirs, "conf/layer", "conf/global" ) {
+    my @subdirs = (
+        @{ Poet::Environment->subdirs() },
+        ( map { "static/$_" } @{ Poet::Environment->static_subdirs() } ),
+        "conf/layer", "conf/global",
+    );
+    foreach my $subdir (@subdirs) {
         my $full_dir = catdir( $root_dir, split( '/', $subdir ) );
         mkpath( $full_dir, 0, 0775 );
     }
@@ -39,6 +43,7 @@ method generate_environment_directory ($class: %params) {
     my %standard_files       = (
         $root_marker_filename => $root_marker_template,
         'conf/local.cfg'      => $local_cfg_template,
+        'app.psgi'            => $app_psgi_template,
     );
     while ( my ( $subfile, $body ) = each(%standard_files) ) {
         my $full_file = catdir( $root_dir, split( '/', $subfile ) );
@@ -55,6 +60,27 @@ method generate_environment_directory ($class: %params) {
 
     return $root_dir;
 }
+
+$app_psgi_template = '
+use Poet::Script qw($conf $env $interp);
+use Plack::Builder;
+use warnings;
+use strict;
+
+builder {
+
+    # Add Plack middleware here
+    #
+    if ($env->is_internal) {
+        enable "Plack::Middleware::StackTrace";
+    }
+
+    sub {
+        my $psgi_env = shift;
+        $interp->handle_psgi($psgi_env);
+    };
+};
+';
 
 $root_marker_template = '
 This file marks the directory as a Poet environment root. Do not delete.
