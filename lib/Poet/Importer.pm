@@ -3,7 +3,7 @@ use Method::Signatures::Simple;
 use strict;
 use warnings;
 
-method valid_import_params () { qw($cache $conf $env $log) };
+method valid_import_params () { qw($cache $conf $env $interp $log) };
 
 method import ($caller, $env, @vars) {
     foreach my $var (@vars) {
@@ -24,15 +24,7 @@ method import ($caller, $env, @vars) {
 }
 
 method provide_cache ($caller, $env) {
-    my %cache_defaults =
-      %{ $env->conf->get_hash_from_common_prefix('cache.defaults.') };
-    if ( !%cache_defaults ) {
-        %cache_defaults = (
-            driver   => 'File',
-            root_dir => $env->data_path("cache")
-        );
-    }
-    $env->app_class('CHI')->new( %cache_defaults, namespace => $caller );
+    $env->app_class('CHI')->new();
 }
 
 method provide_conf ($caller, $env) {
@@ -41,6 +33,10 @@ method provide_conf ($caller, $env) {
 
 method provide_env ($caller, $env) {
     $env;
+}
+
+method provide_interp ($caller, $env) {
+    $env->app_class('Mason')->new();
 }
 
 method provide_log ($caller, $env) {

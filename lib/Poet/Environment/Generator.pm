@@ -14,13 +14,13 @@ my $root_marker_file = '.poet_root';
 my @static_subdirs   = qw(css images js);
 
 my (
-    $app_psgi_template,  $global_cfg_template, $layer_cfg_template,
-    $local_cfg_template, $root_marker_template
+    $app_psgi_template,    $chi_class_template, $global_cfg_template,
+    $layer_cfg_template,   $local_cfg_template, $mason_class_template,
+    $root_marker_template, $run_script_template
 );
 
 method generate_environment_directory ($class: %params) {
-    my $root_dir = $params{root_dir};
-    die "must specify root_dir" unless defined $root_dir;
+    my $root_dir = $params{root_dir} or die "must specify root_dir";
 
     $root_dir = realpath($root_dir);
     my $app_name = $params{app_name} || basename($root_dir);
@@ -33,7 +33,7 @@ method generate_environment_directory ($class: %params) {
 
     my @subdirs = (
         @{ Poet::Environment->subdirs() },
-        ( map { "static/$_" } @static_subdirs ), "conf/layer"
+        ( map { "static/$_" } @static_subdirs )
     );
     foreach my $subdir (@subdirs) {
         my $full_dir = join( '/', $root_dir, $subdir );
@@ -46,16 +46,25 @@ method generate_environment_directory ($class: %params) {
     );
 
     my $generate = sub {
-        my ( $subfile, $body ) = @_;
+        my ( $subfile, $body, $perms ) = @_;
+        $perms ||= 0664;
         my $full_file = join( '/', $root_dir, $subfile );
         trim($body);
+        mkpath( dirname($full_file), 0, 0775 );
         write_file( $full_file, $body );
-        chmod( 0664, $full_file );
+        chmod( $perms, $full_file );
     };
 
     $generate->(
         $root_marker_file, sprintf( $root_marker_template, $app_name )
     );
+    $generate->(
+        "lib/$app_name/Mason.pm", sprintf( $mason_class_template, $app_name )
+    );
+    $generate->(
+        "lib/$app_name/CHI.pm", sprintf( $chi_class_template, $app_name )
+    );
+    $generate->( "bin/run", sprintf( $run_script_template, $root_dir ), 0775 );
     $generate->( 'conf/local.cfg', $local_cfg_template );
     $generate->( 'app.psgi',       $app_psgi_template );
     foreach my $layer (qw(personal development staging production)) {
@@ -90,9 +99,33 @@ builder {
 };
 ';
 
-$root_marker_template = '
-# Marks the Poet environment root. Do not delete.
-app_name: %s
+$chi_class_template = '
+package %s::CHI;
+use Poet qw($conf $env);
+use strict;
+use warnings;
+use base qw(CHI);
+
+sub new {
+    my $class = shift;
+
+    my %%defaults = %%{ $conf->get_hash_from_common_prefix("cache.defaults.") };
+    if ( !%%defaults ) {
+        %%defaults = (
+            driver   => "File",
+            root_dir => $env->data_path("cache")
+        );
+    }
+    return $class->SUPER::new(@_);
+}
+';
+
+$global_cfg_template = '
+# Contains global configuration.
+';
+
+$layer_cfg_template = '
+# Contains configuration specific to the %s layer.
 ';
 
 $local_cfg_template = '
@@ -102,12 +135,34 @@ $local_cfg_template = '
 layer: personal
 ';
 
-$layer_cfg_template = '
-# Contains configuration specific to the %s layer.
+$mason_class_template = '
+package %s::Mason;
+use Poet qw($conf $env);
+use strict;
+use warnings;
+use base qw(Mason);
+
+sub new {
+    my $class = shift;
+
+    my %%defaults = (
+        comp_root => $env->comps_dir,
+        data_dir  => $env->data_dir,
+        plugins   => ["PSGIHandler"],
+        %%{ $conf->get_hash_from_common_prefix("mason.") },
+    );
+    return $class->SUPER::new(@_);
+}
 ';
 
-$global_cfg_template = '
-# Contains global configuration.
+$root_marker_template = '
+# Marks the Poet environment root. Do not delete.
+app_name: %s
+';
+
+$run_script_template = '
+#!/bin/sh
+plackup -r %s/app.psgi
 ';
 
 1;

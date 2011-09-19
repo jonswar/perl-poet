@@ -1,9 +1,11 @@
 #!/usr/bin/env perl
 use Poet::Environment::Generator;
 
-my $root_dir = shift(@ARGV) or die "usage: $0 root_dir";
+my ( $app_dir, $app_name ) = shift(@ARGV) or die "usage: $0 app_dir AppName";
 Poet::Environment::Generator->generate_environment_directory(
-    root_dir => $root_dir );
+    root_dir => $app_dir,
+    app_name => $app_name
+);
 
 __END__
 
@@ -13,11 +15,12 @@ poet - Generate a Poet environment
 
 =head1 SYNOPSIS
 
-   poet <dir>
+   poet <app_dir> <AppName>
 
 =head1 DESCRIPTION
 
-This script generates a skeleton Poet environment in the specified directory.
+Generates a skeleton Poet environment for an app called I<AppName> in the
+directory I<app_dir>.
 
 =head1 SEE ALSO
 
