@@ -1,4 +1,5 @@
 package Poet::Script;
+use Cwd qw(realpath);
 use File::Basename;
 use Poet;
 use Poet::Util qw(can_load read_file);
@@ -31,6 +32,7 @@ sub import {
         die
           "could not find '$root_marker_file' upwards from script dir '$script_dir'";
     }
+    $root_dir = realpath($root_dir);
 
     my $lib_dir = "$root_dir/lib";
     unless ( $INC[0] eq $lib_dir ) {

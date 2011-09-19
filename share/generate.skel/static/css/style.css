@@ -1,0 +1,20 @@
+body {
+    color: #000;
+    font-family: "Lucida Grande","Lucida Sans Unicode",Arial,Verdana,sans-serif;
+    font-size: 14px;
+    background: #F7F7F7;
+}
+
+table td, table th {
+    padding: 5px;
+    height: 100%;
+    font-size: 14px;
+}
+
+h3 {
+    font-size: 18px;
+}
+
+li {
+    padding-top: 5px;
+}

@@ -19,6 +19,7 @@ method generate_environment_directory ($class: %params) {
     die
       "cannot generate environment in $root_dir - directory exists and is non-empty"
       if ( -d $root_dir && @{ read_dir($root_dir) } );
+    $root_dir = realpath($root_dir);
 
     my $share_dir =
       realpath( $ENV{POET_SHARE_DIR} || File::ShareDir::dist_dir('Poet') );

@@ -7,9 +7,12 @@ builder {
 
     # Add Plack middleware here
     #
-    if ($env->is_internal) {
+    if ( $env->is_internal ) {
         enable "Plack::Middleware::StackTrace";
     }
+    enable "Plack::Middleware::Static",
+      path => qr{^/static/},
+      root => $env->root_dir;
 
     sub {
         my $psgi_env = shift;
