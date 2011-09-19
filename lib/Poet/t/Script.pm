@@ -17,10 +17,8 @@ my $script_template;
 
 sub test_script : Test(9) {
     my $self     = shift;
-    my $root_dir = Poet::Environment::Generator->generate_environment_directory(
-        root_dir => tempdir_simple(),
-        app_name => 'TestApp'
-    );
+    my $root_dir = temp_env_dir();
+
     write_conf_file( "$root_dir/conf/global/server.cfg",
         { 'server.baz' => 42 } );
 

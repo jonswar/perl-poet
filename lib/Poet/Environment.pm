@@ -50,9 +50,9 @@ method get_environment ($class:) {
     return $current_env;
 }
 
-method layer () {
-    return $self->conf->layer;
-}
+method layer ()       { $self->conf->layer }
+method is_internal () { $self->conf->is_internal }
+method is_live ()     { $self->conf->is_live }
 
 method BUILD () {
     my $root_dir = $self->root_dir();

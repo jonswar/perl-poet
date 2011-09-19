@@ -12,7 +12,7 @@ use warnings;
 use base qw(Exporter);
 
 our @EXPORT_OK =
-  qw(can_load catdir catfile checksum find_wanted json_decode json_encode read_file tempdir_simple trim uniq write_file );
+  qw(can_load catdir catfile checksum find_wanted json_decode json_encode read_file taint_is_on tempdir_simple trim uniq write_file );
 
 my $Fetch_Flags          = O_RDONLY | O_BINARY;
 my $Store_Flags          = O_WRONLY | O_CREAT | O_BINARY;
@@ -141,6 +141,10 @@ sub trim {
 sub uniq (@) {
     my %h;
     map { $h{$_}++ == 0 ? $_ : () } @_;
+}
+
+sub taint_is_on {
+    return ${^TAINT} ? 1 : 0;
 }
 
 sub write_file {

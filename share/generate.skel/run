@@ -1,0 +1,2 @@
+#!/bin/sh
+plackup -r <% $root_dir %>/app.psgi
