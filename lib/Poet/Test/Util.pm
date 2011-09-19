@@ -3,6 +3,7 @@ use File::Basename;
 use File::Path;
 use File::Slurp;
 use Poet::Environment::Generator;
+use Poet::Util qw(tempdir_simple);
 use YAML::XS;
 use strict;
 use warnings;
@@ -23,15 +24,20 @@ sub write_conf_file {
 sub temp_env {
     my (%params) = @_;
 
-    my $root_dir =
-      Poet::Environment::Generator->generate_environment_directory(
-        root_dir => 'TEMP' );
+    my $app_name = 'TestApp';
+    my $root_dir = Poet::Environment::Generator->generate_environment_directory(
+        root_dir => tempdir_simple('Poet-XXXX'),
+        app_name => $app_name
+    );
     if ( my $conf_files = $params{conf_files} ) {
         while ( my ( $conf_file, $contents ) = each(%$conf_files) ) {
             write_conf_file( "$root_dir/conf/$conf_file", $contents );
         }
     }
-    return Poet::Environment->new( root_dir => $root_dir );
+    return Poet::Environment->new(
+        root_dir => $root_dir,
+        app_name => $app_name
+    );
 }
 
 1;

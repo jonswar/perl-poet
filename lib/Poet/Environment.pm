@@ -1,19 +1,23 @@
-# $Id: $
-#
 package Poet::Environment;
 use Carp;
 use Poet::Conf;
 use File::Basename;
 use File::Path;
-use File::Spec::Functions qw(catdir rel2abs);
+use File::Slurp;
 use Poet::Moose;
+use Poet::Util qw(can_load catdir);
 
-has 'conf' => ();
-has 'name' => ();
+has 'app_name' => ( required => 1 );
+has 'conf'     => ();
 
-method subdirs ()        { [qw(bin comps conf data lib logs static t)] }
-method static_subdirs () { [qw(css images js)] }
-method root_marker_filename () { '.poet_root' }
+my ($current_env);
+
+method subdirs () { [qw(bin comps conf data lib logs static t)] }
+
+method app_class ($class_name) {
+    my $app_specific_class = join( "::", $self->app_name, $class_name );
+    return can_load($app_specific_class) ? $app_specific_class : $class_name;
+}
 
 method generate_subdir_methods ($class:) {
     foreach my $subdir ( 'root', @{ $class->subdirs() } ) {
@@ -33,16 +37,13 @@ method generate_subdir_methods ($class:) {
     }
 }
 
-my ($current_env);
-
-method initialize_current_environment ($class: $root_dir) {
+method initialize_current_environment ($class:) {
     if ( defined($current_env) ) {
         die sprintf(
             "initialize_current_environment called when current_env already set (%s)",
             $current_env->root_dir() );
     }
-    die "must pass existing root_dir" unless defined($root_dir) && -d $root_dir;
-    $current_env = $class->new( root_dir => $root_dir );
+    $current_env = $class->new(@_);
 }
 
 method get_environment ($class:) {
@@ -54,16 +55,13 @@ method layer () {
 }
 
 method BUILD () {
-    my $root_dir             = $self->root_dir();
-    my $root_marker_filename = $self->root_marker_filename();
-    die
-      "$root_dir is missing marker file $root_marker_filename - is it really an Poet environment root?"
-      unless -f "$root_dir/$root_marker_filename";
-    $self->{name} = basename($root_dir);
+    my $root_dir = $self->root_dir();
 
     # Initialize configuration
     #
-    $self->{conf} = Poet::Conf->new( conf_dir => catdir( $root_dir, "conf" ) );
+    $self->{conf} =
+      $self->app_class('Poet::Conf')
+      ->new( conf_dir => catdir( $root_dir, "conf" ) );
     my $conf = $self->{conf};
 
     # Determine where our standard subdirectories (bin, comps, etc.)
@@ -73,11 +71,6 @@ method BUILD () {
     foreach my $subdir ( @{ $self->subdirs() } ) {
         my $method = $subdir . "_dir";
         $self->{$method} = $conf->get( "env.$method" => "$root_dir/$subdir" );
-    }
-    my $static_dir = $self->{static_dir};
-    foreach my $subdir ( @{ $self->static_subdirs() } ) {
-        my $method = $subdir . "_dir";
-        $self->{$method} = $conf->get( "env.$method" => "$static_dir/$subdir" );
     }
 }
 

@@ -2,7 +2,8 @@
 use Poet::Environment::Generator;
 
 my $root_dir = shift(@ARGV) or die "usage: $0 root_dir";
-Poet::Environment::Generator->generate_environment_directory(root_dir => $root_dir);
+Poet::Environment::Generator->generate_environment_directory(
+    root_dir => $root_dir );
 
 __END__
 

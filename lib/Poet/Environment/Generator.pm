@@ -1,14 +1,17 @@
 package Poet::Environment::Generator;
 use Cwd qw(realpath);
+use File::Basename;
 use File::Path;
 use File::Slurp;
 use File::Temp qw(tempdir);
-use File::Spec::Functions qw(catdir);
 use Poet::Environment;
 use Poet::Moose;
 use Text::Trim qw(trim);
 use strict;
 use warnings;
+
+my $root_marker_file = '.poet_root';
+my @static_subdirs   = qw(css images js);
 
 my (
     $app_psgi_template,  $global_cfg_template, $layer_cfg_template,
@@ -18,12 +21,11 @@ my (
 method generate_environment_directory ($class: %params) {
     my $root_dir = $params{root_dir};
     die "must specify root_dir" unless defined $root_dir;
-    if ( $root_dir eq 'TEMP' ) {
-        $root_dir = tempdir( "poet-XXXX", TMPDIR => 1, CLEANUP => 1 );
-    }
-    else {
-        $root_dir = realpath($root_dir);
-    }
+
+    $root_dir = realpath($root_dir);
+    my $app_name = $params{app_name} || basename($root_dir);
+    die "invalid app_name '$app_name' - must be a valid Perl identifier"
+      unless $app_name =~ qr/[[:alpha:]_]\w*/;
 
     die
       "cannot generate environment in $root_dir - directory exists and is non-empty"
@@ -31,32 +33,38 @@ method generate_environment_directory ($class: %params) {
 
     my @subdirs = (
         @{ Poet::Environment->subdirs() },
-        ( map { "static/$_" } @{ Poet::Environment->static_subdirs() } ),
-        "conf/layer", "conf/global",
+        ( map { "static/$_" } @static_subdirs ), "conf/layer"
     );
     foreach my $subdir (@subdirs) {
-        my $full_dir = catdir( $root_dir, split( '/', $subdir ) );
+        my $full_dir = join( '/', $root_dir, $subdir );
         mkpath( $full_dir, 0, 0775 );
     }
 
-    my $root_marker_filename = Poet::Environment::root_marker_filename();
-    my %standard_files       = (
-        $root_marker_filename => $root_marker_template,
-        'conf/local.cfg'      => $local_cfg_template,
-        'app.psgi'            => $app_psgi_template,
+    my %standard_files = (
+        'conf/local.cfg' => $local_cfg_template,
+        'app.psgi'       => $app_psgi_template,
     );
-    while ( my ( $subfile, $body ) = each(%standard_files) ) {
-        my $full_file = catdir( $root_dir, split( '/', $subfile ) );
+
+    my $generate = sub {
+        my ( $subfile, $body ) = @_;
+        my $full_file = join( '/', $root_dir, $subfile );
         trim($body);
         write_file( $full_file, $body );
         chmod( 0664, $full_file );
-    }
+    };
 
+    $generate->(
+        $root_marker_file, sprintf( $root_marker_template, $app_name )
+    );
+    $generate->( 'conf/local.cfg', $local_cfg_template );
+    $generate->( 'app.psgi',       $app_psgi_template );
     foreach my $layer (qw(personal development staging production)) {
         my $full_file = "$root_dir/conf/layer/$layer.cfg";
-        write_file( $full_file, sprintf( $layer_cfg_template, $layer ) );
+        $generate->(
+            "conf/layer/$layer.cfg", sprintf( $layer_cfg_template, $layer )
+        );
     }
-    write_file( "$root_dir/conf/global/sample.cfg", $global_cfg_template );
+    $generate->( "conf/global.cfg", $global_cfg_template );
 
     return $root_dir;
 }
@@ -83,13 +91,13 @@ builder {
 ';
 
 $root_marker_template = '
-This file marks the directory as a Poet environment root. Do not delete.
+# Marks the Poet environment root. Do not delete.
+app_name: %s
 ';
 
 $local_cfg_template = '
-# Contains configuration local to this instance of
-# the environment. This file should not be checked into
-# version control.
+# Contains configuration local to this environment.
+# This file should not be checked into version control.
 
 layer: personal
 ';
@@ -99,7 +107,7 @@ $layer_cfg_template = '
 ';
 
 $global_cfg_template = '
-# Files in this directory are merged into global configuration.
+# Contains global configuration.
 ';
 
 1;

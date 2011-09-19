@@ -1,35 +1,26 @@
-# $Id: $
-#
-# Add the appropriate lib path to @INC and initialize Poet.
-#
 package Poet::Script;
 use File::Basename;
+use Poet;
+use Poet::Util qw(can_load read_file);
 use strict;
 use warnings;
+
+my $root_marker_file = '.poet_root';
 
 sub import {
     my $pkg = shift;
 
-    my $root_dir = determine_root_dir();
-    my $lib_dir  = "$root_dir/lib";
-    unless ( $INC[0] eq $lib_dir ) {
-        unshift( @INC, $lib_dir );
-    }
-
-    require Poet;
-    require Poet::Environment;
-    Poet::Environment->initialize_current_environment($root_dir);
-    Poet->export_to_level( 1, undef, @_ );
-}
-
-sub determine_root_dir {
     my $script_dir = dirname($0);
     my $path       = $script_dir;
-    my $root_dir;
+    my ( $root_dir, $app_name );
 
     my $lastpath = '';
     while ( length($path) > 1 && $path ne $lastpath ) {
-        if ( -f "$path/.poet_root" ) {
+        my $full_root_marker_file = "$path/$root_marker_file";
+        if ( -f $full_root_marker_file ) {
+            ($app_name) =
+              ( read_file("$full_root_marker_file") =~ /app_name: (.*)/ )
+              or die "cannot find app_name in $full_root_marker_file";
             $root_dir = $path;
             last;
         }
@@ -38,9 +29,19 @@ sub determine_root_dir {
     }
     unless ( defined $root_dir ) {
         die
-          "could not find Poet environment root upwards from script dir '$script_dir'";
+          "could not find '$root_marker_file' upwards from script dir '$script_dir'";
     }
-    return $root_dir;
+
+    my $lib_dir = "$root_dir/lib";
+    unless ( $INC[0] eq $lib_dir ) {
+        unshift( @INC, $lib_dir );
+    }
+
+    Poet::Environment->initialize_current_environment(
+        root_dir => $root_dir,
+        app_name => $app_name
+    );
+    Poet->export_to_level( 1, undef, @_ );
 }
 
 1;

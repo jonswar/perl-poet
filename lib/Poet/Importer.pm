@@ -1,23 +1,19 @@
-# $Id: $
-#
 package Poet::Importer;
-use Poet::Moose;
+use Method::Signatures::Simple;
+use strict;
+use warnings;
 
-has 'caller' => ( required => 1 );
-has 'env'    => ( required => 1 );
+method valid_import_params () { qw($cache $conf $env $log) };
 
-# todo: determine from mop
-method valid_import_params  () { qw(cache conf env log) };
-
-method import (@vars) {
+method import ($caller, $env, @vars) {
     foreach my $var (@vars) {
         if ( substr( $var, 0, 1 ) eq '$' ) {
             my $bare_var = substr( $var, 1 );
             my $provide_method = "provide_" . $bare_var;
             if ( $self->can($provide_method) ) {
-                my $value = $self->$provide_method();
+                my $value = $self->$provide_method( $caller, $env );
                 no strict 'refs';
-                *{ $self->caller . "\::$bare_var" } = \$value;
+                *{ $caller . "\::$bare_var" } = \$value;
                 next;
             }
         }
@@ -27,32 +23,29 @@ method import (@vars) {
     }
 }
 
-method provide_cache () {
-    require CHI;
+method provide_cache ($caller, $env) {
     my %cache_defaults =
-      %{ $self->env->conf->get_hash_from_common_prefix('cache.defaults.') };
+      %{ $env->conf->get_hash_from_common_prefix('cache.defaults.') };
     if ( !%cache_defaults ) {
         %cache_defaults = (
             driver   => 'File',
-            root_dir => $self->env->data_path("cache")
+            root_dir => $env->data_path("cache")
         );
     }
-    CHI->new( %cache_defaults, namespace => $self->caller );
+    $env->app_class('CHI')->new( %cache_defaults, namespace => $caller );
 }
 
-method provide_conf () {
-    $self->env->conf();
+method provide_conf ($caller, $env) {
+    $env->conf();
 }
 
-method provide_env () {
-    $self->env;
+method provide_env ($caller, $env) {
+    $env;
 }
 
-method provide_log () {
+method provide_log ($caller, $env) {
     require Log::Any;
-    Log::Any->get_logger( category => $self->caller );
+    Log::Any->get_logger( category => $caller );
 }
-
-__PACKAGE__->meta->make_immutable();
 
 1;

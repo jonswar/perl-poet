@@ -6,6 +6,7 @@ use File::Path;
 use File::Slurp;
 use IPC::System::Simple qw(run);
 use Poet::Test::Util;
+use Poet::Util qw(tempdir_simple);
 use Test::Most;
 use YAML::XS;
 use strict;
@@ -15,10 +16,11 @@ use base qw(Test::Class);
 my $script_template;
 
 sub test_script : Test(9) {
-    my $self = shift;
-    my $root_dir =
-      Poet::Environment::Generator->generate_environment_directory(
-        root_dir => 'TEMP' );
+    my $self     = shift;
+    my $root_dir = Poet::Environment::Generator->generate_environment_directory(
+        root_dir => tempdir_simple(),
+        app_name => 'TestApp'
+    );
     write_conf_file( "$root_dir/conf/global/server.cfg",
         { 'server.baz' => 42 } );
 
