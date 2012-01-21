@@ -1,6 +1,5 @@
 package Poet::Conf;
 use Carp;
-use Carp::Assert;
 use Cwd qw(realpath);
 use File::Basename;
 use File::Slurp qw(read_file);
