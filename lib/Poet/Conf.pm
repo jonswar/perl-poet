@@ -8,7 +8,6 @@ use File::Spec::Functions qw(catfile);
 use Guard;
 use Poet::Moose;
 use Try::Tiny;
-use YAML::AppConfig;
 use YAML::XS;
 use strict;
 use warnings;
@@ -47,7 +46,7 @@ method parse_config_files () {
 
     foreach my $file (@conf_files) {
         if ( defined $file && -f $file ) {
-            my $new_data = $self->_read_yaml_file($file);
+            my $new_data = $self->_read_config_file($file);
             %data = ( %data, %$new_data );
 
             # Make sure no keys are defined in multiple global config files
@@ -77,7 +76,7 @@ method determine_layer () {
     my $local_cfg_file = catfile( $conf_dir, "local.cfg" );
     my $local_cfg =
       ( -f $local_cfg_file )
-      ? $self->_read_yaml_file($local_cfg_file)
+      ? $self->_read_config_file($local_cfg_file)
       : {};
     my $layer = $local_cfg->{layer}
       || die "must specify layer in '$local_cfg_file'";
@@ -109,7 +108,7 @@ method ordered_conf_files () {
     );
 }
 
-method _read_yaml_file ($file) {
+method _read_config_file ($file) {
 
     # Read a yaml file into a hash, adding a dummy key pair to handle empty
     # files or files with nothing but comments, and checking for errors.
@@ -138,11 +137,12 @@ method get ($key, $default) {
     return $get_cache{$key} if exists( $get_cache{$key} );
     my $value = $self->data->{$key};
     if ( defined($value) ) {
-        while ( my ( $var_decl, $var_key ) =
-            ( $value =~ /(\$ (?: (\w\.\-+) | \{(\w\.\-+)\} ) )/x ) )
-        {
+        while ( $value =~ /(\$ (?: ([\w\.\-]+) | \{([\w\.\-]+)\} ) )/x ) {
+            my $var_decl  = $1;
+            my $var_key   = defined($2) ? $2 : $3;
             my $var_value = $self->get($var_key);
-            $value =~ s/$var_decl/$var_value/g;
+            $var_value = '' if !defined($var_value);
+            $value =~ s/\Q$var_decl\E/$var_value/;
         }
     }
     $get_cache{$key} = $value;
@@ -359,12 +359,9 @@ read as an extra conf file whose values override all others.
 
 =head2 Format of files
 
-The configuration format is provided by L<YAML::AppConfig|YAML::AppConfig>.
-This is basically YAML with an added variable syntax that allows config entries
-to be based on each other. For most purposes, plain YAML will suffice. See
-http://www.yaml.org/refcard.html for a quick reference.
+The basic configuration format is L<YAML|http://www.yaml.org/>. For example:
 
-Example:
+   # if conf file contains
 
    apache.httpd_install_dir: /home/webuser/site/vendor/httpd
    apache.group: webuser
@@ -373,10 +370,35 @@ Example:
      - CGI
      - CGI::Cookie
 
-See more YAML examples at http://www.yaml.org/refcard.html.
+   # then
 
-By convention we use "." as a separator when we want hierarchial key names,
-e.g. ''apache.*''. This is purely a convention, and not necessary for all keys.
+   $conf->get('apache.group')
+      => "webuser"
+   $conf->get('load_modules') or $conf->get_list('load_modules')
+      => ['CGI', 'CGI::Cookie']
+
+By convention Poet apps use "." as a separator when we want hierarchial key
+names, e.g. ''apache.*''.
+
+The one addition to standard YAML is that config entries can refer to other
+entries via the syntax C<$key> or C<${key}>. For example:
+
+   # conf file
+
+   foo: 5
+   bar: "The number $foo"
+   baz: ${bar}00
+
+   # then
+   
+   $conf->get('foo')
+      => 5
+   $conf->get('bar')
+      => "The number 5"
+   $conf->get('baz')
+      => "The number 500"
+
+This is only supported for keys matching C<[\w\.\-]+>.
 
 =head1 OBTAINING $conf SINGLETON
 
@@ -400,6 +422,9 @@ $conf is automatically available in components.
 
 Get I<key> from configuration. If I<key> is unavailable, return the I<default>,
 or undef if no default is given.
+
+The return value may be a scalar, list reference, or hash reference, though we
+recommend using L</get_list> and L</get_hash> if you expect a list or hash.
 
 =item get_or_die
 
@@ -473,6 +498,11 @@ for production code. Setting and resetting of configuration values will make it
 much more difficult to read and debug code!
 
 =back
+
+=head1 CREDITS
+
+The ideas of merging multiple conf files and variable substitution came from
+L<YAML::AppConfig>.
 
 =head1 SEE ALSO
 

@@ -11,9 +11,9 @@ my $conf_files = {
     'global/first.cfg'          => { a => 10, b => 6, c => 11, d => 12 },
     'global/second.cfg'         => { e => 20 },
     'global/third-not-a-config' => { f => 30 },
-    'layer/personal.cfg'    => { c => 40, g => 50, h => 51 },
+    'layer/personal.cfg'    => { c => 40, g => '_$b', h => 51 },
     'layer/development.cfg' => { f => 30 },
-    'local.cfg' => { h => 60, layer => 'personal' },
+    'local.cfg' => { h => '__${e}', layer => 'personal' },
 };
 
 my $expected_values = {
@@ -23,8 +23,8 @@ my $expected_values = {
     d => 12,
     e => 20,
     f => undef,
-    g => 50,
-    h => 60,
+    g => "_6",
+    h => "__20",
 };
 
 sub test_global : Test(9) {
