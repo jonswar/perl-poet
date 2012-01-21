@@ -29,7 +29,7 @@ __END__
 
 =head1 NAME
 
-Poet -- A flexible application environment
+Poet -- Import Poet variables into current package
 
 =head1 SYNOPSIS
 
@@ -38,30 +38,7 @@ Poet -- A flexible application environment
 
 =head1 DESCRIPTION
 
-Poet provides a flexible environment for a web or standalone application. It
-gives you
-
-=over
-
-=item *
-
-A standard root directory with conf, lib, bin, etc., autodetected from any
-script inside the environment
-
-=item *
-
-A multi-file configuration layout with knowledge of different application
-"layers"
-
-=item *
-
-Easy one-line access to environment, configuration, caching and logging objects
-
-=back
-
-=for readme stop
-
-=head1 IMPORTS
+For information about the Poet framework see L<Poet::Manual>.
 
 The sole purpose of 'use Poet' is to import standard Poet variables into the
 current package. You can import the same variables from 'use Poet::Script' when
@@ -103,9 +80,5 @@ Hearst Corporation, a diversified media company based in New York City.  Many
 thanks to Hearst for agreeing to this open source release. Hearst has no direct
 involvement with this open source release and bears no responsibility for its
 support or maintenance.
-
-=head1 AUTHOR
-
-Jonathan Swartz
 
 =cut
