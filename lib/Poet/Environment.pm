@@ -50,9 +50,9 @@ method get_environment ($class:) {
     return $current_env;
 }
 
-method layer ()       { $self->conf->layer }
-method is_internal () { $self->conf->is_internal }
-method is_live ()     { $self->conf->is_live }
+method layer ()          { $self->conf->layer }
+method is_development () { $self->conf->is_development }
+method is_live ()        { $self->conf->is_live }
 
 method BUILD () {
     my $root_dir = $self->root_dir();
@@ -95,12 +95,22 @@ Poet::Environment -- Access to Poet environment
     # In a module...
     use Poet qw($env);
 
-    # $env is automatically available in components
+    # $env is automatically available in Mason components
+
+    # then...
+    my $layer          = $env->layer;
+    my $root_dir       = $env->root_dir;
+    my $path_to_script = $env->bin_path("foo/bar.pl");
+
+    if ($env->is_development) {
+        debug_mode('on');
+    }
 
 =head1 DESCRIPTION
 
-Poet::Environment provides a singleton, $env, which gives information about the
-current environment such as directory paths and layer.
+The Poet::Environment object contains general information about the current
+environment such as layer (e.g. 'development' or 'production') and directory
+paths.
 
 =head1 METHODS
 
@@ -109,7 +119,16 @@ current environment such as directory paths and layer.
 =item layer
 
 Returns the current layer of the environment, e.g. 'development' or
-'production'. The full list of layers is defined by the files in conf/layer.
+'production'. The full list of layers is determined by the conf files in
+conf/layer.
+
+=item is_development
+
+Returns true if the current layer is 'development'.
+
+=item is_live
+
+Returns true if the current layer is 'staging' or 'production'.
 
 =item root_dir
 
@@ -122,13 +141,7 @@ located.
 
 =item conf_dir
 
-=item css_dir
-
 =item data_dir
-
-=item images_dir
-
-=item js_dir
 
 =item lib_dir
 
@@ -136,44 +149,74 @@ located.
 
 =item static_dir
 
-Returns the specified subdirectory, which by default will be in the obvious
-place (just below the root directory for most, just below the static directory
-for C<css>, C<images> and C<js>). Any of these other than conf_dir can be
-overriden in configuration. e.g.
+Returns the specified subdirectory, which by default will be just below the
+root dirctory. e.g. if the Poet environment root is C</my/env/root>, then
+
+    $env->conf_dir
+       ==> returns /my/env/root/conf
+
+    $env->lib_dir
+       ==> returns /my/env/root/lib
+
+=item bin_path (subpath)
+
+=item comps_path (subpath)
+
+=item conf_path (subpath)
+
+=item data_path (subpath)
+
+=item lib_path (subpath)
+
+=item logs_path (subpath)
+
+=item static_path (subpath)
+
+Returns the specified subdirectory with a relative I<subpath> added. e.g. if
+the Poet environment root is C</my/env/root>, then
+
+    $env->conf_path("log4perl.conf");
+       ==> returns /my/env/root/conf/log4perl.conf
+
+    $env->lib_path("Data/Type.pm");
+       ==> returns /my/env/root/lib/Data/Type.pm
+
+=item app_name
+
+Returns the app name, e.g. 'MyApp', found in .poet_root.
+
+=item conf
+
+Returns the L<Poet::Conf|Poet::Conf> object associated with the environment.
+Usually you'd access this by importing C<$conf>.
+
+    my $conf = $env->conf;
+
+=item current_environment
+
+A class method that returns the current (singleton) environment for the
+process. Usually you'd access this by importing C<$env>.
+
+    my $env = Poet::Environment->current_environment;
+
+=back
+
+=head1 OVERRIDING ENVIRONMENT SUBDIRECTORIES
+
+Any subdirectories other than conf_dir can be overriden in configuration. e.g.
 
     # Override bin_dir
     env.bin_dir: /some/other/bin/dir
 
-=item bin_path (path)
+With this configuration in place,
 
-=item conf_path (path)
+    $env->bin_dir
+       ==> returns /some/other/bin/dir
 
-=item css_path (path)
-
-=item data_path (path)
-
-=item images_path (path)
-
-=item js_path (path)
-
-=item lib_path (path)
-
-=item logs_path (path)
-
-=item static_path (path)
-
-Returns the specified subdirectory with a relative path added. e.g.
-
-    $env->conf_path("log4perl.conf");
-    $env->lib_path("Data/Type.pm");
-
-=back
+    $env->bin_path("foo/bar.pl")
+       ==> returns /some/other/bin/dir/foo/bar.pl
 
 =head1 SEE ALSO
 
 Poet
-
-=head1 AUTHOR
-
-Jonathan Swartz
 

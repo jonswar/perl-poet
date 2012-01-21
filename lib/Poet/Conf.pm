@@ -13,19 +13,19 @@ use YAML::XS;
 use strict;
 use warnings;
 
-has 'conf_dir'    => ( required => 1 );
-has 'data'        => ( init_arg => undef );
-has 'is_internal' => ( init_arg => undef );
-has 'is_live'     => ( init_arg => undef );
-has 'layer'       => ( init_arg => undef );
+has 'conf_dir'       => ( required => 1 );
+has 'data'           => ( init_arg => undef );
+has 'is_development' => ( init_arg => undef );
+has 'is_live'        => ( init_arg => undef );
+has 'layer'          => ( init_arg => undef );
 
 our %get_cache;
 
 method BUILD () {
-    $self->{layer}       = $self->determine_layer();
-    $self->{is_internal} = $self->determine_is_internal();
-    $self->{is_live}     = !$self->{is_internal};
-    $self->{data}        = $self->parse_config_files();
+    $self->{layer}          = $self->determine_layer();
+    $self->{is_development} = $self->layer eq 'development';
+    $self->{is_live}        = $self->determine_is_live();
+    $self->{data}           = $self->parse_config_files();
 }
 
 method parse_config_files () {
@@ -87,8 +87,8 @@ method determine_layer () {
     return $layer;
 }
 
-method determine_is_internal () {
-    return $self->layer =~ /^(?:personal|development)$/;
+method determine_is_live () {
+    return $self->layer =~ /^(?:staging|production)$/;
 }
 
 method ordered_conf_files () {
@@ -99,9 +99,9 @@ method ordered_conf_files () {
         "$conf_dir/global.cfg",
         glob("$conf_dir/global/*.cfg"),
         (
-            $self->is_internal
-            ? ("$conf_dir/layer/internal.cfg")
-            : ("$conf_dir/layer/live.cfg")
+            $self->is_live
+            ? ("$conf_dir/layer/live.cfg")
+            : ()
         ),
         "$conf_dir/layer/$layer.cfg",
         "$conf_dir/local.cfg",
@@ -269,6 +269,8 @@ Poet::Conf -- Access to Poet configuration
     # In a module...
     use Poet qw($conf);
 
+    # $conf is automatically available in Mason components
+
     # then...
     my $value = $conf->get('key', 'default');
     my $value = $conf->get_or_die('key');
@@ -289,8 +291,8 @@ Poet::Conf -- Access to Poet configuration
 
 =head1 DESCRIPTION
 
-Poet::Conf provides a singleton, $conf, which gives access to the current
-environment's configuration.
+The Poet::Conf object gives access to the current environment's configuration,
+read from configuration files in the conf/ subdirectory.
 
 =head1 WHERE CONFIGURATION COMES FROM
 
@@ -332,15 +334,11 @@ The layer/ directory contains version-controlled files specific to layers:
 
 =item *
 
-internal.cfg - read when layer = personal or development
+development.cfg, production.cfg, etc. - settings for each particular layer
 
 =item *
 
-live.cfg - read when layer = anything but personal or development
-
-=item *
-
-I<layer>.cfg - settings for each particular layer
+live.cfg - read when layer = "staging" or "production"
 
 =back
 
@@ -350,7 +348,7 @@ local.cfg contains settings for this particular instance of the environment. It
 is not checked into version control. local.cfg must contain at least the layer,
 e.g.
 
-    layer: personal    
+    layer: development
 
 =item *
 
@@ -478,10 +476,6 @@ much more difficult to read and debug code!
 
 =head1 SEE ALSO
 
-Poet, Poet::Environment
-
-=head1 AUTHOR
-
-Jonathan Swartz
+Poet
 
 =cut
