@@ -1,2 +1,12 @@
-#!/bin/sh
-plackup -r <% $root_dir %>/app.psgi
+#!/usr/bin/env perl
+use Poet::Script qw($conf $env);
+use IPC::System::Simple qw(run);
+use strict;
+use warnings;
+
+# Run plackup with appropriate port, layer and app.psgi
+#
+my $port = $conf->get( 'server.port' => 5000 );
+my $app_psgi = $env->root_path("app.psgi");
+my $layer = $env->layer;
+run("plackup", "-r", "-p", $port, "-E", $layer, $app_psgi);
