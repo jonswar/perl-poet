@@ -28,6 +28,9 @@ sub temp_env {
 
     my $root_dir = temp_env_dir(%params);
     my $app_name = $params{app_name} || 'TestApp';
+    if ( my $conf = $params{conf} ) {
+        write_conf_file( "$root_dir/conf/local.cfg", $conf );
+    }
     if ( my $conf_files = $params{conf_files} ) {
         while ( my ( $conf_file, $contents ) = each(%$conf_files) ) {
             write_conf_file( "$root_dir/conf/$conf_file", $contents );

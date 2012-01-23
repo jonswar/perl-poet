@@ -1,6 +1,5 @@
 package Poet::Environment;
 use Carp;
-use Poet::Conf;
 use File::Basename;
 use File::Path;
 use File::Slurp;
@@ -15,8 +14,11 @@ my ($current_env);
 method subdirs () { [qw(bin comps conf data lib logs static t)] }
 
 method app_class ($class_name) {
-    my $app_specific_class = join( "::", $self->app_name, $class_name );
-    return can_load($app_specific_class) ? $app_specific_class : $class_name;
+    my $app_class_name = join( "::", $self->app_name, $class_name );
+    return
+        can_load($app_class_name) ? $app_class_name
+      : can_load($class_name)     ? $class_name
+      :   die "cannot load $app_class_name or $class_name";
 }
 
 method generate_subdir_methods ($class:) {
@@ -72,6 +74,12 @@ method BUILD () {
         my $method = $subdir . "_dir";
         $self->{$method} = $conf->get( "env.$method" => "$root_dir/$subdir" );
     }
+
+    # Initialize logging
+    #
+    $self->{log_manager} =
+      $self->app_class('Poet::Log::Manager')->new( env => $self );
+    $self->{log_manager}->initialize_logging();
 }
 
 __PACKAGE__->generate_subdir_methods();

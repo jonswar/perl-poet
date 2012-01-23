@@ -1,0 +1,28 @@
+
+=head1 NAME
+
+Poet::Manual - Index of Poet documentation
+
+=head1 MANUALS
+
+=over
+
+=item L<Poet::Manual::Intro>
+
+What Poet is all about.
+
+=back
+
+=head1 REFERENCE DOCUMENTATION
+
+=over
+
+=item L<Poet>
+
+=item L<Poet::Script>
+
+=item L<Poet::Environment>
+
+=item L<Poet::Conf>
+
+=back
