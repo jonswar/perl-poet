@@ -1,7 +1,7 @@
 use Poet::Script qw($conf $env);
 use Plack::Builder;
-use warnings;
 use strict;
+use warnings;
 
 builder {
 
@@ -14,7 +14,7 @@ builder {
       path => qr{^/static/},
       root => $env->root_dir;
 
-    my $interp = Poet::Mason->current_interp;
+    my $interp = Poet::Mason->instance;
 
     sub {
         my $psgi_env = shift;

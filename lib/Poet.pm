@@ -46,14 +46,19 @@ L<Poet::Environment|Poet::Environment>.
 
 =head1 CONFIGURATION
 
-Poet configuration lives in one or more files in the conf/ subdirectory. The
-format is YAML augmented with variable substitution. See
-L<Poet::Conf|Poet::Conf>.
+Poet configuration lives in one or more files in the C<conf/> subdirectory. The
+format is L<YAML|http://www.yaml.org/> augmented with variable substitution.
+See L<Poet::Conf|Poet::Conf>.
 
 =head1 LOGGING
 
-Poet uses the Log::Log4perl engine for logging, but with a much simpler
-configuration for the common cases. See L<Poet::Log|Poet::Log>.
+Poet uses the L<Log::Log4perl|Log::Log4perl> engine for logging, but with a
+much simpler configuration for the common cases. See L<Poet::Log|Poet::Log>.
+
+=head1 CACHING
+
+Poet uses L<CHI|CHI> for caching. You can configure caching for different
+namespaces in Poet conf files. See L<Poet::Cache|Poet::Cache>.
 
 =head1 POET VARIABLES
 

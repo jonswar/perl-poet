@@ -1,5 +1,6 @@
 package Poet::Mason;
 use Poet qw($conf $env);
+use List::MoreUtils qw(uniq);
 use Method::Signatures::Simple ();
 use Moose;
 
@@ -12,16 +13,21 @@ sub instance {
     $instance;
 }
 
-sub new {
-    my $class = shift;
-
+sub get_defaults {
+    my @plugins = uniq( @{ $conf->get_list("mason.plugins") }, 'PSGIHandler' );
     my %defaults = (
         comp_root => $env->comps_dir,
         data_dir  => $env->data_dir,
-        plugins   => ["PSGIHandler"],
+        plugins   => \@plugins,
         %{ $conf->get_hash_from_common_prefix("mason.") },
     );
-    return $class->SUPER::new( %defaults, @_ );
+    return %defaults;
+}
+
+sub new {
+    my $class = shift;
+
+    return $class->SUPER::new( $self->defaults, @_ );
 }
 
 1;
