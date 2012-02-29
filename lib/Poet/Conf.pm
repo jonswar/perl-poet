@@ -258,7 +258,7 @@ __END__
 
 =head1 NAME
 
-Poet::Conf -- Access to Poet configuration
+Poet::Conf -- Poet configuration
 
 =head1 SYNOPSIS
 

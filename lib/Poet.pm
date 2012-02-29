@@ -29,20 +29,14 @@ __END__
 
 =head1 NAME
 
-Poet -- Import Poet variables into current package
+Poet -- A web framework for Mason developers
 
-=head1 SYNOPSIS
+=head1 LOGGING
 
-    # In a module...
-    use Poet qw($cache $conf $env $log);
+Poet uses the Log::Log4perl engine for logging, but with a much simpler
+configuration for the common cases. See L<Poet::Log|Poet::Log>.
 
-=head1 DESCRIPTION
-
-For information about the Poet framework see L<Poet::Manual>.
-
-The sole purpose of 'use Poet' is to import standard Poet variables into the
-current package. You can import the same variables from 'use Poet::Script' when
-initializing a script.
+=head1 POET VARIABLES
 
 The variables are:
 
@@ -50,15 +44,16 @@ The variables are:
 
 =item $cache
 
-The cache for the current package, provided by L<CHI|CHI>.
+The cache for the current package, provided by L<CHI|CHI> or a subclass
+thereof.
 
 =item $conf
 
-The global configuration object provided by L<Poet::Conf|Poet::Conf>.
+The global configuration object, provided by L<Poet::Conf|Poet::Conf>.
 
 =item $env
 
-The global environment object provided by
+The global environment object, provided by
 L<Poet::Environment|Poet::Environment>.
 
 =item $log
@@ -67,9 +62,7 @@ The logger for the current package, provided by L<Log::Any|Log::Any>.
 
 =back
 
-=head1 SEE ALSO
-
-L<Poet::Script|Poet::Script>, L<Poet::Manual|Poet::Manual>
+In a module: 'use Poet'. In a script: 'use Poet::Script'.
 
 =for readme continue
 

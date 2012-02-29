@@ -1,6 +1,12 @@
 package Poet::Log;
+use Log::Any;
 use strict;
 use warnings;
+
+sub get_logger {
+    my $class = shift;
+    return Log::Any->get_logger(@_);
+}
 
 1;
 
@@ -10,7 +16,7 @@ __END__
 
 =head1 NAME
 
-Poet::Log -- Provides log objects
+Poet::Log -- Poet logging
 
 =head1 SYNOPSIS
 
@@ -25,35 +31,45 @@ Poet::Log -- Provides log objects
 
     # then...
     $log->error("an error occurred");
+
     $log->debugf("arguments are: %s", \@_)
         if $log->is_debug();
 
 =head1 DESCRIPTION
 
-Poet::Log provides the log object when you import the Poet C<$log> variable. It
-uses L<log4perl|Log::Log4perl> as the engine but provides simpler configuration
-via Poet conf files.
+By default Poet uses L<Log::Any|Log::Any> and L<Log::Log4perl|Log::Log4perl>
+for logging.
+
+Log::Any is a logging abstraction that allows CPAN modules to log without
+knowing about which logging framework is in use. It supports standard logging
+methods (C<$log-E<gt>debug>, C<$log-E<gt>is_debug>) along with sprintf variants
+(C<$log-E<gt>debugf>).
+
+Log4perl is a powerful logging package that provides just about any
+logging-related feature you'd want. However, it can be rather verbose to
+configure, so we provide a way to configure Log4perl in a simpler way through
+Poet conf files if you just want common features.
 
 =head1 CONFIGURATION
 
-Here's are sample configuration entries for logging. These can go in any Poet
-conf file(s), e.g. local.cfg or global/log.cfg.
+=head2 Simple configuration
+
+Here's a sample logging configuration. This can go in any Poet conf file(s),
+e.g. local.cfg or global/log.cfg.
 
     log.defaults:
-       level: info
-       output: poet.log
-       layout: "%d{dd/MMM/yyyy:HH:mm:ss.SS} [%p] %c - %m - %F:%L - %P%n"
-    log.class.Foo:
+      level: info
+      output: poet.log
+      layout: "%d{dd/MMM/yyyy:HH:mm:ss.SS} [%p] %c - %m - %F:%L - %P%n"
+    log.class.CHI:
       level: debug
       output: chi.log
       layout: "%d{dd/MMM/yyyy:HH:mm:ss.SS} %m - %P%n"
-    log.class.Bar:
+    log.class.MyApp.Foo:
       output: stdout
-    log.class.Baz:
-      output: stderr
 
-This defines default settings and per-class settings for three classes. There
-are three items that can be set within each setting:
+This defines default settings, and specific settings for namespace C<CHI> and
+C<MyApp::Foo>. There are three setting types:
 
 =over
 
@@ -74,8 +90,61 @@ string.
 
 =back
 
-The configuration above will generate a log4perl configuration roughly like
-this:
+If a setting isn't defined for a specific namespace then it falls back to the
+default. In this example, C<MyApp::Foo> will inherit the default level and
+layout.
+
+=head2 Advanced configuration
+
+If you need a Log4perl feature that isn't handled by the simple configuration
+case above, you can specify a full L<Log4perl configuration
+file|Log::Log4perl::Config> instead:
+
+    log.log4perl_conf_file: /path/to/log4perl.conf
+
+=head1 USAGE
+
+=head2 Obtaining log handle
+
+=over
+
+=item *
+
+In a script (log namespace will be 'main'):
+
+    use Poet::Script qw($log);
+
+=item *
+
+In a module C<MyApp::Foo> (log namespace will be 'MyApp::Foo'):
+
+    use Poet qw($log);
+
+=item *
+
+In a component C</foo/bar> (log namespace will be
+'Mason::Component::foo::bar'):
+
+    my $log = $m->log;
+
+=item *
+
+Manually for an arbitrary log namespace:
+
+    my $log = Log::Any->get_logger('Some::Namespace');
+
+=back
+
+=head2 Using log handle
+
+    $log->error("an error occurred");
+
+    $log->debugf("arguments are: %s", \@_)
+        if $log->is_debug();
+
+See C<Log::Any|Log::Any> for more details.
+
+=head1 APPENDIX A: SIMPLE CONFIGURATION TRANSLATION
 
    log4perl.logger = INFO, default
    log4perl.appender.default = Log::Log4perl::Appender::File
@@ -83,18 +152,13 @@ this:
    log4perl.appender.default.layout.ConversionPattern = %d{dd/MMM/yyyy:HH:mm:ss.SS} [%p] %c - %m - %F:%L - %P%n
    log4perl.appender.default.filename = /Users/swartz/git/poet.git/tmp/my_app/logs/poet.log
    
-   log4perl.logger.Bar = INFO, Bar
-   log4perl.appender.Bar = Log::Log4perl::Appender::Screen
-   log4perl.appender.Bar.layout = Log::Log4perl::Layout::PatternLayout
-   log4perl.appender.Bar.layout.ConversionPattern = %d{dd/MMM/yyyy:HH:mm:ss.SS} [%p] %c - %m - %F:%L - %P%n
-   log4perl.appender.Bar.stderr = 0
+   log4perl.logger.MyApp.Foo = INFO, MyApp_Foo
+   log4perl.appender.MyApp.Foo = Log::Log4perl::Appender::Screen
+   log4perl.appender.MyApp.Foo.layout = Log::Log4perl::Layout::PatternLayout
+   log4perl.appender.MyApp.Foo.layout.ConversionPattern = %d{dd/MMM/yyyy:HH:mm:ss.SS} [%p] %c - %m - %F:%L - %P%n
+   log4perl.appender.MyApp.Foo.stderr = 0
    
-   log4perl.logger.Baz = INFO, Baz
-   log4perl.appender.Baz = Log::Log4perl::Appender::Screen
-   log4perl.appender.Baz.layout = Log::Log4perl::Layout::PatternLayout
-   log4perl.appender.Baz.layout.ConversionPattern = %d{dd/MMM/yyyy:HH:mm:ss.SS} [%p] %c - %m - %F:%L - %P%n
-   
-   log4perl.logger.Foo = DEBUG, Foo
+   log4perl.logger.Foo = DEBUG, CHI
    log4perl.appender.Foo = Log::Log4perl::Appender::File
    log4perl.appender.Foo.layout = Log::Log4perl::Layout::PatternLayout
    log4perl.appender.Foo.layout.ConversionPattern = %d{dd/MMM/yyyy:HH:mm:ss.SS} %m - %P%n
