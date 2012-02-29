@@ -4,7 +4,6 @@ use File::Temp qw(tempdir);
 use Test::LongString;
 use Poet::Test::Util;
 use Poet::Util qw(json_encode);
-use d;
 use strict;
 use warnings;
 use base qw(Test::Class);
