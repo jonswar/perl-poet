@@ -69,7 +69,7 @@ The logger for the current package, provided by L<Log::Any|Log::Any>.
 
 =head1 SEE ALSO
 
-Poet::Script
+L<Poet::Script|Poet::Script>, L<Poet::Manual|Poet::Manual>
 
 =for readme continue
 

@@ -1,4 +1,5 @@
 package Poet::Log::Manager;
+use Log::Any::Adapter;
 use Poet::Moose;
 use strict;
 use warnings;
@@ -6,10 +7,16 @@ use warnings;
 has 'env' => ( weak_ref => 1 );
 
 method initialize_logging () {
-    my $config_string = $self->_generate_log4perl_config();
-    return;
-    Log::Log4perl->init( \$config_string );
-    Log::Any::Adapter->set('Log4perl');
+    $self->_initialize_log4perl;
+}
+
+method _initialize_log4perl  () {
+    require Log::Log4perl;
+    unless ( Log::Log4perl->initialized() ) {
+        my $config_string = $self->_generate_log4perl_config();
+        Log::Log4perl->init( \$config_string );
+        Log::Any::Adapter->set('Log4perl');
+    }
 }
 
 method _generate_log4perl_config () {
