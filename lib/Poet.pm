@@ -15,7 +15,7 @@ method export_to_level ($class: $level, $ignore, @params) {
     #
     if ( my @vars = grep { /^\$/ } @params ) {
         my ($caller) = caller($level);
-        my $env = Poet::Environment->get_environment()
+        my $env = Poet::Environment->instance
           or die "environment has not been initialized!";
         $env->app_class('Poet::Importer')->import( $caller, $env, @vars );
     }
@@ -31,12 +31,35 @@ __END__
 
 Poet -- A web framework for Mason developers
 
+=head1 ENVIRONMENT
+
+When using Poet, your entire web site lives within a single directory hierarchy
+called the environment. The environment contains subdirectories for
+configuration, logs, components, static files, etc.
+
+None of your code or conf files need to know what the environment root is; it
+is determined automatically upon Poet initialization. If you move your entire
+environment to a different directory, things should just work.
+
+You can get easy access to subdirectories and files under the environment via
+L<Poet::Environment|Poet::Environment>.
+
+=head1 CONFIGURATION
+
+Poet configuration lives in one or more files in the conf/ subdirectory. The
+format is YAML augmented with variable substitution. See
+L<Poet::Conf|Poet::Conf>.
+
 =head1 LOGGING
 
 Poet uses the Log::Log4perl engine for logging, but with a much simpler
 configuration for the common cases. See L<Poet::Log|Poet::Log>.
 
 =head1 POET VARIABLES
+
+Certain variables are so integral to Poet development that Poet makes it easy
+to grab them from the air, without having to explicitly call an accessor.  Some
+of them are globals, and some of them are specific to each package.
 
 The variables are:
 
@@ -62,9 +85,34 @@ The logger for the current package, provided by L<Log::Any|Log::Any>.
 
 =back
 
-In a module: 'use Poet'. In a script: 'use Poet::Script'.
+=head2 Accessing in a script
+
+    use Poet::Script qw($conf $env ...);
+
+This will import the specified variables into the script namespace (usually
+C<main>).
+
+Note that C<use Poet::Script> is necessary to initialize the environment even
+if you don't import any variables.
+
+=head2 Accessing in a module
+
+    use Poet qw($conf $env ...);
+
+This will import the specified variables into the package's namespace.
+
+The only purpose of C<use Poet> is to import one or more of these variables.
+Otherwise you can omit it.
+
+=head2 Accessing in a Mason component
+
+C<$conf> and C<$env> are automatically available as package globals in all
+Mason components.  C<$m->E<gt>cache> and C<$m->E<gt>log> will get you the cache
+and log objects for a particular Mason component.
 
 =for readme continue
+
+=head2 
 
 =head1 ACKNOWLEDGEMENTS
 

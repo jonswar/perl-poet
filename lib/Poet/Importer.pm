@@ -3,7 +3,7 @@ use Method::Signatures::Simple;
 use strict;
 use warnings;
 
-method valid_import_params () { qw($cache $conf $env $interp $log) };
+method valid_import_params () { qw($cache $conf $env $log) };
 
 method import ($caller, $env, @vars) {
     foreach my $var (@vars) {
@@ -33,10 +33,6 @@ method provide_conf ($caller, $env) {
 
 method provide_env ($caller, $env) {
     $env;
-}
-
-method provide_interp ($caller, $env) {
-    $env->app_class('Mason')->new();
 }
 
 method provide_log ($caller, $env) {

@@ -6,8 +6,9 @@ use File::Slurp;
 use Poet::Moose;
 use Poet::Util qw(can_load catdir);
 
-has 'app_name' => ( required => 1 );
-has 'conf'     => ();
+has 'app_name'    => ( required => 1 );
+has 'conf'        => ();
+has 'log_manager' => ();
 
 my ($current_env);
 
@@ -48,13 +49,9 @@ method initialize_current_environment ($class:) {
     $current_env = $class->new(@_);
 }
 
-method get_environment ($class:) {
+method instance ($class:) {
     return $current_env;
 }
-
-method layer ()          { $self->conf->layer }
-method is_development () { $self->conf->is_development }
-method is_live ()        { $self->conf->is_live }
 
 method BUILD () {
     my $root_dir = $self->root_dir();
@@ -93,7 +90,7 @@ __END__
 
 =head1 NAME
 
-Poet::Environment -- Access to Poet environment
+Poet::Environment -- Poet environment
 
 =head1 SYNOPSIS
 
@@ -106,37 +103,18 @@ Poet::Environment -- Access to Poet environment
     # $env is automatically available in Mason components
 
     # then...
-    my $layer          = $env->layer;
     my $root_dir       = $env->root_dir;
     my $path_to_script = $env->bin_path("foo/bar.pl");
-
-    if ($env->is_development) {
-        debug_mode('on');
-    }
+    my $path_to_lib    = $env->lib_path("Foo/Bar.pm");
 
 =head1 DESCRIPTION
 
-The Poet::Environment object contains general information about the current
-environment such as layer (e.g. 'development' or 'production') and directory
-paths.
+The Poet::Environment object contains information about the current environment
+and its directory paths.
 
-=head1 METHODS
+=head1 PATH METHODS
 
 =over
-
-=item layer
-
-Returns the current layer of the environment, e.g. 'development' or
-'production'. The full list of layers is determined by the conf files in
-conf/layer.
-
-=item is_development
-
-Returns true if the current layer is 'development'.
-
-=item is_live
-
-Returns true if the current layer is 'staging' or 'production'.
 
 =item root_dir
 
@@ -189,6 +167,12 @@ the Poet environment root is C</my/env/root>, then
     $env->lib_path("Data/Type.pm");
        ==> returns /my/env/root/lib/Data/Type.pm
 
+=back
+
+=head1 OTHER METHODS
+
+=over
+
 =item app_name
 
 Returns the app name, e.g. 'MyApp', found in .poet_root.
@@ -198,14 +182,15 @@ Returns the app name, e.g. 'MyApp', found in .poet_root.
 Returns the L<Poet::Conf|Poet::Conf> object associated with the environment.
 Usually you'd access this by importing C<$conf>.
 
-    my $conf = $env->conf;
-
-=item current_environment
+=item instance
 
 A class method that returns the current (singleton) environment for the
 process. Usually you'd access this by importing C<$env>.
 
-    my $env = Poet::Environment->current_environment;
+=item log_manager
+
+Returns the L<Poet::Log::Manager|Poet::Log::Manager> object associated with the
+environment.  Not usually needed.
 
 =back
 
@@ -226,5 +211,5 @@ With this configuration in place,
 
 =head1 SEE ALSO
 
-Poet
+L<Poet|Poet>
 

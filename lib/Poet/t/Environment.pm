@@ -19,7 +19,7 @@ sub test_environment : Tests(7) {
         is( $env->$subdir_method, "$root_dir/$subdir", $subdir_method );
         ok( -d $env->$subdir_method, "$subdir exists" );
     }
-    is( $env->layer, 'development', "layer" );
+    is( $env->conf->layer, 'development', "layer" );
 }
 
 1;

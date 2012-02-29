@@ -8,5 +8,5 @@ use warnings;
 #
 my $port = $conf->get( 'server.port' => 5000 );
 my $app_psgi = $env->root_path("app.psgi");
-my $layer = $env->layer;
+my $layer = $conf->layer;
 run("plackup", "-r", "-p", $port, "-E", $layer, $app_psgi);
