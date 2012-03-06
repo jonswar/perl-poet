@@ -29,6 +29,9 @@ Poet::Log -- Poet logging
     # In a component...
     my $log = $m->log;
 
+    # For an arbitrary category...
+    my $log = Log::Any->get_logger(category => 'Foo::Bar');
+
     # then...
     $log->error("an error occurred");
 
@@ -37,8 +40,8 @@ Poet::Log -- Poet logging
 
 =head1 DESCRIPTION
 
-By default Poet uses L<Log::Any|Log::Any> and L<Log::Log4perl|Log::Log4perl>
-for logging.
+Poet uses L<Log::Any|Log::Any> and L<Log::Log4perl|Log::Log4perl> for logging,
+with an easy configuration option.
 
 Log::Any is a logging abstraction that allows CPAN modules to log without
 knowing about which logging framework is in use. It supports standard logging
@@ -68,7 +71,7 @@ e.g. local.cfg or global/log.cfg.
     log.class.MyApp.Foo:
       output: stdout
 
-This defines default settings, and specific settings for namespace C<CHI> and
+This defines default settings, and specific settings for category C<CHI> and
 C<MyApp::Foo>. There are three setting types:
 
 =over
@@ -90,7 +93,7 @@ string.
 
 =back
 
-If a setting isn't defined for a specific namespace then it falls back to the
+If a setting isn't defined for a specific category then it falls back to the
 default. In this example, C<MyApp::Foo> will inherit the default level and
 layout.
 
@@ -110,28 +113,27 @@ file|Log::Log4perl::Config> instead:
 
 =item *
 
-In a script (log namespace will be 'main'):
+In a script (log category will be 'main'):
 
     use Poet::Script qw($log);
 
 =item *
 
-In a module C<MyApp::Foo> (log namespace will be 'MyApp::Foo'):
+In a module C<MyApp::Foo> (log category will be 'MyApp::Foo'):
 
     use Poet qw($log);
 
 =item *
 
-In a component C</foo/bar> (log namespace will be
-'Mason::Component::foo::bar'):
+In a component C</foo/bar> (log category will be 'Mason::Component::foo::bar'):
 
     my $log = $m->log;
 
 =item *
 
-Manually for an arbitrary log namespace:
+Manually for an arbitrary log category:
 
-    my $log = Log::Any->get_logger('Some::Namespace');
+    my $log = Log::Any->get_logger(category => 'Some::Category');
 
 =back
 
