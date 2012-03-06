@@ -57,8 +57,9 @@ much simpler configuration for the common cases. See L<Poet::Log|Poet::Log>.
 
 =head1 CACHING
 
-Poet uses L<CHI|CHI> for caching. You can configure caching for different
-namespaces in Poet conf files. See L<Poet::Cache|Poet::Cache>.
+Poet uses L<CHI|CHI> for caching, providing access to a wide variety of cache
+backends (memory, files, memcached, etc.) You can configure caching for
+different namespaces in Poet conf files. See L<Poet::Cache|Poet::Cache>.
 
 =head1 POET VARIABLES
 

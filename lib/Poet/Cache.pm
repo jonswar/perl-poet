@@ -1,0 +1,92 @@
+package Poet::Cache;
+use Poet qw($conf $env);
+use Method::Signatures::Simple ();
+use Moose;
+
+extends 'CHI';
+
+__PACKAGE__->config( %{ $conf->get_hash('cache') } );
+
+=pod
+
+=head1 NAME
+
+Poet::Cache -- Poet caching with CHI
+
+=head1 SYNOPSIS
+
+    # In a script...
+    use Poet::Script qw($cache);
+
+    # In a module...
+    use Poet qw($cache);
+
+    # In a component...
+    my $cache = $m->cache;
+
+    # For an arbitrary namespace...
+    my $cache = Poet::Cache->new(namespace => 'Some::Namespace')
+
+    # then...
+    my $customer = $cache->get($name);
+    if ( !defined $customer ) {
+        $customer = get_customer_from_db($name);
+        $cache->set( $name, $customer, "10 minutes" );
+    }
+    my $customer2 = $cache->compute($name2, "10 minutes", sub {
+        get_customer_from_db($name2)
+    });
+
+=head1 DESCRIPTION
+
+Poet::Cache is a subclass of L<CHI>. CHI provides a unified caching API over a
+variety of storage backends, such as memory, plain files, memory mapped files,
+memcached, and DBI.
+
+Each package and Mason component uses its own CHI I<CHI/namespace> so that
+operations in one cannot interfere with another.
+
+=head1 CONFIGURATION
+
+The Poet configuration entry 'cache', if any, will be passed to
+L<Poet::Cache-E<gt>config()|CHI/SUBCLASSING AND CONFIGURING CHI>. This can go
+in any Poet conf file(s), e.g. local.cfg or global/log.cfg.
+
+Here's a simple configuration that caches everything to files under data/chi
+(which is also the default if no configuration is present):
+
+   cache:
+      defaults:
+         driver: File
+         root_dir: $root/data/cache
+
+Here's a more involved configuration that defines several "storage types" and
+assigns each namespace a storage type.
+
+   cache:
+      defaults:
+         expires_variance: 0.2
+      storage:
+         file:
+            driver: File
+            root_dir: $root/data/cache
+         memcached:
+            driver: Memcached
+            servers: ["10.0.0.15:11211", "10.0.0.15:11212"]
+            compress_threshold: 4096
+      namespace:
+         /some/component:       { storage: file, expires_in: 5min }
+         /some/other/component: { storage: memcached, expires_in: 1h }
+         Some::Library:         { storage: memcached, expires_in: 10min } 
+
+Given the configuration above, and the code
+
+    package Some::Library;
+    use Poet qw($cache);
+
+this C<$cache> will be created with properties
+
+    driver: Memcached
+    servers: ["10.0.0.15:11211", "10.0.0.15:11212"]
+    compress_threshold: 4096
+    expires_in: 10min
