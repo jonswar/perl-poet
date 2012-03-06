@@ -27,7 +27,7 @@ sub get_defaults {
 sub new {
     my $class = shift;
 
-    return $class->SUPER::new( $self->defaults, @_ );
+    return $class->SUPER::new( $class->get_defaults, @_ );
 }
 
 1;
