@@ -98,17 +98,11 @@ The logger for the current package, provided by L<Log::Any|Log::Any>.
 This will import the specified variables into the script namespace (usually
 C<main>).
 
-Note that C<use Poet::Script> is necessary to initialize the environment even
-if you don't import any variables.
-
 =head2 Accessing in a module
 
     use Poet qw($conf $env ...);
 
 This will import the specified variables into the package's namespace.
-
-The only purpose of C<use Poet> is to import one or more of these variables.
-Otherwise you can omit it.
 
 =head2 Accessing in a Mason component
 

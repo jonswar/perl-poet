@@ -127,4 +127,12 @@ e:
     );
 }
 
+sub test_layer_required : Tests {
+    throws_ok(
+        sub { temp_env( conf_files => { 'local.cfg' => {} } ) },
+        qr/must specify layer/,
+        'no layer'
+    );
+}
+
 1;

@@ -22,22 +22,22 @@ our %get_cache;
 method BUILD () {
     $self->{layer}          = $self->determine_layer();
     $self->{is_development} = $self->layer eq 'development';
-    $self->{is_live}        = $self->determine_is_live();
-    $self->{data}           = $self->parse_conf_files();
+    $self->{is_live}        = $self->_determine_is_live();
+    $self->{data}           = $self->_parse_conf_files();
 }
 
-method parse_conf_files () {
+method _parse_conf_files () {
     my $conf_dir = $self->conf_dir();
     my %data     = ();
 
     # Provide some convenience globals.
     #
-    $data{root_dir} = realpath( dirname($conf_dir) );
+    $data{root} = realpath( dirname($conf_dir) );
     $data{user} = getlogin || getpwuid($<);
 
     # Collect list of conf files in appropriate order
     #
-    my @conf_files = $self->ordered_conf_files();
+    my @conf_files = $self->_ordered_conf_files();
 
     # Stores the file where each global/* key is declared.
     #
@@ -70,7 +70,7 @@ method parse_conf_files () {
     return \%data;
 }
 
-method determine_layer () {
+method _determine_layer () {
     my $conf_dir = $self->conf_dir;
     my $local_cfg_file = catfile( $conf_dir, "local.cfg" );
     my $local_cfg =
@@ -85,11 +85,11 @@ method determine_layer () {
     return $layer;
 }
 
-method determine_is_live () {
+method _determine_is_live () {
     return $self->layer =~ /^(?:staging|production)$/;
 }
 
-method ordered_conf_files () {
+method _ordered_conf_files () {
     my $conf_dir = $self->conf_dir();
     my $layer    = $self->layer();
 
@@ -114,6 +114,8 @@ method _read_conf_file ($file) {
     # Return the hash.
     #
     my $yaml = read_file($file) . "\n\n_init: 0";
+    use d;
+    dp $yaml;
     my $hash;
     try {
         $hash = YAML::XS::Load($yaml);
@@ -231,18 +233,6 @@ method get_hash ($key, $default) {
     }
 }
 
-method get_hash_from_common_prefix ($prefix) {
-
-    # Find all keys with the given prefix, and return a hashref containing just
-    # those keys and values with the prefix stripped off.
-    #
-    my $prefix_length = length($prefix);
-    return {
-        map { ( substr( $_, $prefix_length ), $self->get($_) ) }
-        grep { /^\Q$prefix\E(.+)$/ } $self->get_keys
-    };
-}
-
 method get_boolean ($key) {
     return $self->get($key) ? 1 : 0;
 }
@@ -310,7 +300,6 @@ Poet::Conf -- Poet configuration
 
     my $listref = $conf->get_list('key', ['default']);
     my $hashref = $conf->get_hash('key', {'default' => 5});
-    my $hashref = $conf->get_hash_from_common_prefix('cache.defaults.');
     my $bool = $conf->get_boolean('key');
 
     my @keys = grep { /^foo\./ } $conf->get_keys;
@@ -504,27 +493,6 @@ warning.
 
 If I<key> is unavailable, return the I<default>, or an empty hash reference if
 no default is given.
-
-=item get_hash_from_common_prefix (I<prefix>)
-
-    my $hashref = $conf->get_hash_from_common_prefix('cache.defaults.');
-
-Find all keys with the given I<prefix>, and return a hashref containing just
-those keys and values with the prefix stripped off. e.g. if these configuration
-entries exist (in any files):
-
-    cache.defaults.depth: 3
-    cache.defaults.expires_variance: 0.2
-    cache.defaults.namespace: Default
-
-then the call above would return
-
-    { depth => 3, expires_variance => 0.2, namespace => 'Default' }
-
-If no keys have the given prefix, an empty hashref is returned.
-
-Using a common prefix is often preferable to specifying a single hash, because
-the individual entries can be overriden.
 
 =item get_boolean
 

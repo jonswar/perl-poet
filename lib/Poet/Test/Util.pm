@@ -17,7 +17,7 @@ sub write_conf_file {
     my ( $conf_file, $conf_content ) = @_;
 
     if ( ref($conf_content) eq 'HASH' ) {
-        $conf_content = Dump($conf_content);
+        $conf_content = %$conf_content ? Dump($conf_content) : "";
     }
     mkpath( dirname($conf_file), 0, 0775 );
     write_file( $conf_file, $conf_content );
