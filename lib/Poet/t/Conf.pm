@@ -11,7 +11,7 @@ my $conf_files = {
     'global/first.cfg'          => { a => 10, b => 6, c => 11, d => 12 },
     'global/second.cfg'         => { e => 20 },
     'global/third-not-a-config' => { f => 30 },
-    'layer/personal.cfg'    => { c => 40, g => '_$b', h => 51 },
+    'layer/personal.cfg'    => { c => 40, g => '_${b}', h => 51 },
     'layer/development.cfg' => { f => 30 },
     'local.cfg' => { h => '__${e}', layer => 'personal' },
 };
@@ -27,7 +27,7 @@ my $expected_values = {
     h => "__20",
 };
 
-sub test_global : Test(9) {
+sub test_global : Tests {
     my $env = temp_env( conf_files => $conf_files );
     my $conf = $env->conf();
     while ( my ( $key, $value ) = each(%$expected_values) ) {
@@ -36,7 +36,7 @@ sub test_global : Test(9) {
     }
 }
 
-sub test_duplicate : Test(1) {
+sub test_duplicate : Tests {
     throws_ok(
         sub {
             temp_env( conf_files =>
@@ -48,7 +48,7 @@ sub test_duplicate : Test(1) {
     );
 }
 
-sub test_set_local : Test(12) {
+sub test_set_local : Tests {
     my $env = temp_env(
         conf_files => { 'global/foo.cfg' => { a => 5, b => 6, c => 7 } } );
     my $conf = $env->conf();
@@ -76,6 +76,55 @@ sub test_set_local : Test(12) {
     is( $conf->get('a'), 5, 'a = 5 (restored)' );
     is( $conf->get('b'), 6, 'b = 6 (restored)' );
     is( $conf->get('c'), 7, 'c = 7 (restored)' );
+}
+
+sub test_dot_notation : Tests {
+    my $conf_files = {
+        'layer/personal.cfg' => '
+a:
+   b:
+      c: 1
+      d: 2
+e:
+   f:
+      g: 3
+      h: 4
+',
+        'local.cfg' => '
+layer: personal
+a.b.c: 6
+e:
+   f:
+      g: 7
+
+'
+    };
+    my $env = temp_env( conf_files => $conf_files );
+    my %expected_values = (
+        'a' => { 'b' => { c => 6, d => 2 } },
+        'a.b'   => { c => 6, d => 2 },
+        'a.b.c' => 6,
+        'a.b.d' => 2,
+        'e'     => { f => { g => 7 } },
+        'e.f'   => { g => 7 },
+        'e.f.g' => 7,
+        'x.y.z' => undef
+    );
+    my $conf = $env->conf();
+    foreach my $key ( sort( keys(%expected_values) ) ) {
+        my $value = $expected_values{$key};
+        cmp_deeply( $conf->get($key), $value, $key );
+    }
+    throws_ok( sub { $conf->get('a.b.c.z') },
+        qr/hash value expected for conf key 'a.b.c', got non-hash '6'/,
+        "a.b.c.z" );
+
+    $conf_files->{'layer/personal.cfg'} = { 'a' => { 'b' => 17 } };
+    throws_ok(
+        sub { $env = temp_env( conf_files => $conf_files ) },
+        qr/error assigning to 'a.b.c' in .*; 'a.b' already has non-hash value/,
+        "e.f: 17"
+    );
 }
 
 1;

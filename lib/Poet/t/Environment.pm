@@ -8,7 +8,7 @@ use strict;
 use warnings;
 use base qw(Test::Class);
 
-sub test_environment : Tests(7) {
+sub test_environment : Tests {
     my $self = shift;
 
     my $env      = temp_env();

@@ -15,7 +15,7 @@ use base qw(Test::Class);
 
 my $script_template;
 
-sub test_script : Test(9) {
+sub test_script : Tests {
     my $self     = shift;
     my $root_dir = temp_env_dir();
 

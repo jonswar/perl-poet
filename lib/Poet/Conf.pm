@@ -23,10 +23,10 @@ method BUILD () {
     $self->{layer}          = $self->determine_layer();
     $self->{is_development} = $self->layer eq 'development';
     $self->{is_live}        = $self->determine_is_live();
-    $self->{data}           = $self->parse_config_files();
+    $self->{data}           = $self->parse_conf_files();
 }
 
-method parse_config_files () {
+method parse_conf_files () {
     my $conf_dir = $self->conf_dir();
     my %data     = ();
 
@@ -35,7 +35,7 @@ method parse_config_files () {
     $data{root_dir} = realpath( dirname($conf_dir) );
     $data{user} = getlogin || getpwuid($<);
 
-    # Collect list of config files in appropriate order
+    # Collect list of conf files in appropriate order
     #
     my @conf_files = $self->ordered_conf_files();
 
@@ -45,10 +45,10 @@ method parse_config_files () {
 
     foreach my $file (@conf_files) {
         if ( defined $file && -f $file ) {
-            my $new_data = $self->_read_config_file($file);
-            %data = ( %data, %$new_data );
+            my $new_data = $self->_read_conf_file($file);
+            $self->_merge_conf_data( \%data, $new_data, $file );
 
-            # Make sure no keys are defined in multiple global config files
+            # Make sure no keys are defined in multiple global conf files
             #
             if ( $file =~ m{/global/} ) {
                 foreach my $key ( keys(%$new_data) ) {
@@ -75,7 +75,7 @@ method determine_layer () {
     my $local_cfg_file = catfile( $conf_dir, "local.cfg" );
     my $local_cfg =
       ( -f $local_cfg_file )
-      ? $self->_read_config_file($local_cfg_file)
+      ? $self->_read_conf_file($local_cfg_file)
       : {};
     my $layer = $local_cfg->{layer}
       || die "must specify layer in '$local_cfg_file'";
@@ -107,7 +107,7 @@ method ordered_conf_files () {
     );
 }
 
-method _read_config_file ($file) {
+method _read_conf_file ($file) {
 
     # Read a yaml file into a hash, adding a dummy key pair to handle empty
     # files or files with nothing but comments, and checking for errors.
@@ -119,10 +119,32 @@ method _read_config_file ($file) {
         $hash = YAML::XS::Load($yaml);
     }
     catch {
-        die "error parsing config file '$file': $_";
+        die "error parsing conf file '$file': $_";
     };
     die "'$file' did not parse to a hash" unless ref($hash) eq 'HASH';
     return $hash;
+}
+
+method _merge_conf_data ($data, $new_data, $file) {
+    while ( my ( $key, $value ) = each(%$new_data) ) {
+        my $orig_key       = $key;
+        my $assign_to_hash = $data;
+        while ( $key =~ /\./ ) {
+            my ( $first, $rest ) = split( /\./, $key, 2 );
+            if ( !defined( $assign_to_hash->{$first} ) ) {
+                $assign_to_hash->{$first} = {};
+            }
+            $assign_to_hash = $assign_to_hash->{$first};
+            if ( ref($assign_to_hash) ne 'HASH' ) {
+                die sprintf(
+                    "error assigning to '%s' in '%s'; '%s' already has non-hash value",
+                    $orig_key, $file,
+                    substr( $orig_key, 0, -1 * length($rest) - 1 ) );
+            }
+            $key = $rest;
+        }
+        $assign_to_hash->{$key} = $value;
+    }
 }
 
 # Memoize get, since conf can normally not change at runtime. This will
@@ -134,17 +156,29 @@ method _flush_get_cache () {
 
 method get ($key, $default) {
     return $get_cache{$key} if exists( $get_cache{$key} );
+
+    my $orig_key = $key;
+    my @firsts;
+    if ( $key =~ /\./ ) {
+        return $self->_get_dotted_key( $key, $default );
+    }
     my $value = $self->data->{$key};
     if ( defined($value) ) {
-        while ( $value =~ /(\$ (?: ([\w\.\-]+) | \{([\w\.\-]+)\} ) )/x ) {
+        while ( $value =~ /(\$ \{ ([\w\.\-]+) \} )/x ) {
             my $var_decl  = $1;
-            my $var_key   = defined($2) ? $2 : $3;
+            my $var_key   = $2;
             my $var_value = $self->get($var_key);
             $var_value = '' if !defined($var_value);
             $value =~ s/\Q$var_decl\E/$var_value/;
         }
     }
     $get_cache{$key} = $value;
+    return defined($value) ? $value : $default;
+}
+
+method _get_dotted_key ($key, $default) {
+    my ( $rest, $last ) = ( $key =~ /^(.*)\.([^\.]+)$/ );
+    my $value = $self->get_hash($rest)->{$last};
     return defined($value) ? $value : $default;
 }
 
@@ -164,7 +198,7 @@ method get_list ($key, $default) {
         }
         else {
             my $error = sprintf(
-                "list value expected for config key '%s', got non-list '%s'",
+                "list value expected for conf key '%s', got non-list '%s'",
                 $key, $value );
             croak($error);
         }
@@ -184,7 +218,7 @@ method get_hash ($key, $default) {
         }
         else {
             my $error = sprintf(
-                "hash value expected for config key '%s', got non-hash '%s'",
+                "hash value expected for conf key '%s', got non-hash '%s'",
                 $key, $value );
             croak($error);
         }
@@ -293,9 +327,7 @@ Poet::Conf -- Poet configuration
 The Poet::Conf object gives access to the current environment's configuration,
 read from configuration files in the conf/ subdirectory.
 
-=head1 WHERE CONFIGURATION COMES FROM
-
-=head2 Location of configuration files
+=head1 CONFIGURATION FILES
 
 Poet configuration files are found in the conf/ subdirectory of the environment
 root:
@@ -356,36 +388,18 @@ read as an extra conf file whose values override all others.
 
 =back
 
-=head2 Format of files
+=head1 CONFIGURATION FORMAT
 
-The basic configuration format is L<YAML|http://www.yaml.org/>. For example:
+Conf file format is L<YAML|http://www.yaml.org/> with several additions.
 
-   # if conf file contains
+=head2 Referring to other entries
 
-   apache.httpd_install_dir: /home/webuser/site/vendor/httpd
-   apache.group: webuser
-
-   load_modules:
-     - CGI
-     - CGI::Cookie
-
-   # then
-
-   $conf->get('apache.group')
-      => "webuser"
-   $conf->get('load_modules') or $conf->get_list('load_modules')
-      => ['CGI', 'CGI::Cookie']
-
-By convention Poet apps use "." as a separator when we want hierarchial key
-names, e.g. ''apache.*''.
-
-The one addition to standard YAML is that config entries can refer to other
-entries via the syntax C<$key> or C<${key}>. For example:
+Conf entries can refer to other entries via the syntax C<${key}>. For example:
 
    # conf file
 
    foo: 5
-   bar: "The number $foo"
+   bar: "The number ${foo}"
    baz: ${bar}00
 
    # then
@@ -397,7 +411,40 @@ entries via the syntax C<$key> or C<${key}>. For example:
    $conf->get('baz')
       => "The number 500"
 
-This is only supported for keys matching C<[\w\.\-]+>.
+=head2 Dot notation for hash access
+
+Conf entries can use dot (".") notation to refer to hash entries. e.g. this
+
+   foo.bar.baz: 5
+
+is the same as
+
+   foo:
+      bar:
+         baz: 5
+
+The dot notation is especially useful for I<overriding> individual hash
+elements from higher precedence config files. For example, if in
+C<global/cache.cfg> you have
+
+   cache:
+      defaults:
+         driver: File
+         root_dir: $root/data/cache
+         depth: 3
+
+and in local.cfg you have
+
+    cache.defaults.depth: 2
+
+then only C<depth> will be overriden; the C<driver> and C<root_dir> will remain
+as they were set in C<global/cache.cfg>. If instead local.cfg had
+
+   cache:
+      defaults:
+         depth: 3
+
+then this would completely replace the entire hash under C<cache>.
 
 =head1 OBTAINING $conf SINGLETON
 
@@ -424,6 +471,13 @@ or undef if no default is given.
 
 The return value may be a scalar, list reference, or hash reference, though we
 recommend using L</get_list> and L</get_hash> if you expect a list or hash.
+
+I<key> can contain dot notation to refer to hash entries. e.g. these are
+equivalent:
+
+    $conf->get('foo.bar.baz');
+
+    $conf->get_hash('foo')->{bar}->{baz};
 
 =item get_or_die
 
