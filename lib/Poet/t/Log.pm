@@ -8,26 +8,29 @@ use strict;
 use warnings;
 use base qw(Test::Class);
 
+initialize_test_env();
+
 sub test_log_config : Tests {
-    my $logs_dir =
-      realpath( tempdir( 'name-XXXX', TMPDIR => 1, CLEANUP => 1 ) );
+    my $env      = Poet::Environment->instance;
+    my $conf     = $env->conf;
+    my $logs_dir = $env->logs_dir;
 
     my $test = sub {
-        my ( $conf, $expected ) = @_;
-        $conf->{layer} = 'development';
-        $conf->{"env.logs_dir"} = $logs_dir;
-        my $env = temp_env( conf => $conf );
-        my $log_conf =
-          Poet::Log::Manager->new( env => $env )->_generate_log4perl_config();
-        is_string( $log_conf, $expected, json_encode($conf) );
+        my ( $conf_settings, $expected ) = @_;
+        my $lex      = $conf->set_local($conf_settings);
+        my $log_conf = Poet::Log->_generate_log4perl_config();
+        is_string( $log_conf, $expected, json_encode($conf_settings) );
     };
+
+    my $default_layout =
+      "%d{dd/MMM/yyyy:HH:mm:ss.SS} [%p] %c - %m - %F:%L - %P%n";
 
     $test->(
         {},
         "log4perl.logger = INFO, default
 log4perl.appender.default = Log::Log4perl::Appender::File
 log4perl.appender.default.layout = Log::Log4perl::Layout::PatternLayout
-log4perl.appender.default.layout.ConversionPattern = %d{dd/MMM/yyyy:HH:mm:ss.SS} %c - %m - %F:%L%n
+log4perl.appender.default.layout.ConversionPattern = $default_layout
 log4perl.appender.default.filename = $logs_dir/poet.log
 "
     );
@@ -37,7 +40,7 @@ log4perl.appender.default.filename = $logs_dir/poet.log
         "log4perl.logger = DEBUG, default
 log4perl.appender.default = Log::Log4perl::Appender::File
 log4perl.appender.default.layout = Log::Log4perl::Layout::PatternLayout
-log4perl.appender.default.layout.ConversionPattern = %d{dd/MMM/yyyy:HH:mm:ss.SS} %c - %m - %F:%L%n
+log4perl.appender.default.layout.ConversionPattern = $default_layout
 log4perl.appender.default.filename = $logs_dir/foo.log
 "
     );
@@ -46,30 +49,30 @@ log4perl.appender.default.filename = $logs_dir/foo.log
         {
             'log.defaults'  => { level => 'info', output => 'foo.log' },
             'log.class.Bar' => { level => 'warn', output => 'bar.log' },
-            'log.class.App.Errors'    => { output => 'stderr' },
-            'log.class.App.NonErrors' => { output => 'stdout' }
+            'log.class.Bar.Errors'    => { output => 'stderr' },
+            'log.class.Bar.NonErrors' => { output => 'stdout' }
         },
         "log4perl.logger = INFO, default
 log4perl.appender.default = Log::Log4perl::Appender::File
 log4perl.appender.default.layout = Log::Log4perl::Layout::PatternLayout
-log4perl.appender.default.layout.ConversionPattern = %d{dd/MMM/yyyy:HH:mm:ss.SS} %c - %m - %F:%L%n
+log4perl.appender.default.layout.ConversionPattern = $default_layout
 log4perl.appender.default.filename = $logs_dir/foo.log
 
-log4perl.logger.App.Errors = INFO, App_Errors
-log4perl.appender.App_Errors = Log::Log4perl::Appender::Screen
-log4perl.appender.App_Errors.layout = Log::Log4perl::Layout::PatternLayout
-log4perl.appender.App_Errors.layout.ConversionPattern = %d{dd/MMM/yyyy:HH:mm:ss.SS} %c - %m - %F:%L%n
+log4perl.logger.Bar.Errors = INFO, Bar_Errors
+log4perl.appender.Bar_Errors = Log::Log4perl::Appender::Screen
+log4perl.appender.Bar_Errors.layout = Log::Log4perl::Layout::PatternLayout
+log4perl.appender.Bar_Errors.layout.ConversionPattern = $default_layout
 
-log4perl.logger.App.NonErrors = INFO, App_NonErrors
-log4perl.appender.App_NonErrors = Log::Log4perl::Appender::Screen
-log4perl.appender.App_NonErrors.layout = Log::Log4perl::Layout::PatternLayout
-log4perl.appender.App_NonErrors.layout.ConversionPattern = %d{dd/MMM/yyyy:HH:mm:ss.SS} %c - %m - %F:%L%n
-log4perl.appender.App_NonErrors.stderr = 0
+log4perl.logger.Bar.NonErrors = INFO, Bar_NonErrors
+log4perl.appender.Bar_NonErrors = Log::Log4perl::Appender::Screen
+log4perl.appender.Bar_NonErrors.layout = Log::Log4perl::Layout::PatternLayout
+log4perl.appender.Bar_NonErrors.layout.ConversionPattern = $default_layout
+log4perl.appender.Bar_NonErrors.stderr = 0
 
 log4perl.logger.Bar = WARN, Bar
 log4perl.appender.Bar = Log::Log4perl::Appender::File
 log4perl.appender.Bar.layout = Log::Log4perl::Layout::PatternLayout
-log4perl.appender.Bar.layout.ConversionPattern = %d{dd/MMM/yyyy:HH:mm:ss.SS} %c - %m - %F:%L%n
+log4perl.appender.Bar.layout.ConversionPattern = $default_layout
 log4perl.appender.Bar.filename = $logs_dir/bar.log
 "
     );

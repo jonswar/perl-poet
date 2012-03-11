@@ -110,11 +110,16 @@ e:
         'e.f.g' => 7,
         'x.y.z' => undef
     );
-    my $conf = $env->conf();
-    foreach my $key ( sort( keys(%expected_values) ) ) {
-        my $value = $expected_values{$key};
-        cmp_deeply( $conf->get($key), $value, $key );
-    }
+    my $conf           = $env->conf();
+    my $check_expected = sub {
+        my $desc = shift;
+        foreach my $key ( sort( keys(%expected_values) ) ) {
+            my $value = $expected_values{$key};
+            cmp_deeply( $conf->get($key), $value, "$key - $desc" );
+        }
+    };
+
+    $check_expected->('initial');
     throws_ok( sub { $conf->get('a.b.c.z') },
         qr/hash value expected for conf key 'a.b.c', got non-hash '6'/,
         "a.b.c.z" );
@@ -125,6 +130,16 @@ e:
         qr/error assigning to 'a.b.c' in .*; 'a.b' already has non-hash value/,
         "e.f: 17"
     );
+
+    {
+        my $lex = $conf->set_local( { 'a.b.c' => 16 } );
+        local $expected_values{'a'} = { 'b' => { c => 16, d => 2 } },
+          local $expected_values{'a.b'} = { c => 16, d => 2 };
+        local $expected_values{'a.b.c'} = 16;
+        $check_expected->('set_local');
+    }
+
+    $check_expected->('after set_local');
 }
 
 sub test_layer_required : Tests {

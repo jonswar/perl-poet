@@ -9,6 +9,7 @@ use Poet::Util qw(can_load catdir);
 has 'app_name'    => ( required => 1 );
 has 'conf'        => ();
 has 'log_manager' => ();
+has 'root_dir'    => ( required => 1 );
 
 my ($current_env);
 
@@ -25,8 +26,7 @@ method app_class ($class_name) {
 method generate_subdir_methods ($class:) {
     foreach my $subdir ( 'root', @{ $class->subdirs() } ) {
         my $dir_method = $subdir . "_dir";
-        has $dir_method =>
-          ( is => 'ro', ( $subdir eq 'root' ? ( required => 1 ) : () ) );
+        has $dir_method => () if $subdir ne 'root';
         my $path_method = $subdir . "_path";
         __PACKAGE__->meta->add_method(
             $path_method,
@@ -40,13 +40,18 @@ method generate_subdir_methods ($class:) {
     }
 }
 
-method initialize_current_environment ($class:) {
+method initialize_current_environment ($class: %params) {
     if ( defined($current_env) ) {
         die sprintf(
             "initialize_current_environment called when current_env already set (%s)",
             $current_env->root_dir() );
     }
-    $current_env = $class->new(@_);
+    $current_env = $params{env} || $class->new(%params);
+
+    # Initialize logging and caching
+    #
+    $current_env->app_class('Poet::Log')->initialize_logging();
+    $current_env->app_class('Poet::Cache')->initialize_caching();
 }
 
 method instance ($class:) {
@@ -71,12 +76,6 @@ method BUILD () {
         my $method = $subdir . "_dir";
         $self->{$method} = $conf->get( "env.$method" => "$root_dir/$subdir" );
     }
-
-    # Initialize logging
-    #
-    $self->{log_manager} =
-      $self->app_class('Poet::Log::Manager')->new( env => $self );
-    $self->{log_manager}->initialize_logging();
 }
 
 __PACKAGE__->generate_subdir_methods();
@@ -186,11 +185,6 @@ Usually you'd access this by importing C<$conf>.
 
 A class method that returns the current (singleton) environment for the
 process. Usually you'd access this by importing C<$env>.
-
-=item log_manager
-
-Returns the L<Poet::Log::Manager|Poet::Log::Manager> object associated with the
-environment.  Not usually needed.
 
 =back
 

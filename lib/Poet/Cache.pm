@@ -1,11 +1,15 @@
 package Poet::Cache;
 use Poet qw($conf $env);
-use Method::Signatures::Simple ();
+use Method::Signatures::Simple;
 use Moose;
 
 extends 'CHI';
 
-__PACKAGE__->config( %{ $conf->get_hash('cache') } );
+method initialize_caching () {
+    __PACKAGE__->config( %{ $conf->get_hash('cache') } );
+}
+
+1;
 
 =pod
 

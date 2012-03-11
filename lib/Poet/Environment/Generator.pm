@@ -14,6 +14,9 @@ use warnings;
 method generate_environment_directory ($class: %params) {
     my $root_dir = $params{root_dir} or die "must specify root_dir";
     my $app_name = $params{app_name} || basename($root_dir);
+    my $quiet    = $params{quiet};
+    my $style    = $params{style} || 'standard';
+
     die "invalid app_name '$app_name' - must be a valid Perl identifier"
       unless $app_name =~ qr/[[:alpha:]_]\w*/;
     die
@@ -42,10 +45,10 @@ method generate_environment_directory ($class: %params) {
         my $dest   = $root_dir . $path;
         mkpath( dirname($dest), 0, 0775 );
         if ( $path =~ /\.empty$/ ) {
-            print dirname($dest) . "\n";
+            print dirname($dest) . "\n" unless $quiet;
         }
         else {
-            print "$dest\n";
+            print "$dest\n" unless $quiet;
             write_file( $dest, $output );
         }
     }

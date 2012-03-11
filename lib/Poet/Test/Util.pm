@@ -11,7 +11,7 @@ use strict;
 use warnings;
 use base qw(Exporter);
 
-our @EXPORT = qw(temp_env temp_env_dir write_conf_file);
+our @EXPORT = qw(initialize_test_env temp_env temp_env_dir write_conf_file);
 
 sub write_conf_file {
     my ( $conf_file, $conf_content ) = @_;
@@ -50,8 +50,15 @@ sub temp_env_dir {
     my $app_name = $params{app_name} || 'TestApp';
     my $root_dir = Poet::Environment::Generator->generate_environment_directory(
         root_dir => tempdir_simple('Poet-XXXX'),
-        app_name => $app_name
+        app_name => $app_name,
+        quiet    => 1,
+        style    => 'bare',
     );
+}
+
+sub initialize_test_env {
+    my $env = temp_env();
+    Poet::Environment->initialize_current_environment( env => $env );
 }
 
 1;

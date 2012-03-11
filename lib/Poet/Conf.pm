@@ -1,6 +1,7 @@
 package Poet::Conf;
 use Carp;
 use Cwd qw(realpath);
+use Clone qw(clone);
 use File::Basename;
 use File::Slurp qw(read_file);
 use File::Spec::Functions qw(catfile);
@@ -20,7 +21,7 @@ has 'layer'          => ( init_arg => undef );
 our %get_cache;
 
 method BUILD () {
-    $self->{layer}          = $self->determine_layer();
+    $self->{layer}          = $self->_determine_layer();
     $self->{is_development} = $self->layer eq 'development';
     $self->{is_live}        = $self->_determine_is_live();
     $self->{data}           = $self->_parse_conf_files();
@@ -114,8 +115,6 @@ method _read_conf_file ($file) {
     # Return the hash.
     #
     my $yaml = read_file($file) . "\n\n_init: 0";
-    use d;
-    dp $yaml;
     my $hash;
     try {
         $hash = YAML::XS::Load($yaml);
@@ -243,12 +242,10 @@ method set_local ($pairs) {
     }
     die "set_local expects hashref" unless ref($pairs) eq 'HASH';
 
-    # Make a copy of current data, then apply the pairs
+    # Make a deep copy of current data, then merge in the new pairs
     #
-    my $orig_data = { %{ $self->{data} } };
-    while ( my ( $key, $value ) = each(%$pairs) ) {
-        $self->{data}->{$key} = $value;
-    }
+    my $orig_data = clone( { %{ $self->{data} } } );
+    $self->_merge_conf_data( $self->{data}, $pairs, "set_local" );
     $self->conf_has_changed();
 
     # Restore original data when $guard goes out of scope
