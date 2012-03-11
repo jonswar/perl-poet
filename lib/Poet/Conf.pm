@@ -46,14 +46,15 @@ method _parse_conf_files () {
 
     foreach my $file (@conf_files) {
         if ( defined $file && -f $file ) {
+
+            # Read conf file into hash
+            #
             my $new_data = $self->_read_conf_file($file);
-            $self->_merge_conf_data( \%data, $new_data, $file );
 
             # Make sure no keys are defined in multiple global conf files
             #
             if ( $file =~ m{/global/} ) {
                 foreach my $key ( keys(%$new_data) ) {
-                    next if $key eq '_init';
                     if ( my $previous_file = $global_keys{$key} ) {
                         die sprintf(
                             "top-level key '%s' defined in both '%s' and '%s' - global conf files must be mutually exclusive",
@@ -64,6 +65,10 @@ method _parse_conf_files () {
                     }
                 }
             }
+
+            # Merge new hash into current data
+            #
+            $self->_merge_conf_data( \%data, $new_data, $file );
         }
         $self->_flush_get_cache();
     }
@@ -114,7 +119,8 @@ method _read_conf_file ($file) {
     # files or files with nothing but comments, and checking for errors.
     # Return the hash.
     #
-    my $yaml = read_file($file) . "\n\n_init: 0";
+    my $dummy = "__yaml_init";
+    my $yaml  = read_file($file) . "\n\n$dummy: 0";
     my $hash;
     try {
         $hash = YAML::XS::Load($yaml);
@@ -123,28 +129,13 @@ method _read_conf_file ($file) {
         die "error parsing conf file '$file': $_";
     };
     die "'$file' did not parse to a hash" unless ref($hash) eq 'HASH';
+    delete( $hash->{$dummy} );
     return $hash;
 }
 
 method _merge_conf_data ($data, $new_data, $file) {
     while ( my ( $key, $value ) = each(%$new_data) ) {
-        my $orig_key       = $key;
-        my $assign_to_hash = $data;
-        while ( $key =~ /\./ ) {
-            my ( $first, $rest ) = split( /\./, $key, 2 );
-            if ( !defined( $assign_to_hash->{$first} ) ) {
-                $assign_to_hash->{$first} = {};
-            }
-            $assign_to_hash = $assign_to_hash->{$first};
-            if ( ref($assign_to_hash) ne 'HASH' ) {
-                die sprintf(
-                    "error assigning to '%s' in '%s'; '%s' already has non-hash value",
-                    $orig_key, $file,
-                    substr( $orig_key, 0, -1 * length($rest) - 1 ) );
-            }
-            $key = $rest;
-        }
-        $assign_to_hash->{$key} = $value;
+        $data->{$key} = $value;
     }
 }
 
@@ -160,9 +151,6 @@ method get ($key, $default) {
 
     my $orig_key = $key;
     my @firsts;
-    if ( $key =~ /\./ ) {
-        return $self->_get_dotted_key( $key, $default );
-    }
     my $value = $self->data->{$key};
     if ( defined($value) ) {
         while ( $value =~ /(\$ \{ ([\w\.\-]+) \} )/x ) {
@@ -174,12 +162,6 @@ method get ($key, $default) {
         }
     }
     $get_cache{$key} = $value;
-    return defined($value) ? $value : $default;
-}
-
-method _get_dotted_key ($key, $default) {
-    my ( $rest, $last ) = ( $key =~ /^(.*)\.([^\.]+)$/ );
-    my $value = $self->get_hash($rest)->{$last};
     return defined($value) ? $value : $default;
 }
 
@@ -376,7 +358,18 @@ read as an extra conf file whose values override all others.
 
 =head1 CONFIGURATION FORMAT
 
-Conf file format is L<YAML|http://www.yaml.org/> with several additions.
+Basic conf file format is L<YAML|http://www.yaml.org/>, e.g.
+
+   cache:
+     defaults:
+       driver: Memcached
+       servers: ["10.0.0.15:11211", "10.0.0.15:11212"]
+
+   log:
+     defaults:
+       level: info
+       output: poet.log
+       layout: "%d{dd/MMM/yyyy:HH:mm:ss.SS} [%p] %c - %m - %F:%L - %P%n"
 
 =head2 Referring to other entries
 
@@ -396,41 +389,6 @@ Conf entries can refer to other entries via the syntax C<${key}>. For example:
       => "The number 5"
    $conf->get('baz')
       => "The number 500"
-
-=head2 Dot notation for hash access
-
-Conf entries can use dot (".") notation to refer to hash entries. e.g. this
-
-   foo.bar.baz: 5
-
-is the same as
-
-   foo:
-      bar:
-         baz: 5
-
-The dot notation is especially useful for I<overriding> individual hash
-elements from higher precedence config files. For example, if in
-C<global/cache.cfg> you have
-
-   cache:
-      defaults:
-         driver: File
-         root_dir: $root/data/cache
-         depth: 3
-
-and in local.cfg you have
-
-    cache.defaults.depth: 2
-
-then only C<depth> will be overriden; the C<driver> and C<root_dir> will remain
-as they were set in C<global/cache.cfg>. If instead local.cfg had
-
-   cache:
-      defaults:
-         depth: 3
-
-then this would completely replace the entire hash under C<cache>.
 
 =head1 OBTAINING $conf SINGLETON
 
@@ -457,13 +415,6 @@ or undef if no default is given.
 
 The return value may be a scalar, list reference, or hash reference, though we
 recommend using L</get_list> and L</get_hash> if you expect a list or hash.
-
-I<key> can contain dot notation to refer to hash entries. e.g. these are
-equivalent:
-
-    $conf->get('foo.bar.baz');
-
-    $conf->get_hash('foo')->{bar}->{baz};
 
 =item get_or_die
 

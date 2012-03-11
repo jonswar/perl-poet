@@ -1,7 +1,9 @@
 package Poet::Log;
 use Poet qw($conf $env);
+use File::Spec::Functions qw(rel2abs);
 use Log::Any::Adapter;
 use Method::Signatures::Simple;
+use Poet::Util qw(read_file);
 use strict;
 use warnings;
 
@@ -24,15 +26,19 @@ method _initialize_log4perl ($class:) {
 }
 
 method _generate_log4perl_config ($class:) {
-    my %core_defaults = (
+    my %log_config = %{ $conf->get_hash('log') };
+    if ( my $log4perl_conf = $log_config{log4perl_conf} ) {
+        $log4perl_conf = rel2abs( $log4perl_conf, $env->conf_dir );
+        return read_file($log4perl_conf);
+    }
+
+    my %defaults = (
         level  => 'info',
         output => 'poet.log',
-        layout => '%d{dd/MMM/yyyy:HH:mm:ss.SS} [%p] %c - %m - %F:%L - %P%n'
+        layout => '%d{dd/MMM/yyyy:HH:mm:ss.SS} [%p] %c - %m - %F:%L - %P%n',
+        %{ $log_config{'defaults'} || {} }
     );
-    my %defaults = ( %core_defaults, %{ $conf->get_hash('log.defaults') } );
-    my %classes = %{ $conf->get_hash('log.class') };
-
-    # must flatten %classes back into dot notation, haha
+    my %classes = %{ $log_config{'class'} || {} };
 
     foreach my $set ( values(%classes) ) {
         foreach my $key (qw(level output layout)) {
@@ -46,9 +52,7 @@ method _generate_log4perl_config ($class:) {
         }
         else {
             $set->{appender_class} = "Log::Log4perl::Appender::File";
-            $set->{filename}       = $set->{output};
-            $set->{filename}       = $env->logs_path( $set->{filename} )
-              if $set->{filename} !~ m|^/|;
+            $set->{filename} = rel2abs( $set->{output}, $env->logs_dir );
         }
     }
     return join(
@@ -97,6 +101,20 @@ Poet::Log -- Poet logging
 
 =head1 SYNOPSIS
 
+    # In a conf file...
+    log:
+      defaults:
+        level: info
+        output: poet.log
+        layout: "%d{dd/MMM/yyyy:HH:mm:ss.SS} [%p] %c - %m - %F:%L - %P%n"
+      category:
+        CHI:
+          level: debug
+          output: chi.log
+          layout: "%d{dd/MMM/yyyy:HH:mm:ss.SS} %m - %P%n"
+        Foo:
+          output: stdout
+
     # In a script...
     use Poet::Script qw($log);
 
@@ -137,16 +155,18 @@ Poet conf files if you just want common features.
 Here's a sample logging configuration. This can go in any Poet conf file(s),
 e.g. local.cfg or global/log.cfg.
 
-    log.defaults:
-      level: info
-      output: poet.log
-      layout: "%d{dd/MMM/yyyy:HH:mm:ss.SS} [%p] %c - %m - %F:%L - %P%n"
-    log.class.CHI:
-      level: debug
-      output: chi.log
-      layout: "%d{dd/MMM/yyyy:HH:mm:ss.SS} %m - %P%n"
-    log.class.MyApp.Foo:
-      output: stdout
+    log:
+      defaults:
+        level: info
+        output: poet.log
+        layout: "%d{dd/MMM/yyyy:HH:mm:ss.SS} [%p] %c - %m - %F:%L - %P%n"
+      category:
+        CHI:
+          level: debug
+          output: chi.log
+          layout: "%d{dd/MMM/yyyy:HH:mm:ss.SS} %m - %P%n"
+        Foo:
+          output: stdout
 
 This defines default settings, and specific settings for category C<CHI> and
 C<MyApp::Foo>. There are three setting types:
@@ -180,7 +200,8 @@ If you need a Log4perl feature that isn't handled by the simple configuration
 case above, you can specify a full L<Log4perl configuration
 file|Log::Log4perl::Config> instead:
 
-    log.log4perl_conf_file: /path/to/log4perl.conf
+    log:
+      log4perl_conf: /path/to/log4perl.conf
 
 =head1 USAGE
 

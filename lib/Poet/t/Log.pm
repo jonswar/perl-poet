@@ -36,7 +36,7 @@ log4perl.appender.default.filename = $logs_dir/poet.log
     );
 
     $test->(
-        { 'log.defaults' => { level => 'debug', output => 'foo.log' } },
+        { log => { 'defaults' => { level => 'debug', output => 'foo.log' } } },
         "log4perl.logger = DEBUG, default
 log4perl.appender.default = Log::Log4perl::Appender::File
 log4perl.appender.default.layout = Log::Log4perl::Layout::PatternLayout
@@ -47,16 +47,26 @@ log4perl.appender.default.filename = $logs_dir/foo.log
 
     $test->(
         {
-            'log.defaults'  => { level => 'info', output => 'foo.log' },
-            'log.class.Bar' => { level => 'warn', output => 'bar.log' },
-            'log.class.Bar.Errors'    => { output => 'stderr' },
-            'log.class.Bar.NonErrors' => { output => 'stdout' }
+            log => {
+                'defaults' => { level => 'info', output => 'foo.log' },
+                'class'    => {
+                    'Bar' => { level => 'warn', output => 'bar.log' },
+                    'Bar.Errors'    => { output => 'stderr' },
+                    'Bar.NonErrors' => { output => 'stdout' },
+                }
+            }
         },
         "log4perl.logger = INFO, default
 log4perl.appender.default = Log::Log4perl::Appender::File
 log4perl.appender.default.layout = Log::Log4perl::Layout::PatternLayout
 log4perl.appender.default.layout.ConversionPattern = $default_layout
 log4perl.appender.default.filename = $logs_dir/foo.log
+
+log4perl.logger.Bar = WARN, Bar
+log4perl.appender.Bar = Log::Log4perl::Appender::File
+log4perl.appender.Bar.layout = Log::Log4perl::Layout::PatternLayout
+log4perl.appender.Bar.layout.ConversionPattern = $default_layout
+log4perl.appender.Bar.filename = $logs_dir/bar.log
 
 log4perl.logger.Bar.Errors = INFO, Bar_Errors
 log4perl.appender.Bar_Errors = Log::Log4perl::Appender::Screen
@@ -68,12 +78,6 @@ log4perl.appender.Bar_NonErrors = Log::Log4perl::Appender::Screen
 log4perl.appender.Bar_NonErrors.layout = Log::Log4perl::Layout::PatternLayout
 log4perl.appender.Bar_NonErrors.layout.ConversionPattern = $default_layout
 log4perl.appender.Bar_NonErrors.stderr = 0
-
-log4perl.logger.Bar = WARN, Bar
-log4perl.appender.Bar = Log::Log4perl::Appender::File
-log4perl.appender.Bar.layout = Log::Log4perl::Layout::PatternLayout
-log4perl.appender.Bar.layout.ConversionPattern = $default_layout
-log4perl.appender.Bar.filename = $logs_dir/bar.log
 "
     );
 }

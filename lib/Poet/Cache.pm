@@ -19,6 +19,12 @@ Poet::Cache -- Poet caching with CHI
 
 =head1 SYNOPSIS
 
+    # In a conf file...
+    cache:
+       defaults:
+          driver: Memcached
+          servers: ["10.0.0.15:11211", "10.0.0.15:11212"]
+
     # In a script...
     use Poet::Script qw($cache);
 
