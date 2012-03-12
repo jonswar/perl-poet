@@ -1,4 +1,4 @@
-package Poet::Importer;
+package Poet::Vars;
 use Method::Signatures::Simple;
 use strict;
 use warnings;

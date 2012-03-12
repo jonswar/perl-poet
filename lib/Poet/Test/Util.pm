@@ -54,6 +54,7 @@ sub temp_env_dir {
         quiet    => 1,
         style    => 'bare',
     );
+    return realpath($root_dir);
 }
 
 sub initialize_test_env {

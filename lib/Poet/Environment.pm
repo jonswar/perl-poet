@@ -16,10 +16,11 @@ my ($current_env);
 method subdirs () { [qw(bin comps conf data lib logs static t)] }
 
 method app_class ($class_name) {
-    my $app_class_name = join( "::", $self->app_name, $class_name );
+    my $app_class_name  = join( "::", $self->app_name, $class_name );
+    my $poet_class_name = join( "::", "Poet",          $class_name );
     return
-        can_load($app_class_name) ? $app_class_name
-      : can_load($class_name)     ? $class_name
+        can_load($app_class_name)  ? $app_class_name
+      : can_load($poet_class_name) ? $poet_class_name
       :   die "cannot load $app_class_name or $class_name";
 }
 
