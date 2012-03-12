@@ -14,7 +14,7 @@ builder {
       path => qr{^/static/},
       root => $env->root_dir;
 
-    my $interp = Poet::Mason->instance;
+    my $interp = $env->app_class('Mason')->instance;
 
     sub {
         my $psgi_env = shift;

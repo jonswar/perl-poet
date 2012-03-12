@@ -50,8 +50,8 @@ method initialize_current_environment ($class: %params) {
 
     # Initialize logging and caching
     #
-    $current_env->app_class('Poet::Log')->initialize_logging();
-    $current_env->app_class('Poet::Cache')->initialize_caching();
+    $current_env->app_class('Log')->initialize_logging();
+    $current_env->app_class('Cache')->initialize_caching();
 }
 
 method instance ($class:) {
@@ -64,8 +64,7 @@ method BUILD () {
     # Initialize configuration
     #
     $self->{conf} =
-      $self->app_class('Poet::Conf')
-      ->new( conf_dir => catdir( $root_dir, "conf" ) );
+      $self->app_class('Conf')->new( conf_dir => catdir( $root_dir, "conf" ) );
     my $conf = $self->{conf};
 
     # Determine where our standard subdirectories (bin, comps, etc.)

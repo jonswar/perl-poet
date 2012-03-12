@@ -18,10 +18,9 @@ method get_options ($class:) {
         allow_globals => [qw($conf $env)],
         comp_root     => $env->comps_dir,
         data_dir      => $env->data_dir,
-        plugins       => [ 'PSGIHandler', 'RouterSimple' ],
-        %{ $conf->get_hash("mason") },
+        plugins       => [ 'PSGIHandler', 'RouterSimple' ]
     );
-    return %defaults;
+    return ( %defaults, %{ $conf->get_hash("mason") } );
 }
 
 method new ($class:) {

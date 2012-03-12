@@ -24,7 +24,7 @@ method import ($caller, $env, @vars) {
 }
 
 method provide_cache ($caller, $env) {
-    $env->app_class('CHI')->new();
+    $env->app_class('Cache')->new();
 }
 
 method provide_conf ($caller, $env) {

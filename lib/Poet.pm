@@ -17,7 +17,7 @@ method export_to_level ($class: $level, $ignore, @params) {
         my ($caller) = caller($level);
         my $env = Poet::Environment->instance
           or die "environment has not been initialized!";
-        $env->app_class('Poet::Importer')->import( $caller, $env, @vars );
+        $env->app_class('Importer')->import( $caller, $env, @vars );
     }
 }
 

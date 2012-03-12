@@ -22,8 +22,8 @@ our %get_cache;
 
 method BUILD () {
     $self->{layer}          = $self->_determine_layer();
-    $self->{is_development} = $self->layer eq 'development';
-    $self->{is_live}        = $self->_determine_is_live();
+    $self->{is_development} = $self->_determine_is_development();
+    $self->{is_live}        = !$self->{is_development};
     $self->{data}           = $self->_parse_conf_files();
 }
 
@@ -91,8 +91,8 @@ method _determine_layer () {
     return $layer;
 }
 
-method _determine_is_live () {
-    return $self->layer =~ /^(?:staging|production)$/;
+method _determine_is_development () {
+    return $self->layer eq 'development';
 }
 
 method _ordered_conf_files () {
