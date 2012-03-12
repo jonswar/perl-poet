@@ -1,12 +1,6 @@
 #!/usr/bin/env perl
-use Poet::Environment::Generator;
-
-my ( $app_dir, $app_name ) = @ARGV;
-die "usage: $0 app_dir AppName" unless defined($app_dir) && defined($app_name);
-Poet::Environment::Generator->generate_environment_directory(
-    root_dir => $app_dir,
-    app_name => $app_name
-);
+use Poet::App;
+Poet::App->run;
 
 __END__
 
