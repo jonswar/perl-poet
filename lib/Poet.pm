@@ -107,8 +107,10 @@ This will import the specified variables into the package's namespace.
 =head2 Accessing in a Mason component
 
 C<$conf> and C<$env> are automatically available as package globals in all
-Mason components.  C<$m->E<gt>cache> and C<$m->E<gt>log> will get you the cache
-and log objects for a particular Mason component.
+Mason components.
+
+C<$m->E<gt>cache> and C<$m->E<gt>log> will get you the cache and log objects
+for a particular Mason component.
 
 =for readme continue
 
