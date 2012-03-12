@@ -18,7 +18,7 @@ sub test_log_config : Tests {
     my $test = sub {
         my ( $conf_settings, $expected ) = @_;
         my $lex      = $conf->set_local($conf_settings);
-        my $log_conf = Poet::Log->_generate_log4perl_config();
+        my $log_conf = Poet::Log->generate_log4perl_config();
         is_string( $log_conf, $expected, json_encode($conf_settings) );
     };
 

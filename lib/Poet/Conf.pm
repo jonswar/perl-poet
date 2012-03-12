@@ -136,7 +136,7 @@ method read_conf_file ($file) {
 
 method merge_conf_data ($current_data, $new_data, $file) {
     while ( my ( $key, $value ) = each(%$new_data) ) {
-        $data->{$key} = $value;
+        $current_data->{$key} = $value;
     }
 }
 
