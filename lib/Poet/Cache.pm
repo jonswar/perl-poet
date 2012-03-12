@@ -100,3 +100,17 @@ this C<$cache> will be created with properties
     servers: ["10.0.0.15:11211", "10.0.0.15:11212"]
     compress_threshold: 4096
     expires_in: 10min
+
+=head1 MODIFIABLE METHODS
+
+These methods are not intended to be called externally, but may be useful to
+override or modify with method modifiers in L<subclasses|<Poet::Subclasses>.
+
+=over
+
+=item initialize_caching
+
+Called once when the Poet environment is initialized. By default, calls C<<
+__PACKAGE__->config  >> with the configuration entry 'cache'.
+
+=back

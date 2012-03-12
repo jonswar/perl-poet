@@ -13,19 +13,15 @@ method get_logger ($class: %params) {
 }
 
 method initialize_logging ($class:) {
-    $class->_initialize_log4perl;
-}
-
-method _initialize_log4perl ($class:) {
     require Log::Log4perl;
     unless ( Log::Log4perl->initialized() ) {
-        my $config_string = $class->_generate_log4perl_config();
+        my $config_string = $class->generate_log4perl_config();
         Log::Log4perl->init( \$config_string );
-        Log::Any::Adapter->set('Log4perl');
     }
+    Log::Any::Adapter->set('Log4perl');
 }
 
-method _generate_log4perl_config ($class:) {
+method generate_log4perl_config ($class:) {
     my %log_config = %{ $conf->get_hash('log') };
     if ( my $log4perl_conf = $log_config{log4perl_conf} ) {
         $log4perl_conf = rel2abs( $log4perl_conf, $env->conf_dir );
@@ -231,7 +227,11 @@ In a component C</foo/bar> (log category will be 'Mason::Component::foo::bar'):
 
 Manually for an arbitrary log category:
 
-    my $log = Log::Any->get_logger(category => 'Some::Category');
+    my $log = Poet::Log->get_logger(category => 'Some::Category');
+        
+    # or
+    
+    my $log = MyApp::Log->get_logger(category => 'Some::Category');
 
 =back
 
@@ -244,25 +244,27 @@ Manually for an arbitrary log category:
 
 See C<Log::Any|Log::Any> for more details.
 
-=head1 APPENDIX A: SIMPLE CONFIGURATION TRANSLATION
+=head1 MODIFIABLE METHODS
 
-   log4perl.logger = INFO, default
-   log4perl.appender.default = Log::Log4perl::Appender::File
-   log4perl.appender.default.layout = Log::Log4perl::Layout::PatternLayout
-   log4perl.appender.default.layout.ConversionPattern = %d{dd/MMM/yyyy:HH:mm:ss.SS} [%p] %c - %m - %F:%L - %P%n
-   log4perl.appender.default.filename = /Users/swartz/git/poet.git/tmp/my_app/logs/poet.log
-   
-   log4perl.logger.MyApp.Foo = INFO, MyApp_Foo
-   log4perl.appender.MyApp.Foo = Log::Log4perl::Appender::Screen
-   log4perl.appender.MyApp.Foo.layout = Log::Log4perl::Layout::PatternLayout
-   log4perl.appender.MyApp.Foo.layout.ConversionPattern = %d{dd/MMM/yyyy:HH:mm:ss.SS} [%p] %c - %m - %F:%L - %P%n
-   log4perl.appender.MyApp.Foo.stderr = 0
-   
-   log4perl.logger.Foo = DEBUG, CHI
-   log4perl.appender.Foo = Log::Log4perl::Appender::File
-   log4perl.appender.Foo.layout = Log::Log4perl::Layout::PatternLayout
-   log4perl.appender.Foo.layout.ConversionPattern = %d{dd/MMM/yyyy:HH:mm:ss.SS} %m - %P%n
-   log4perl.appender.Foo.filename = /Users/swartz/git/poet.git/tmp/my_app/logs/chi.log
+These methods are not intended to be called externally, but may be useful to
+override or modify with method modifiers in L<subclasses|<Poet::Subclasses>.
+Their APIs will be kept as stable as possible.
+
+=over
+
+=item initialize_logging
+
+Called once when the Poet environment is initialized. By default, initializes
+log4perl with the results of L</generate_log4perl_config>> and then calls C<<
+Log::Any::Adapter->set('Log4perl') >>.  You can modify this to initialize
+log4perl in your own way, or use a completely different logging system.
+
+=item generate_log4perl_config
+
+Returns a log4perl config string based on Poet configuration. You can modify
+this to construct and return your own config.
+
+=back
 
 =head1 SEE ALSO
 

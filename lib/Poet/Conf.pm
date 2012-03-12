@@ -14,20 +14,17 @@ use warnings;
 
 has 'conf_dir'       => ( required => 1 );
 has 'data'           => ( init_arg => undef );
-has 'is_development' => ( init_arg => undef );
-has 'is_live'        => ( init_arg => undef );
-has 'layer'          => ( init_arg => undef );
+has 'is_development' => ( init_arg => undef, lazy_build => 1 );
+has 'is_live'        => ( init_arg => undef, lazy_build => 1 );
+has 'layer'          => ( init_arg => undef, lazy_build => 1 );
 
 our %get_cache;
 
 method BUILD () {
-    $self->{layer}          = $self->_determine_layer();
-    $self->{is_development} = $self->_determine_is_development();
-    $self->{is_live}        = !$self->{is_development};
-    $self->{data}           = $self->_parse_conf_files();
+    $self->{data} = $self->read_conf_data();
 }
 
-method _parse_conf_files () {
+method read_conf_data () {
     my $conf_dir = $self->conf_dir();
     my %data     = ();
 
@@ -38,7 +35,7 @@ method _parse_conf_files () {
 
     # Collect list of conf files in appropriate order
     #
-    my @conf_files = $self->_ordered_conf_files();
+    my @conf_files = $self->ordered_conf_files();
 
     # Stores the file where each global/* key is declared.
     #
@@ -49,7 +46,7 @@ method _parse_conf_files () {
 
             # Read conf file into hash
             #
-            my $new_data = $self->_read_conf_file($file);
+            my $new_data = $self->read_conf_file($file);
 
             # Make sure no keys are defined in multiple global conf files
             #
@@ -68,7 +65,7 @@ method _parse_conf_files () {
 
             # Merge new hash into current data
             #
-            $self->_merge_conf_data( \%data, $new_data, $file );
+            $self->merge_conf_data( \%data, $new_data, $file );
         }
         $self->_flush_get_cache();
     }
@@ -76,12 +73,12 @@ method _parse_conf_files () {
     return \%data;
 }
 
-method _determine_layer () {
+method _build_layer () {
     my $conf_dir = $self->conf_dir;
     my $local_cfg_file = catfile( $conf_dir, "local.cfg" );
     my $local_cfg =
       ( -f $local_cfg_file )
-      ? $self->_read_conf_file($local_cfg_file)
+      ? $self->read_conf_file($local_cfg_file)
       : {};
     my $layer = $local_cfg->{layer}
       || die "must specify layer in '$local_cfg_file'";
@@ -91,11 +88,15 @@ method _determine_layer () {
     return $layer;
 }
 
-method _determine_is_development () {
+method _build_is_development () {
     return $self->layer eq 'development';
 }
 
-method _ordered_conf_files () {
+method _build_is_live () {
+    return !$self->is_development;
+}
+
+method ordered_conf_files () {
     my $conf_dir = $self->conf_dir();
     my $layer    = $self->layer();
 
@@ -113,7 +114,7 @@ method _ordered_conf_files () {
     );
 }
 
-method _read_conf_file ($file) {
+method read_conf_file ($file) {
 
     # Read a yaml file into a hash, adding a dummy key pair to handle empty
     # files or files with nothing but comments, and checking for errors.
@@ -133,7 +134,7 @@ method _read_conf_file ($file) {
     return $hash;
 }
 
-method _merge_conf_data ($data, $new_data, $file) {
+method merge_conf_data ($current_data, $new_data, $file) {
     while ( my ( $key, $value ) = each(%$new_data) ) {
         $data->{$key} = $value;
     }
@@ -227,7 +228,7 @@ method set_local ($pairs) {
     # Make a deep copy of current data, then merge in the new pairs
     #
     my $orig_data = clone( { %{ $self->{data} } } );
-    $self->_merge_conf_data( $self->{data}, $pairs, "set_local" );
+    $self->merge_conf_data( $self->{data}, $pairs, "set_local" );
     $self->conf_has_changed();
 
     # Restore original data when $guard goes out of scope
@@ -240,9 +241,8 @@ method get_keys () {
     return keys( %{ $self->{data} } );
 }
 
-method dump () {
-    return YAML::XS::Dump( { map { "$_: " . $self->get($_) } $self->get_keys } )
-      . "\n";
+method as_hash () {
+    return { map { ( $_, $self->get($_) ) } $self->get_keys() };
 }
 
 # Things we need to do whenever the conf changes.
@@ -283,7 +283,7 @@ Poet::Conf -- Poet configuration
 
     my @keys = grep { /^foo\./ } $conf->get_keys;
 
-    print $conf->dump;
+    print $conf->as_hash;
 
     { 
        my $lex = $conf->set_local({'key' => 'new_value'});
@@ -337,7 +337,7 @@ development.cfg, production.cfg, etc. - settings for each particular layer
 
 =item *
 
-live.cfg - read when layer = "staging" or "production"
+live.cfg - read when is_live is true
 
 =back
 
@@ -404,6 +404,8 @@ $conf is automatically available in components.
 
 =head1 METHODS
 
+=head2 Methods for getting conf values
+
 =over
 
 =item get
@@ -420,7 +422,7 @@ recommend using L</get_list> and L</get_hash> if you expect a list or hash.
 
     my $value = $conf->get_or_die('key');
 
-Get I<key> from configuration. If I<key> is unavailable, throw a fatal error.
+Like L</get>, but if I<key> is unavailable, throw a fatal error.
 
 =item get_list
 
@@ -449,11 +451,36 @@ no default is given.
 Get I<key> from configuration, or undef if I<key> is unavailable. This method
 simply indicates to the reader that a boolean is expected.
 
-=item keys
+=back
 
-    my @keys = sort $conf->keys;
+=head2 Other methods
+
+=over
+
+=item layer
+
+Returns the current layer, as determined from C<local.cfg>.
+
+=item is_development
+
+Boolean; returns true iff the current layer is 'development'.
+
+=item is_live
+
+Boolean; the opposte of L<is_development>.
+
+=item get_keys
+
+    my @keys = sort $conf->get_keys;
 
 Return a list of all keys in configuration.
+
+=item as_hash
+
+    my $hash = $conf->as_hash;
+
+Return a hash reference mapping keys to their value as returned by C<<
+$conf->get >>.
 
 =item set_local
 
@@ -465,6 +492,76 @@ when $lex goes out of scope.
 This is intended for specialized use in unit tests and development tools, NOT
 for production code. Setting and resetting of configuration values will make it
 much more difficult to read and debug code!
+
+=back
+
+=head1 MODIFIABLE METHODS
+
+These methods are not intended to be called externally, but may be useful to
+override or modify with method modifiers in L<subclasses|<Poet::Subclasses>.
+Their APIs will be kept as stable as possible.
+
+=over
+
+=item read_conf
+
+This is the main method that finds and parses conf files and returns a hash of
+conf keys to values. You can modify this to dynamically compute certain conf
+keys:
+
+    override 'read_conf' => sub {
+        my $hash = super();
+        $hash->{complex_key} = ...;
+        return $hash;
+    };
+
+or to completely override how Poet gets its configuration:
+
+    override 'read_conf' => sub {
+        return {
+           some_conf_key => 'some conf value',
+           ...
+        };
+    };
+
+=item _build_layer
+
+Determines the current layer before L</read_conf> is called. By default, looks
+for a C<layer> key in C<local.cfg>.
+
+=item _build_is_development
+
+Determines the value of L</is_development>, and subsequently its opposite
+L</is_live>.
+
+=item ordered_conf_files
+
+Returns a list of conf files to read in order from lowest to highest
+precedence. You can modify this to insert an additional file, e.g.
+
+    override 'ordered_conf_files' => sub {
+        my @list = super();
+        return (@list, '/path/to/important.cfg');
+    };
+
+=item read_conf_file ($file)
+
+Read a single conf I<$file> and return its hash representation. You can modify
+this to use a conf format other than YAML, e.g.
+
+    use Config::INI;
+
+    override 'read_conf_file' => sub {
+        my ($self, $file) = @_;
+        return Config::INI::Reader->read_file($file);
+    };
+
+=item merge_conf_data ($current_data, $new_data, $file)
+
+Merge I<$new_data> from I<$file> into I<$current_data>. I<$new_data> and
+I<$current_data> are both hashrefs, and I<$current_data> will be the empty hash
+for the first file. By default, this just uses Perl's built-in hash merging
+with values from I<$new_data> taking precedence.
 
 =back
 
