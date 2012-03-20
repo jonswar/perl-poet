@@ -9,7 +9,7 @@ extends 'Mason';
 my $instance;
 
 method instance ($class:) {
-    $instance ||= Mason->new();
+    $instance ||= $class->new();
     $instance;
 }
 
@@ -18,21 +18,21 @@ method get_options ($class:) {
         allow_globals => [qw($conf $env)],
         comp_root     => $env->comps_dir,
         data_dir      => $env->data_dir,
-        plugins       => [ 'PSGIHandler', 'RouterSimple' ]
+        plugins       => [ 'HTMLFilters', 'PSGIHandler', 'RouterSimple' ]
     );
     return ( %defaults, %{ $conf->get_hash("mason") } );
 }
 
 method new ($class:) {
-    my $mason = $class->SUPER::new( $class->get_options, @_ );
-    $mason->_set_poet_globals;
-    return $mason;
+    my $interp = $class->SUPER::new( $class->get_options, @_ );
+    $class->_set_poet_globals($interp);
+    return $interp;
 }
 
-method _set_poet_globals () {
-    my %allowed_globals = map { ( $_, 1 ) } @{ $self->allow_globals };
-    $self->set_global( '$conf', $conf ) if $allowed_globals{'$conf'};
-    $self->set_global( '$env',  $env )  if $allowed_globals{'$env'};
+method _set_poet_globals ($interp) {
+    my %allowed_globals = map { ( $_, 1 ) } @{ $interp->allow_globals };
+    $interp->set_global( '$conf', $conf ) if $allowed_globals{'$conf'};
+    $interp->set_global( '$env',  $env )  if $allowed_globals{'$env'};
 }
 
 1;
@@ -82,8 +82,8 @@ options from L<get_options>.
 
 =item get_options
 
-Returns Mason options by combining L<default settings|DEFAULT SETTINGS> and
-L<configuration|CONFIGURATION>.
+Returns a hash of Mason options by combining L<default settings|DEFAULT
+SETTINGS> and L<configuration|CONFIGURATION>.
 
 =back
 
@@ -103,9 +103,9 @@ default the C<data> subdirectory under the environment root.
 
 =item *
 
-C<plugins> is set to include L<PSGIHandler|Mason::Plugins::PSGIHandler> and
-L<RouterSimple|Mason::Plugins::RouterSimple>, which are necessary and helpful
-(respectively) for handling web requests.
+C<plugins> is set to include L<PSGIHandler|Mason::Plugins::PSGIHandler>,
+L<RouterSimple|Mason::Plugins::RouterSimple>, and
+L<HTMLFilters|Mason::Plugins::HTMLFilters>.
 
 =item *
 
@@ -118,8 +118,7 @@ C<allow_globals> is set to include C<$conf> and $<env>
 The Poet configuration entry 'mason', if any, will be treated as a hash of
 options that supplements and/or overrides the defaults above.
 
-If you specify C<plugins>, make sure to include C<PSGIHandler> or a plugin with
-an equivalent API.
+If you specify C<plugins>, make sure to include C<PSGIHandler> or equivalent.
 
 =head1 POET VARIABLES
 

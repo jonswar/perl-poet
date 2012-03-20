@@ -1,0 +1,538 @@
+
+=head1 NAME
+
+Poet::Manual::Tutorial - Poet tutorial
+
+=head1 DESCRIPTION
+
+In this tutorial we use Poet to create a blog website from scratch.
+
+=head1 SETUP
+
+First we install Poet and a few other support modules.
+
+    # Requires cpanm: http://search.cpan.org/perldoc?App::cpanminus
+    cpanm -S Date::Format DBD::SQLite Poet Rose::DB::Object
+
+Then we use the C<poet> app to set up our environment:
+
+    % poet new
+    blog/app.psgi
+    ...
+    Run
+
+        my_app/bin/run
+
+    to start your server.
+
+This will create a directory called C<my_app>. Try running C<my_app/bin/run>.
+You should see something like
+
+and you should be able to hit that URL to see the Poet welcome page.
+
+=head1 THE POET ENVIRONMENT
+
+In Poet, your entire web site lives within a single directory hierarchy called
+the environment. It contains subdirectories for configuration, libraries, Mason
+components, static files, etc.
+
+None of your code needs to know what the environment root is; it is determined
+automatically upon Poet initialization. If you move your entire environment to
+a different directory, things should just work.
+
+Under the environment root C<blog>, you'll see the following:
+
+=over
+
+=item *
+
+.poet_root - a file marking the environment root
+
+=item *
+
+bin - executable scripts
+
+=item *
+
+comps - Mason components (templates)
+
+=item *
+
+conf - configuration files
+
+=item *
+
+data - transient data such as Mason object files and cache files
+
+=item *
+
+lib - app-specific libraries and Poet subclasses
+
+=item *
+
+logs - logs from web server and from explicit logging statements
+
+=item *
+
+static - static web files - css, images, js
+
+=item *
+
+t - unit tests
+
+=back
+
+=head1 POET SCRIPTS
+
+A Poet script is just a regular Perl script in your environment that has 'use
+Poet::Script' on top. It usually lives under C<bin> or a subdirectory thereof
+but can actually be anywhere under the environment root.
+
+Try creating C<my_app>/hello.pl:
+
+    #!/usr/bin/perl
+    use Poet::Script qw($conf $env);
+
+    print "My environment root is " . $env->root . "\n";
+    print "My configuration is:\n" . $conf->dump_as_string . "\n";
+
+Make it executable and run it:
+
+    % chmod a+x hello.pl
+    % ./hello.pl
+
+and you should see something like:
+
+=head1 CONFIGURATION
+
+We need to add a couple of things to configuration for our blog.
+
+Third, to add Session support:
+
+     builder {
+         # Include PSGI middleware here
+ =>      enable 'Session';
+         $app;
+     };
+
+=head1 DATA LAYER
+
+Let's dispense with the model, the part of our app that has little to do with
+Mason per se. We'll represent blog articles with a single sqlite table:
+
+    create table if not exists articles (
+      id integer primary key autoincrement,
+      content string not null,
+      create_time integer not null,
+      title string not null
+    );
+
+and a single L<Rose::DB::Object> class to provide an API for it:
+
+    package Blog::Article;
+    use Blog::DB;
+    use strict;
+    use warnings;
+    use base qw(Rose::DB::Object);
+    
+    __PACKAGE__->meta->setup(
+        table => 'articles',
+        auto  => 1,
+    );
+    __PACKAGE__->meta->make_manager_class('articles');
+    sub init_db { Blog::DB->new }
+
+    1;
+
+Basically this gives us a C<Blog::Article> object with a constructor for
+inserting articles, and instance methods for each of the columns.  See
+L<Rose::DB::Object::Tutorial> for more information.
+
+=head1 INTRODUCTION TO COMPONENTS
+
+The I<component> - a file with a mix of Perl and HTML - is Mason's basic
+building block. Pages are usually formed by combining the output from multiple
+components.  An article page for a online magazine, for example, might call
+separate components for the company masthead, ad banner, left table of
+contents, and article body.
+
+    +---------+------------------+
+    |Masthead | Banner Ad        |
+    +---------+------------------+
+    |         |                  |
+    |+-------+|Text of Article ..|
+    ||       ||                  |
+    ||Related||Text of Article ..|
+    ||Stories||                  |
+    ||       ||Text of Article ..|
+    |+-------+|                  |
+    |         +------------------+
+    |         | Footer           |
+    +---------+------------------+
+
+The top level component decides the overall page layout.  Individual cells are
+then filled by the output of subordinate components.  Pages might be built up
+from as few as one, to as many as hundreds of components, with each component
+contributing a chunk of HTML.
+
+Splitting up a page into multiple components gives you roughly the same
+benefits as splitting up an application into multiple classes: encapsulation,
+reusability, development concurrency, separation of concerns, etc.
+
+Mason actually compiles components down to Perl/Moose classes, which means that
+many of the tools you use to develop regular classes - profilers, debuggers,
+and the like - can be used with Mason components with slight tweaking.
+
+See L<Mason::Manual::Components> for more information about components.
+
+=head1 TOP-LEVEL PAGE COMPONENTS, INDEX FILES
+
+Here's our first component to serve the home page, C</index.mc>:
+
+     1  <html>
+     2    <head>
+     3      <link rel="stylesheet" href="/static/css/blog.css">
+     4      <title>My Blog: Home</title>
+     5    </head>
+     6    <body>
+     7    
+     8      <h2>Welcome to my blog.</h2>
+     9  
+    10      <& all_articles.mi &>
+    11  
+    12      <a href="/new_article">Add an article</a>
+    13  
+    14    </body>
+    15  </html>
+
+Any component with a C<.mc> extension is considered a
+L<top-level|Mason::Manual::Components/COMPONENT FILES> component, that is, it
+can be reached by an external URL.
+
+C<index.mc> is a special path - it will match the URI of its directory, in this
+case '/'. (For more special paths and details on how Mason finds page
+components, see L<Mason::Manual::RequestDispatch>.)
+
+Most of this component contains just HTML, which will be output exactly as
+written.  The single piece of special Mason syntax here is
+
+    10  <& all_articles.mi &>
+
+This is a L<component call|Mason::Manual::Components/CALLING COMPONENTS> - it
+invokes another component, whose output is inserted in place.
+
+Splitting a page into multiple components has much the same benefits as
+splitting a regular program into multiple subroutines or objects:
+encapsulation, reuse, etc.
+
+=head1 INTERNAL COMPONENTS, %-LINES, SUBSTITUTION TAGS, <%INIT> BLOCKS
+
+Because all_articles.mi has an C<.mi> extension (rather than C<.mc>), it is an
+L<internal|Mason::Manual::Components/Component file extensions> rather than a
+top-level component, and cannot be reached by an external URL. It can only be
+reached via a component call from another component.
+
+     1  % if (@articles) {
+     2  <b>Showing <% scalar(@articles) %> article<% @articles > 1 ? "s" : "" %>.</b>
+     3  <ul class="articles">
+     4  %   foreach my $article (@articles) {
+     5    <li><& article/display.mi, article => $article &></li>
+     6  %   }
+     7  </ul>
+     8  % }
+     9  % else {
+    10  <p>No articles yet.</p>
+    11  % }
+    12  
+    13  <%init>
+    14  my @articles = @{ Blog::Article::Manager->get_articles
+    15      (sort_by => 'create_time DESC') };
+    16  </%init>
+
+Three new pieces of syntax here:
+
+=over
+
+=item Init block
+
+The L<E<lt>%initE<gt>|Mason::Manual::Syntax/E<lt>%initE<gt>> block on lines
+13-16 specifies a block of Perl code to run when this component is first
+called. In this case it fetches and sorts the list of articles into a lexical
+variable C<< @articles >>.
+
+=item %-lines
+
+L<%-lines|Mason::Manual::Syntax/PERL LINES> - lines beginning with a single '%'
+- are treated as Perl rather than HTML.  They are especially good for loops and
+conditionals.
+
+=item Substitution tags
+
+This line
+
+     2  <b>Showing <% scalar(@articles) %> article<% @articles > 1 ? "s" : "" %>.</b>
+
+shows two L<substitution tags|Mason::Manual::Syntax/SUBSTITUTION TAGS>. Code
+within C<< <% >> and C<< %> >> is treated as a Perl expression, and the result
+of the expression is output in place.
+
+=back
+
+We see another component call here, C<< article/display.mi >>, which displays a
+single article; we pass the article object in a name/value argument pair.
+Components can be in different directories and component paths can be relative
+or absolute.
+
+=head1 ATTRIBUTES, DOLLAR-DOT NOTATION, PASSING ARGUMENTS TO COMPONENTS
+
+Next we create C</article/display.mi>, another internal component:
+
+     1  <%class>
+     2  use Date::Format;
+     3  my $date_fmt = "%A, %B %d, %Y  %I:%M %p";
+     4  has 'article' => (required => 1);
+     5  </%class>
+     6  
+     7  <div class="article">
+     8    <h3><% $.article->title %></h3>
+     9    <h4><% time2str($date_fmt, $.article->create_time) %></h4>
+    10    <% $.article->content %>
+    11  </div>
+
+The L<E<lt>%classE<gt>|Mason::Manual::Syntax/E<lt>%classE<gt>> block on lines
+1-4 specifies a block of Perl code to place near the top of the generated
+component class, outside of any methods. This is the place to use modules,
+declare permanent constants/variables, declare attributes with 'has', and
+define helper methods.
+
+Throughout the component, we refer to the article attribute via the expression
+
+    $.article
+
+This not-quite-valid-Perl syntax is transformed behind the scenes to
+
+    $self->article
+
+and is one of the rare cases in Mason where we create new syntax on top of
+Perl, because we want attributes and method calls to be as convenient as
+possible.  The transformation itself is performed by the L<DollarDot
+plugin|Mason::Plugin::DollarDot>, which is in the L<default
+plugins|Mason::PluginBundle::Default> list but can be omitted if the source
+filtering offends you. :)
+
+=head1 TEMPLATES / CONTENT WRAPPING, AUTOBASES, INHERITANCE, METHOD MODIFIERS
+
+Now we have to handle the URL C</new_article>, linked from the home page. We do
+this with our second page component, C</new_article.mc>. It contains only HTML
+(for now).
+
+     1  <html>
+     2    <head>
+     3      <link rel="stylesheet" href="/static/css/blog.css">
+     4      <title>My Blog: Home</title>
+     5    </head>
+     6    <body>
+     7  
+     8      <h2>Add an article</h2>
+     9  
+    10      <form action="/article/publish" method=post>
+    11        <p>Title: <input type=text size=30 name=title></p>
+    12        <p>Text:</p>
+    13        <textarea name=content rows=20 cols=70></textarea>
+    14        <p><input type=submit value="Publish"></p>
+    15      </form>
+    16  
+    17    </body>
+    18  </html>
+
+Notice that C</index.mc> and C</new_article.mc> have the same outer HTML
+template; other pages will as well.  It's going to be tedious to repeat this
+everywhere. And of course, we don't have to. We take the common pieces out of
+the C</index.mc> and C</new_article.mc> and place them into a new component
+called C</Base.mc>:
+
+     1  <%augment wrap>
+     2    <html>
+     3      <head>
+     4        <link rel="stylesheet" href="/static/css/mwiki.css">
+     5        <title>My Blog</title>
+     6      </head>
+     7      <body>
+     8        <% inner() %>
+     9      </body>
+    10    </html>
+    11  </%augment>
+
+When any page in our hierarchy is rendered, C</Base.mc> will get control first.
+It will render the upper portion of the template (lines 2-7), then call the
+specific page component (line 8), then render the lower portion of the template
+(lines 9-10).
+
+How does this magic work?
+
+=over
+
+=item 1.
+
+Any component named Base.mc is an L<autobase|Mason::Manual::Components/Autobase
+components> component. It automatically becomes the superclass of any component
+in its directory and below. Thus, C</index.mc> and C</node/view.mc> both
+automatically inherit from C</Base.mc>.
+
+=item 2.
+
+When Mason dispatches to a page component like C</index.mc> or
+C</new_article.mc>, it doesn't call its C<main> method directly. Instead, it
+calls this chain of methods:
+
+    handle -> render -> wrap -> main
+
+By default each method in the chain just calls the next one, so the usual
+behavior is to effectively call C<main>. However, in this case we are
+augmenting the wrap method, which uses the Moose inner/augment call pattern. In
+general, any superclass which augments the wrap method can output content
+before and after its subclasses.
+
+=back
+
+C<< <%augment> >> is actually a generic block that can be used with any method,
+though in practice is most often used with C<< wrap >>. There are analagous
+blocks for each of Moose's L<method modifiers|Moose::Manual::MethodModifiers>:
+C<< <%before> >>, C<< <%after> >>, C<< <%around> >> and C<< <%override> >>.
+
+Now, we can remove those nine boilerplate lines from C</index.mc> and
+C</node/view.mc>.
+
+=head1 FORM HANDLING, PURE-PERL COMPONENTS, CMETA
+
+C</new_article.mc> posts to C</article/publish>. Let's create a component to
+handle that, called C</article/publish.mp>. It will not output anything, but
+will simply take action and redirect.
+
+I<< Note: if you're using an MVC framework, this code will be in a controller
+rather than a Mason component. >>
+
+     1  has 'content';
+     2  has 'title';
+     3  
+     4  method handle () {
+     5      my $session = $m->req->session;
+     6      if ( !$.content || !$.title ) {
+     7          $session->{message} = "Content and title required.";
+     8          $session->{form_data} = $.args;
+     9          $m->redirect('/new_article');
+    10      }
+    11      my $article = Blog::Article->new
+    12          ( title => $.title, content => $.content, create_time => time() );
+    13      $article->save;
+    14      $session->{message} = sprintf( "Article '%s' saved.", $.title );
+    15      $m->redirect('/');
+    16  }
+
+The C<.mp> extension indicates that this is a
+L<pure-perl|Mason::Manual::Components/Component file extensions> component.
+Other than the 'package' and 'use Moose' lines that are generated by Mason, it
+looks just like a regular Perl class. You could accomplish the same thing with
+a C<.mc> component containing a single C<< <%class> >> block, but this is
+easier and more self-documenting.
+
+On lines 1 and 2 we declare incoming attributes. Because this is a top-level
+page component, the attributes will be populated with our POST parameters.
+
+On line 4 we define a C<handle> method to validate the POST parameters, create
+the article, and redirect. Recall from the previous chapter that Mason
+initially calls C<handle> on top-level page components and that it usually
+defaults to calling C<render>. By defining C<handle> we ensure that the page
+will not output anything, even in the C</Base.mc> wrapper.
+
+The C<method> keyword comes from L<Method::Signatures::Simple>, which is
+imported into components by default; see L<Mason::Component::Moose>.
+
+On line 5 we grab the Plack session. C<< $m->req >> returns the Plack request
+object; there is an analagous C<< $m->res >> for the Plack response object.
+
+On lines 7 and 14, we set a message in the Plack session that we want to
+display on the next page. Rather than just making this work for a specific
+page, let's add generic code to the template in C<Base.mc>:
+
+     7      <body>
+ =>  8  % if (my $message = delete($m->req->session->{message})) {
+ =>  9        <div class="message"><% $message %></div>
+ => 10  % }      
+    11        <% inner() %>
+    12      </body>
+
+Now, any page can place a message in the session, and it'll appear on just the
+next page.
+
+On line 8, we place the POST data in the session so that we can repopulate the
+form with it - we'll do that in the next chapter. C<< $.args >> is a special
+component attribute that contains all the arguments passed to the component.
+
+=head1 FILTERS
+
+We need to change C<< /new_article.mc >> to repopulate the form with the
+submitted values when validation fails.
+
+     1  <h2>Add an article</h2>
+     2  
+     3  % $.FillInForm($form_data) {{
+     4  <form action="/article/publish" method=post>
+     5    <p>Title: <input type=text size=30 name=title></p>
+     6    <p>Text:</p>
+     7    <textarea name=content rows=20 cols=70></textarea>
+     8    <p><input type=submit value="Publish"></p>
+     9  </form>
+    10  % }}
+    11  
+    12  <%init>
+    13  my $form_data = delete($m->req->session->{form_data});
+    14  </%init>
+
+On lines 3 and 10 we surround the form with a I<filter>. A filter takes a
+content block as input and returns a new content block which is output in its
+place. In this case, the C<FillInForm> filter uses
+L<HTML::FillInForm|HTML::FillInForm> to fill in the form from the values in
+C<$form_data>.
+
+Mason has a few built-in filters, and others are provided in plugins; for
+example C<FillInForm> is provided in the L<HTMLFilters
+plugin|Mason::Plugin::HTMLFilters>.
+
+Another common filter provided by this plugin is C<HTMLEscape>, or C<H> for
+short. We ought to use this in C</article/display.mi> when displaying the
+article title, in case it has any HTML-unfriendly characters in it:
+
+    <h3><% $.article->title |H %></h3>
+
+See L<Mason::Manual::Filters> for more information about using, and creating,
+filters.
+
+=head1 FILES FROM THIS TUTORIAL
+
+The final set of files for our blog demo are in the C<eg/blog> directory of the
+Mason distribution, or you can view them at
+L<github|https://github.com/jonswar/perl-mason/tree/master/eg/blog>.
+
+=head1 ADDITIONAL TOPICS
+
+Some topics that we could not fit in here but are worth looking at:
+
+=over
+
+=item *
+
+L<Request dispatching|Mason::Manual::RequestDispatch>
+
+=item *
+
+L<Adding methods to components|Mason::Manual::Components/METHODS>
+
+=item *
+
+L<Caching|Mason::Plugin::Cache>
+
+=back
+
+See L<Mason::Manual> for a full list of documentation.
+

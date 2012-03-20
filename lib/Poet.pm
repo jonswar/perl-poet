@@ -29,7 +29,41 @@ __END__
 
 =head1 NAME
 
-Poet -- A web framework for Mason developers
+Poet -- a web framework for Mason developers
+
+=head1 SYNOPSIS
+
+  % poet new -a MyApp
+
+=head1 DESCRIPTION
+
+Poet is a web framework for Mason developers. It uses PSGI/Plack for server
+integration, Mason for request routing and templating, and a selection of
+best-of-breed CPAN modules for caching, logging and configuration.
+
+Poet gives you:
+
+=over
+
+=item *
+
+A standard useful directory hierarchy for web development
+
+=item *
+
+A multi-file configuration system that scales well for multiple developers and
+"layers" (development, staging, production)
+
+=item *
+
+Easy one-line access to configuration, caching and logging facilities
+
+=back
+
+Poet's conventions and defaults are based on the author's best practices from
+15+ years of Mason site development. That said, Poet was designed to be
+flexible; if you see a decision you don't like, you can generally change it
+with a subclass.
 
 =head1 ENVIRONMENT
 

@@ -51,7 +51,7 @@ method generate_environment_directory ($class: %params) {
             write_file( $dest, $output );
         }
     }
-    chmod( 0775, "$root_dir/run" );
+    chmod( 0775, "$root_dir/bin/run" );
 
     return $root_dir;
 }

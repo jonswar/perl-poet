@@ -1,9 +1,11 @@
 package Poet::Server;
 use Poet qw($conf $env);
+use Method::Signatures::Simple;
+use IPC::System::Simple qw(run);
 use strict;
 use warnings;
 
-method get_options ($class:) {
+method get_plackup_options ($class:) {
     my %defaults = (
         app => $env->root_path("app.psgi"),
         env => $conf->layer,
@@ -19,10 +21,29 @@ method get_options ($class:) {
 }
 
 method plackup ($class:) {
-    my $options = $class->get_options;
-    my @run_args = map { ( "--$_", $options->{$_} ) } sort( keys(%$options) );
+    my %options = $class->get_plackup_options;
+    my @run_args = map { ( "--$_", $options{$_} ) } sort( keys(%options) );
     print "running plackup " . join( " ", @run_args ) . "\n";
     run( "plackup", @run_args );
+}
+
+method build_psgi_app ($class:) {
+    builder {
+        if ( $conf->is_development ) {
+            enable "Plack::Middleware::StackTrace";
+            enable "Plack::Middleware::Debug";
+        }
+        enable "Plack::Middleware::Static",
+          path => qr{^/static/},
+          root => $env->root_dir;
+
+        my $interp = $env->app_class('Mason')->instance;
+
+        sub {
+            my $psgi_env = shift;
+            $interp->handle_psgi($psgi_env);
+        };
+    }
 }
 
 method _reload_dirs () {
@@ -30,3 +51,62 @@ method _reload_dirs () {
 }
 
 1;
+
+__END__
+
+=pod
+
+=head1 NAME
+
+Poet::Server -- Implements PSGI app and plackup
+
+=head1 DESCRIPTION
+
+This module is responsible for building the PSGI app and running plackup with
+settings appropriate to the Poet environment.
+
+=head1 METHODS
+
+These methods can be overriden or modified with method modifiers in
+L<subclasses|<Poet::Subclasses>.
+
+=over
+
+=item get_plackup_options
+
+Returns a hash of plackup options. The keys will be prepended with "--" to turn
+this into a set of command-line options.
+
+By default, this returns something like
+
+    app => "<root>/app.psgi",
+    env => "development",                   # from $conf->layer
+    Reload => ...,                          # only in development
+    access_log => "<root>/logs/access.log", # only in production
+
+plus anything in the Poet configuration entry 'server'.
+
+=item plackup
+
+Runs plackup with the options from L</get_plackup_options>.
+
+=item build_psgi_app
+
+Builds the PSGI app with an appropriate set of middleware. By default,
+
+=over
+
+=item *
+
+Plack::Middleware::StackTrace and Plack::Middleware::Debug are added in
+development
+
+=item *
+
+Plack::Middleware::Static is used for /static paths
+
+=item *
+
+The request is handed off to Mason via Mason::Plugin::PSGIHandler.
+
+=back

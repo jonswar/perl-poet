@@ -31,7 +31,6 @@ method read_conf_data () {
     # Provide some convenience globals.
     #
     $data{root} = realpath( dirname($conf_dir) );
-    $data{user} = getlogin || getpwuid($<);
 
     # Collect list of conf files in appropriate order
     #
@@ -243,6 +242,10 @@ method get_keys () {
 
 method as_hash () {
     return { map { ( $_, $self->get($_) ) } $self->get_keys() };
+}
+
+method as_string () {
+    return YAML::XS::Dump( $self->as_hash );
 }
 
 # Things we need to do whenever the conf changes.

@@ -5,7 +5,7 @@ Poet - A Mason + PSGI web framework
 
 =head1 SYNOPSIS
 
-  % poet MyApp my_app    # Generate a Poet application called MyApp in my_app/.
+  % poet new -a MyApp -d my_app  # Generate a Poet application called MyApp in my_app
 
 =head1 DESCRIPTION
 
@@ -47,7 +47,8 @@ Easy one-line access to configuration, caching and logging objects.
 Poet's philosophy on MVC is mixed.
 
 We I<do> encourage the use of strong Model objects that are independent from
-View templates.
+View templates. In general you should not be shoving business logic and raw SQL
+queries in your components.
 
 We I<do not> separate the Controller from the View; requests are dispatched
 directly to Mason components, with possible help from Mason plugins such as
@@ -61,12 +62,12 @@ Remember that Mason components compile down to Moose classes, so your
 Controller and View code can utilize all the OO techniques and power that come
 with Moose.
 
-In a nutshell, much of the code that would be in a Controller in a traditional
-MVC framework ends up in Mason components alongside the view. The advantage is
-only having to look/change things in one place to see/change how a particular
-URL is rendered. This removes one of the major annoyances of traditional MVC:
-bouncing back and forth between a Controller and View that are often quite
-coupled, with a change to one requiring a change to the other.
+Much of the code that would be in a Controller in a traditional MVC framework
+ends up in Mason components alongside the view. The advantage is only having to
+look/change things in one place to see/change how a particular URL is rendered.
+This removes one of the major annoyances of traditional MVC: bouncing back and
+forth between a Controller and View that are often quite coupled, with a change
+to one requiring a change to the other.
 
 The disadvantages are that (1) greater discipline is required to keep non-View
 related code in modules instead of components, and (2) the templates are less

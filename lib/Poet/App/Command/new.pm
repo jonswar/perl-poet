@@ -4,7 +4,7 @@ use Poet::Types;
 
 extends 'MooseX::App::Cmd::Command';
 
-has 'app_name' => ( required => 1, isa => 'Poet::Types::AppName', traits => ['Getopt'], cmd_flag => 'app-name', cmd_aliases => 'a', documentation => 'Name of app, e.g. MyApp or ABC (required)' );
+has 'app_name' => ( isa => 'Poet::Types::AppName', traits => ['Getopt'], cmd_flag => 'app-name', cmd_aliases => 'a', documentation => 'Name of app, e.g. MyApp or ABC', default => 'MyApp' );
 has 'dir'      => ( isa => 'Str', traits => ['Getopt'], cmd_aliases => 'd', lazy_build => 1, documentation => 'Directory to create; will adapt from app-name if ommitted' );
 has 'quiet'    => ( isa => 'Bool', traits => ['Getopt'], cmd_aliases => 'q', documentation => 'Suppress most messages' );
 
