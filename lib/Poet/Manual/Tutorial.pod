@@ -5,120 +5,69 @@ Poet::Manual::Tutorial - Poet tutorial
 
 =head1 DESCRIPTION
 
-In this tutorial we use Poet to create a blog website from scratch.
+This tutorial provides a tour of Poet by showing how to build a sample web
+application - specifically a micro-blog, which seems to be a popular "hello
+world" for web frameworks. :) Thanks to L<Dancer|Dancer::Tutorial> and
+L<Flask|https://github.com/mitsuhiko/flask/tree/master/examples/flaskr/> for
+the inspiration.
 
-=head1 SETUP
+=head1 INSTALLATION
 
 First we install Poet and a few other support modules.
 
-    # Requires cpanm: http://search.cpan.org/perldoc?App::cpanminus
-    cpanm -S Date::Format DBD::SQLite Poet Rose::DB::Object
+If you don't yet have cpanminus (C<cpanm>), get it
+L<here|http://search.cpan.org/perldoc?App::cpanminus#INSTALLATION>. Then run
 
-Then we use the C<poet> app to set up our environment:
+    cpanm -S --notest Date::Format DBD::SQLite Poet Rose::DB::Object
 
-    % poet new
+Omit the "--notest" if you want to run all the installation tests. Note that
+this will take about four times as long.
+
+=head1 SETUP
+
+You should now have a C<poet> app installed:
+
+    % which poet
+    /usr/local/bin/poet
+
+Run this to create the initial environment:
+
+    % poet new -a Blog
     blog/app.psgi
     ...
-    Run
+    Now run 'blog/bin/run' to start your server.
 
-        my_app/bin/run
+The name of the app, C<Blog>, will be used in app-specific class names. It is
+also used for the default directory name (C<blog>), though you can move that
+wherever you want.
 
-    to start your server.
+Run this to start your server:
 
-This will create a directory called C<my_app>. Try running C<my_app/bin/run>.
-You should see something like
+    % blog/bin/run
+
+and you should see something like
+
+    running plackup --Reload ... --env development --port 5000
+    Watching ... for file updates.
+    HTTP::Server::PSGI: Accepting connections at http://127.0.0.1:5000/
 
 and you should be able to hit that URL to see the Poet welcome page.
 
-=head1 THE POET ENVIRONMENT
-
 In Poet, your entire web site lives within a single directory hierarchy called
-the environment. It contains subdirectories for configuration, libraries, Mason
-components, static files, etc.
+the I<environment>. It contains subdirectories for configuration, libraries,
+Mason components (templates), static files, etc.
 
-None of your code needs to know what the environment root is; it is determined
-automatically upon Poet initialization. If you move your entire environment to
-a different directory, things should just work.
+From now on, every file we create in this tutorial is assumed to be under the
+environment root.
 
-Under the environment root C<blog>, you'll see the following:
+=head1 DATA LAYER (MODEL)
 
-=over
+For any website it's a good idea to have a well-defined I<model> through which
+you retrieve and change data. Poet and Mason don't have much to say about how
+you do this, so we'll make some minimal reasonable choices here and move on.
 
-=item *
-
-.poet_root - a file marking the environment root
-
-=item *
-
-bin - executable scripts
-
-=item *
-
-comps - Mason components (templates)
-
-=item *
-
-conf - configuration files
-
-=item *
-
-data - transient data such as Mason object files and cache files
-
-=item *
-
-lib - app-specific libraries and Poet subclasses
-
-=item *
-
-logs - logs from web server and from explicit logging statements
-
-=item *
-
-static - static web files - css, images, js
-
-=item *
-
-t - unit tests
-
-=back
-
-=head1 POET SCRIPTS
-
-A Poet script is just a regular Perl script in your environment that has 'use
-Poet::Script' on top. It usually lives under C<bin> or a subdirectory thereof
-but can actually be anywhere under the environment root.
-
-Try creating C<my_app>/hello.pl:
-
-    #!/usr/bin/perl
-    use Poet::Script qw($conf $env);
-
-    print "My environment root is " . $env->root . "\n";
-    print "My configuration is:\n" . $conf->dump_as_string . "\n";
-
-Make it executable and run it:
-
-    % chmod a+x hello.pl
-    % ./hello.pl
-
-and you should see something like:
-
-=head1 CONFIGURATION
-
-We need to add a couple of things to configuration for our blog.
-
-Third, to add Session support:
-
-     builder {
-         # Include PSGI middleware here
- =>      enable 'Session';
-         $app;
-     };
-
-=head1 DATA LAYER
-
-Let's dispense with the model, the part of our app that has little to do with
-Mason per se. We'll represent blog articles with a single sqlite table:
+For this demo we'll represent blog articles with a single sqlite table. Create
+a file C<db/schema.sql> with:
 
     create table if not exists articles (
       id integer primary key autoincrement,
@@ -127,7 +76,30 @@ Mason per se. We'll represent blog articles with a single sqlite table:
       title string not null
     );
 
-and a single L<Rose::DB::Object> class to provide an API for it:
+Then run
+
+    % cd blog
+    % sqlite -batch data/blog.db < db/schema.sql
+
+We'll use L<Rose::DB::Object> to provide a nice object-oriented API to our data
+(L<DBIx::Class> would work as well). Create a file C<lib/Blog/DB.pm> to tell
+Rose how to connect to our database:
+
+   package Blog::DB;
+   use Poet qw($env);
+   use strict;
+   use warnings;
+   use base qw(Rose::DB);
+
+   __PACKAGE__->use_private_registry;
+   __PACKAGE__->register_db(
+       driver   => 'sqlite',
+       database => $env->data_path("blog.db"),
+   );
+   
+   1;
+
+and a file C<lib/Blog/Article.pm> to represent the articles table:
 
     package Blog::Article;
     use Blog::DB;
@@ -148,46 +120,24 @@ Basically this gives us a C<Blog::Article> object with a constructor for
 inserting articles, and instance methods for each of the columns.  See
 L<Rose::DB::Object::Tutorial> for more information.
 
-=head1 INTRODUCTION TO COMPONENTS
+=head1 MASON PAGES AND COMPONENTS
 
-The I<component> - a file with a mix of Perl and HTML - is Mason's basic
-building block. Pages are usually formed by combining the output from multiple
-components.  An article page for a online magazine, for example, might call
-separate components for the company masthead, ad banner, left table of
-contents, and article body.
+Mason is the templating engine that you'll use to render pages (the I<view>),
+and is also responsible for routing URLs to specific pieces of code (the
+I<controller>). So it's not surprising that most of the rest of this tutorial
+will focus on Mason.
 
-    +---------+------------------+
-    |Masthead | Banner Ad        |
-    +---------+------------------+
-    |         |                  |
-    |+-------+|Text of Article ..|
-    ||       ||                  |
-    ||Related||Text of Article ..|
-    ||Stories||                  |
-    ||       ||Text of Article ..|
-    |+-------+|                  |
-    |         +------------------+
-    |         | Footer           |
-    +---------+------------------+
+Mason's basic building block is the I<component> - a file with a mix of Perl
+and HTML. All components lives under the subdirectory C<comps>; this is known
+in Mason parlance as the L<component root|Mason::Manual::Components/The
+component root and component paths>.
 
-The top level component decides the overall page layout.  Individual cells are
-then filled by the output of subordinate components.  Pages might be built up
-from as few as one, to as many as hundreds of components, with each component
-contributing a chunk of HTML.
+Given a URL, Mason will dispatch to a L<top-level
+component|Mason::Manual::Components/COMPONENT FILES>. This component decides
+the overall page layout, and then may call other components to fill in the
+details.
 
-Splitting up a page into multiple components gives you roughly the same
-benefits as splitting up an application into multiple classes: encapsulation,
-reusability, development concurrency, separation of concerns, etc.
-
-Mason actually compiles components down to Perl/Moose classes, which means that
-many of the tools you use to develop regular classes - profilers, debuggers,
-and the like - can be used with Mason components with slight tweaking.
-
-See L<Mason::Manual::Components> for more information about components.
-
-=head1 TOP-LEVEL PAGE COMPONENTS, INDEX FILES
-
-Here's our first component to serve the home page, C</index.mc>:
+Here's our first component to serve the home page, C<comps/index.mc>:
 
      1  <html>
      2    <head>
@@ -205,10 +155,7 @@ Here's our first component to serve the home page, C</index.mc>:
     14    </body>
     15  </html>
 
-Any component with a C<.mc> extension is considered a
-L<top-level|Mason::Manual::Components/COMPONENT FILES> component, that is, it
-can be reached by an external URL.
-
+Any component with a C<.mc> extension is considered a top-level component.
 C<index.mc> is a special path - it will match the URI of its directory, in this
 case '/'. (For more special paths and details on how Mason finds page
 components, see L<Mason::Manual::RequestDispatch>.)
@@ -221,15 +168,11 @@ written.  The single piece of special Mason syntax here is
 This is a L<component call|Mason::Manual::Components/CALLING COMPONENTS> - it
 invokes another component, whose output is inserted in place.
 
-Splitting a page into multiple components has much the same benefits as
-splitting a regular program into multiple subroutines or objects:
-encapsulation, reuse, etc.
-
 =head1 INTERNAL COMPONENTS, %-LINES, SUBSTITUTION TAGS, <%INIT> BLOCKS
 
-Because all_articles.mi has an C<.mi> extension (rather than C<.mc>), it is an
-L<internal|Mason::Manual::Components/Component file extensions> rather than a
-top-level component, and cannot be reached by an external URL. It can only be
+Because C<all_articles.mi> has an C<.mi> extension (rather than C<.mc>), it is
+an L<internal|Mason::Manual::Components/Component file extensions> rather than
+a top-level component, and cannot be reached by an external URL. It can only be
 reached via a component call from another component.
 
      1  % if (@articles) {
@@ -409,9 +352,6 @@ C</new_article.mc> posts to C</article/publish>. Let's create a component to
 handle that, called C</article/publish.mp>. It will not output anything, but
 will simply take action and redirect.
 
-I<< Note: if you're using an MVC framework, this code will be in a controller
-rather than a Mason component. >>
-
      1  has 'content';
      2  has 'title';
      3  
@@ -507,32 +447,4 @@ article title, in case it has any HTML-unfriendly characters in it:
 
 See L<Mason::Manual::Filters> for more information about using, and creating,
 filters.
-
-=head1 FILES FROM THIS TUTORIAL
-
-The final set of files for our blog demo are in the C<eg/blog> directory of the
-Mason distribution, or you can view them at
-L<github|https://github.com/jonswar/perl-mason/tree/master/eg/blog>.
-
-=head1 ADDITIONAL TOPICS
-
-Some topics that we could not fit in here but are worth looking at:
-
-=over
-
-=item *
-
-L<Request dispatching|Mason::Manual::RequestDispatch>
-
-=item *
-
-L<Adding methods to components|Mason::Manual::Components/METHODS>
-
-=item *
-
-L<Caching|Mason::Plugin::Cache>
-
-=back
-
-See L<Mason::Manual> for a full list of documentation.
 

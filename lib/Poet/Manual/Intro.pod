@@ -41,37 +41,3 @@ A multi-file configuration layout with knowledge of different application
 Easy one-line access to configuration, caching and logging objects.
 
 =back
-
-=head1 MVC
-
-Poet's philosophy on MVC is mixed.
-
-We I<do> encourage the use of strong Model objects that are independent from
-View templates. In general you should not be shoving business logic and raw SQL
-queries in your components.
-
-We I<do not> separate the Controller from the View; requests are dispatched
-directly to Mason components, with possible help from Mason plugins such as
-L<Mason::Plugin::RouterSimple>. Even pure actions like form responses are
-handled in (pure-Perl) components.
-
-We I<do not> discourage the use of Perl code inside Mason components, I<as long
-as> that code is View-related.
-
-Remember that Mason components compile down to Moose classes, so your
-Controller and View code can utilize all the OO techniques and power that come
-with Moose.
-
-Much of the code that would be in a Controller in a traditional MVC framework
-ends up in Mason components alongside the view. The advantage is only having to
-look/change things in one place to see/change how a particular URL is rendered.
-This removes one of the major annoyances of traditional MVC: bouncing back and
-forth between a Controller and View that are often quite coupled, with a change
-to one requiring a change to the other.
-
-The disadvantages are that (1) greater discipline is required to keep non-View
-related code in modules instead of components, and (2) the templates are less
-friendly to non-technical folks than in other friendlier/watered-down
-templating languages. Poet is probably best used in a developer-centric
-environment, with developers that can be trusted to keep things well factored.
-

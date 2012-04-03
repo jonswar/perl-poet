@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
-use Poet::Script qw($env);
+use <% $app_name %>::Server;
 use strict;
 use warnings;
 
-$env->app_class('Server')->plackup();
+<% $app_name %>::Server->plackup();

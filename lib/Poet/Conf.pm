@@ -12,11 +12,11 @@ use YAML::XS;
 use strict;
 use warnings;
 
-has 'conf_dir'       => ( required => 1 );
-has 'data'           => ( init_arg => undef );
-has 'is_development' => ( init_arg => undef, lazy_build => 1 );
-has 'is_live'        => ( init_arg => undef, lazy_build => 1 );
-has 'layer'          => ( init_arg => undef, lazy_build => 1 );
+has 'conf_dir'    => ( required => 1 );
+has 'data'        => ( init_arg => undef );
+has 'is_internal' => ( init_arg => undef, lazy_build => 1 );
+has 'is_live'     => ( init_arg => undef, lazy_build => 1 );
+has 'layer'       => ( init_arg => undef, lazy_build => 1 );
 
 our %get_cache;
 
@@ -87,12 +87,12 @@ method _build_layer () {
     return $layer;
 }
 
-method _build_is_development () {
+method _build_is_internal () {
     return $self->layer eq 'development';
 }
 
 method _build_is_live () {
-    return !$self->is_development;
+    return !$self->is_internal;
 }
 
 method ordered_conf_files () {
@@ -340,6 +340,10 @@ development.cfg, production.cfg, etc. - settings for each particular layer
 
 =item *
 
+internal.cfg - read when is_internal is true
+
+=item *
+
 live.cfg - read when is_live is true
 
 =back
@@ -464,13 +468,13 @@ simply indicates to the reader that a boolean is expected.
 
 Returns the current layer, as determined from C<local.cfg>.
 
-=item is_development
+=item is_internal
 
 Boolean; returns true iff the current layer is 'development'.
 
 =item is_live
 
-Boolean; the opposte of L<is_development>.
+Boolean; the opposte of L<is_internal>.
 
 =item get_keys
 
@@ -532,9 +536,9 @@ or to completely override how Poet gets its configuration:
 Determines the current layer before L</read_conf> is called. By default, looks
 for a C<layer> key in C<local.cfg>.
 
-=item _build_is_development
+=item _build_is_internal
 
-Determines the value of L</is_development>, and subsequently its opposite
+Determines the value of L</is_internal>, and subsequently its opposite
 L</is_live>.
 
 =item ordered_conf_files

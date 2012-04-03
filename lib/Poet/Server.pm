@@ -1,5 +1,7 @@
 package Poet::Server;
 use Poet qw($conf $env);
+use Plack::Builder;
+use Plack::Runner;
 use Method::Signatures::Simple;
 use IPC::System::Simple qw(run);
 use strict;
@@ -7,9 +9,8 @@ use warnings;
 
 method get_plackup_options ($class:) {
     my %defaults = (
-        app => $env->root_path("app.psgi"),
         env => $conf->layer,
-        %{ $conf->get_hash("server") },
+        %{ $conf->get_hash("plackup") },
     );
     if ( $conf->is_development ) {
         $defaults{Reload} = join( ",", $class->_reload_dirs );
@@ -24,7 +25,11 @@ method plackup ($class:) {
     my %options = $class->get_plackup_options;
     my @run_args = map { ( "--$_", $options{$_} ) } sort( keys(%options) );
     print "running plackup " . join( " ", @run_args ) . "\n";
-    run( "plackup", @run_args );
+
+    my $app    = $class->build_psgi_app();
+    my $runner = Plack::Runner->new;
+    $runner->parse_options(@run_args);
+    $runner->run($app);
 }
 
 method build_psgi_app ($class:) {
@@ -47,7 +52,7 @@ method build_psgi_app ($class:) {
 }
 
 method _reload_dirs () {
-    return ( $env->root_dir, $env->conf_dir, $env->lib_dir );
+    return ( $env->conf_dir, $env->lib_dir );
 }
 
 1;
@@ -79,12 +84,11 @@ this into a set of command-line options.
 
 By default, this returns something like
 
-    app => "<root>/app.psgi",
     env => "development",                   # from $conf->layer
     Reload => ...,                          # only in development
     access_log => "<root>/logs/access.log", # only in production
 
-plus anything in the Poet configuration entry 'server'.
+plus anything in the Poet configuration entry 'plackup'.
 
 =item plackup
 

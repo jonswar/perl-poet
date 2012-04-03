@@ -16,6 +16,9 @@ method generate_environment_directory ($class: %params) {
     my $app_name = $params{app_name} || basename($root_dir);
     my $quiet    = $params{quiet};
     my $style    = $params{style} || 'standard';
+    my $msg      = sub {
+        print "$_[0]\n" unless $quiet;
+    };
 
     die "invalid app_name '$app_name' - must be a valid Perl identifier"
       unless $app_name =~ qr/[[:alpha:]_]\w*/;
@@ -44,14 +47,15 @@ method generate_environment_directory ($class: %params) {
         my $dest   = $root_dir . $path;
         mkpath( dirname($dest), 0, 0775 );
         if ( $path =~ /\.empty$/ ) {
-            print dirname($dest) . "\n" unless $quiet;
+            $msg->( dirname($dest) );
         }
         else {
-            print "$dest\n" unless $quiet;
+            $msg->($dest);
             write_file( $dest, $output );
         }
     }
     chmod( 0775, "$root_dir/bin/run" );
+    $msg->("\nNow run '$root_dir/bin/run' to start your server.");
 
     return $root_dir;
 }

@@ -13,7 +13,7 @@ has 'root_dir'    => ( required => 1 );
 
 my ($current_env);
 
-method subdirs () { [qw(bin comps conf data lib logs static t)] }
+method subdirs () { [qw(bin comps conf data db lib logs static t)] }
 
 method app_class ($class_name) {
     my $app_class_name  = join( "::", $self->app_name, $class_name );
@@ -128,6 +128,8 @@ located.
 
 =item data_dir
 
+=item db_dir
+
 =item lib_dir
 
 =item logs_dir
@@ -150,6 +152,8 @@ root dirctory. e.g. if the Poet environment root is C</my/env/root>, then
 =item conf_path (subpath)
 
 =item data_path (subpath)
+
+=item db_path (subpath)
 
 =item lib_path (subpath)
 
