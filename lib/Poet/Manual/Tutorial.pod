@@ -85,19 +85,19 @@ We'll use L<Rose::DB::Object> to provide a nice object-oriented API to our data
 (L<DBIx::Class> would work as well). Create a file C<lib/Blog/DB.pm> to tell
 Rose how to connect to our database:
 
-   package Blog::DB;
-   use Poet qw($env);
-   use strict;
-   use warnings;
-   use base qw(Rose::DB);
-
-   __PACKAGE__->use_private_registry;
-   __PACKAGE__->register_db(
-       driver   => 'sqlite',
-       database => $env->data_path("blog.db"),
-   );
-   
-   1;
+    package Blog::DB;
+    use Poet qw($env);
+    use strict;
+    use warnings;
+    use base qw(Rose::DB);
+ 
+    __PACKAGE__->use_private_registry;
+    __PACKAGE__->register_db(
+        driver   => 'sqlite',
+        database => $env->data_path("blog.db"),
+    );
+    
+    1;
 
 and a file C<lib/Blog/Article.pm> to represent the articles table:
 
@@ -119,6 +119,31 @@ and a file C<lib/Blog/Article.pm> to represent the articles table:
 Basically this gives us a C<Blog::Article> object with a constructor for
 inserting articles, and instance methods for each of the columns.  See
 L<Rose::DB::Object::Tutorial> for more information.
+
+=head1 POET VARIABLES
+
+In C<lib/Blog/DB.pm> above, we have
+
+    use Poet qw($env);
+
+followed by
+
+    database => $env->data_path("blog.db"),
+
+C<$env> is the global L<Poet::Environment|Poet::Environment> object, providing
+information about the environment and its directory paths.  We use it here to
+get the full path to our sqlite database, without having to hardcode our
+environment root.
+
+More generally C<$env> is one of several special Poet variables that can be
+imported into any package, just by including it on the C<use Poet> line.
+Another important one is C<$conf>, which gives you access to configuration:
+
+    use Poet qw($conf $env);
+    ...
+    my $value = $conf->get('key', 'default');
+
+See L<Poet::Import|Poet::Import> for the full list of Poet variables.
 
 =head1 MASON PAGES AND COMPONENTS
 
@@ -447,4 +472,75 @@ article title, in case it has any HTML-unfriendly characters in it:
 
 See L<Mason::Manual::Filters> for more information about using, and creating,
 filters.
+
+=head1 POET SCRIPTS
+
+Up til now all our code has been in Mason components. Now let's say we want to
+create a I<cron script> to purge blog entries older than a configurable number
+of days. The script, of course, will need access to the same Poet features as
+our components.
+
+Run this from anywhere inside your environment:
+
+    % poet script purge_old_entries.pl
+    bin/purge_old_entries.pl
+
+Poet created a stub script for us inside C<bin>. Let's take a look:
+
+    #!/usr/local/bin/perl
+    use Poet::Script qw($conf $env);
+    use strict;
+    use warnings;
+
+Line 2 of the script initializes the Poet environment. This means Poet does
+several things:
+
+=over
+
+=item *
+
+Searches upwards from the script for the environment root (as marked by the
+C<.poet_root> file).
+
+=item *
+
+Reads and parses your configuration.
+
+=item *
+
+Unshifts onto @INC the lib/ subdirectory of your environment, so that you can
+C<use> your application modules.
+
+=item *
+
+Imports the specified variables - in this case C<$conf> and C<$env> - into the
+script namespace. The available variables are the same as discussed in L</POET
+VARIABLES>.
+
+=back
+
+Poet initialization has to happen exactly once per process, before any Poet
+features are used. In fact, take a look at C<bin/run> -- which was generated
+for you initially -- and you'll see that it does 'use Poet::Script' as well.
+This initializes Poet for the entire web environment.
+
+Now we can fill out our purge script:
+
+    #!/usr/local/bin/perl
+    use Poet::Script qw($conf);
+    use Blog::Article::Manager;
+    use strict;
+    use warnings;
+    
+    my $days_to_keep = $conf->get( 'blog.days_to_keep' => 365 );
+    my $min_date = DateTime->now->subtract( days => $days_to_keep );
+    Blog::Article::Manager->delete_articles(
+        where => [ create_time => { lt => $min_date } ] );
+
+In line 2, we've eliminated the unneeded C<$env>.
+
+In line 7, we get C<$days_to_keep> from configuration, giving it a reasonable
+default if there's nothing in configuration.
+
+Finally in lines 8-10 we delete articles less than the minimum date.
 

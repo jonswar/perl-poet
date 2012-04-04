@@ -37,9 +37,10 @@ Poet -- a web framework for Mason developers
 
 =head1 DESCRIPTION
 
-Poet is a web framework for Mason developers. It uses PSGI/Plack for server
-integration, Mason for request routing and templating, and a selection of
-best-of-breed CPAN modules for caching, logging and configuration.
+Poet is a web framework for Mason developers. It uses
+L<PSGI|PSGI>/L<Plack|Plack> for server integration, L<Mason|Mason> for request
+routing and templating, and a selection of best-of-breed CPAN modules for
+caching, logging and configuration.
 
 Poet gives you:
 
@@ -51,8 +52,8 @@ A standard useful directory hierarchy for web development
 
 =item *
 
-A multi-file configuration system that scales well for multiple developers and
-development/production layers
+A multi-file configuration system with support for development/production
+layers and multiple developers
 
 =item *
 
@@ -65,7 +66,26 @@ Poet's conventions and defaults are based on the author's best practices from
 flexible; if you see a decision you don't like, you can generally change it
 with a subclass.
 
+All documentation is indexed at L<Poet::Manual>.
+
 =head2 
+
+=head1 SUPPORT
+
+For now Poet shares a mailing list and IRC with Mason. The Mason mailing list
+is L<mason-users@lists.sourceforge.net>; you must be
+L<subscribed|https://lists.sourceforge.net/lists/listinfo/mason-users> to send
+a message. The Mason IRC channel is L<#mason|irc://irc.perl.org/#mason>.
+
+Bugs and feature requests will be tracked at RT:
+
+    http://rt.cpan.org/NoAuth/Bugs.html?Dist=Poet
+    bug-poet@rt.cpan.org
+
+The latest source code can be browsed and fetched at:
+
+    http://github.com/jonswar/perl-poet
+    git clone git://github.com/jonswar/perl-poet.git
 
 =head1 ACKNOWLEDGEMENTS
 

@@ -7,9 +7,13 @@ Poet::Manual - Index of Poet documentation
 
 =over
 
-=item L<Poet::Manual::Intro>
+=item L<Poet::Manual::Tutorial>
 
-What Poet is all about.
+Provides a tour of Poet by showing how to build a micro-blog application.
+
+=item L<Poet::Manual::Devel>
+
+
 
 =back
 
