@@ -6,18 +6,21 @@ __END__
 
 =head1 NAME
 
-poet - Generate a Poet environment
+poet - main Poet command-line interface
 
 =head1 SYNOPSIS
 
-   poet <app_dir> <AppName>
+   poet new [-d dir] [-q] <AppName>
+
+   poet script <script_name>
 
 =head1 DESCRIPTION
 
-Generates a skeleton Poet environment for an app called I<AppName> in the
-directory I<app_dir>.
+For general help, run C<poet help>.
 
-=head1 SEE ALSO
+For help with a specific command, run C<poet help _subcommand_>.
+
+=head1 SEE ALSO    
 
 Poet
 

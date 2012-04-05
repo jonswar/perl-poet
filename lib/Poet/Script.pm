@@ -11,7 +11,14 @@ sub import {
     my $pkg = shift;
 
     my $root_dir = determine_root_dir();
-    my $lib_dir  = "$root_dir/lib";
+    initialize_with_root_dir($root_dir);
+    Poet->export_to_level( 1, undef, @_ );
+}
+
+sub initialize_with_root_dir {
+    my $root_dir = shift;
+
+    my $lib_dir = "$root_dir/lib";
     unless ( $INC[0] eq $lib_dir ) {
         unshift( @INC, $lib_dir );
     }
@@ -19,11 +26,10 @@ sub import {
     my ($app_name) = ( read_file("$root_dir/.poet_root") =~ /app_name: (.*)/ )
       or die "cannot find app_name in $root_dir/.poet_root";
 
-    Poet::Environment->initialize_current_environment(
+    return Poet::Environment->initialize_current_environment(
         root_dir => $root_dir,
         app_name => $app_name
     );
-    Poet->export_to_level( 1, undef, @_ );
 }
 
 sub determine_root_dir {

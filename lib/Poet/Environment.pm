@@ -53,6 +53,8 @@ method initialize_current_environment ($class: %params) {
     #
     $current_env->app_class('Log')->initialize_logging();
     $current_env->app_class('Cache')->initialize_caching();
+
+    return $current_env;
 }
 
 method instance ($class:) {

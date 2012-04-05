@@ -483,7 +483,7 @@ our components.
 Run this from anywhere inside your environment:
 
     % poet script purge_old_entries.pl
-    bin/purge_old_entries.pl
+    ...bin/purge_old_entries.pl
 
 Poet created a stub script for us inside C<bin>. Let's take a look:
 
