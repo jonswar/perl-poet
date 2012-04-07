@@ -323,10 +323,16 @@ over earlier files.
 
 =item *
 
-The global/ directory contains various settings for the environment, organized
-into different files as desired. All .cfg files are read in alphabetical order,
-and it is an error for two global files to set the same key. These are checked
-into version control.
+global.cfg contains various settings for the environment, typically checked
+into version control. Having a single file is fine for a simple site and a
+single developer, but if this gets too unwieldy, see global/ below.
+
+=item *
+
+The global/ directory contains multiple .cfg files, all of which are read in
+alphabetical order. This is an alternative to C<global.cfg> when the latter
+gets too crowded and you have multiple developers making simultaneous changes.
+It is an error for two global files to set the same key.
 
 =item *
 

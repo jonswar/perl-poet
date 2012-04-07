@@ -1,0 +1,452 @@
+
+=head1 NAME
+
+Poet::Manual::Intro - A gentle introduction to Poet
+
+=head1 WHAT IS POET?
+
+Poet is a web framework for Mason developers. It uses
+L<PSGI|PSGI>/L<Plack|Plack> for web integration, L<Mason|Mason> for request
+routing and templating, and a selection of best-of-breed CPAN modules for
+caching, logging and configuration.
+
+Poet gives you:
+
+=over
+
+=item *
+
+A standard useful directory hierarchy for web development
+
+=item *
+
+A multi-file configuration system with support for development/production
+layers and multiple developers
+
+=item *
+
+Easy access to configuration, caching and logging facilities
+
+=back
+
+Poet's conventions and defaults are based on the author's best practices from
+15+ years of Mason site development. That said, Poet was designed to be
+flexible; if you see a decision you don't like, you can generally change it
+with a subclass.
+
+=head1 INSTALLATION
+
+If you don't yet have cpanminus (C<cpanm>), get it
+L<here|http://search.cpan.org/perldoc?App::cpanminus#INSTALLATION>. Then run
+
+    cpanm -S --notest Poet
+
+Omit the "-S" if you don't have root, in which case cpanminus will install Poet
+and prereqs into C<~/perl5>.
+
+Omit the "--notest" if you want to run all the installation tests. Note that
+this will take about four times as long.
+
+=head1 SETUP
+
+You should now have a C<poet> app installed:
+
+    % which poet
+    /usr/local/bin/poet
+
+Run this to create your initial environment:
+
+    % poet new MyApp
+    my_app/bin/run
+    ...
+    Now run 'my_app/bin/run' to start your server.
+
+The name of the app must be a valid Perl class name; it is used in your
+app-specific subclasses. The directory, if not specified with -d, will be
+formed from the app name, with CamelCase converted to underscore_separated.
+
+=head1 ENVIRONMENT
+
+In Poet, your entire web site lives within a single directory hierarchy called
+the I<environment>. It contains subdirectories for configuration, libraries,
+Mason components (templates), static files, etc.
+
+=head2 Environment subdirectories
+
+=over
+
+=item *
+
+C<bin> - executable scripts
+
+=item *
+
+C<comps> - Mason components (templates)
+
+=item *
+
+C<conf> - configuration files
+
+=item *
+
+C<data> - transient data such as cache files
+
+=item *
+
+C<db> - database related files such as your schema
+
+=item *
+
+C<lib> - app-specific libraries and Poet subclasses
+
+=item *
+
+C<logs> - logs from web server and from explicit logging statements
+
+=item *
+
+C<static> - static web files - css, images, js
+
+=item *
+
+C<t> - unit tests
+
+=back
+
+If you don't need some of these directories, you can just ignore or delete
+them. The only one really required by Poet is C<conf>.
+
+=head2 Initializing the environment
+
+Any web server or script must first initialize the Poet environment before it
+can use any of Poet's features. This is accomplished with something like:
+
+    #!/usr/local/bin/perl
+    use Poet::Script qw($conf $env);
+
+You'll see this in C<bin/run>, for example, the script you use to start your
+webserver.  The C<use Poet::Script> line does several things:
+
+=over
+
+=item *
+
+Searches upwards from the script for the environment root (as marked by the
+C<.poet_root> file).
+
+=item *
+
+Reads and parses your configuration.
+
+=item *
+
+Unshifts onto @INC the lib/ subdirectory of your environment, so that you can
+C<use> your application modules.
+
+=item *
+
+Imports the specified I<Poet variables> - in this case C<$conf> and C<$env> -
+into the script namespace.
+
+=back
+
+=head2 Relocatable environments
+
+Ideally your environment will be I<relocatable> -- if you move your entire
+environment, or checkout a second copy of it in a different directory, things
+should "just work".
+
+Along these lines you should never refer to exact environment directory paths
+in your code; instead you'll call Poet methods that return them. e.g. instead
+of this:
+
+    system("/path/to/environment/bin/myscript.pl");
+
+you'll do this:
+
+    system($env->bin_path("myscript.pl"));
+
+More information about this C<$env> variable L<below|POET VARIABLES>.
+
+=head1 CONFIGURATION AND LAYERS
+
+Poet configuration files are kept in the C<conf> subdirectory. The files are in
+YAML form and are merged in a particular order to create a single configuration
+hash. (If you want to use something other than YAML you can L<customize
+this|Poet::Manual::Customizing>.)
+
+Configuration files come in three varieties: C<global>, C<layer>, and C<local>,
+in order from least to highest precedence.
+
+=over
+
+=item Global
+
+C<global> configuration applies to all environments, and is typically checked
+into version control.
+
+When you create an environment you'll have a single file C<conf/global.cfg>.
+This is simplest to start out with, but as a site scales in size and number of
+developers, you can split out your global configuration into multiple files in
+C<conf/global/*.cfg>.
+
+=item Layer
+
+I<Layers> allow you to have different configuration for different contexts.
+With all but the simplest site you'll have at least two layers: I<development>
+(the internal environment where you develop) and I<production> (the live site).
+ Later on, you might want a I<staging> environment (which looks like production
+except for a different data source, etc.).
+
+In general you can have as many layers as you like.  Each layer has a
+corresponding configuration file in C<conf/layer/*.cfg>; only one layer file
+will be loaded per environment. We recommend that these files all be checked
+into version control as well, so that changes to each layer are tracked.
+
+=item Local
+
+C<conf/local.cfg> contains configuration local to this specific environment
+This is where the current layer is defined. It is also the only configuration
+file that should not be checked into version control.
+
+You can also specify an extra local file via C<$ENV{POET_EXTRA_CONF_FILE}>.
+
+=back
+
+There are a variety of ways to access configuration:
+
+    my $value = $conf->get('key', 'default');
+    my $value = $conf->get_or_die('key');
+
+    my $listref = $conf->get_list('key', ['default']);
+    my $hashref = $conf->get_hash('key', {'default' => 5});
+    my $bool = $conf->get_boolean('key');
+
+More information about this C<$conf> variable L<below|POET VARIABLES>.
+
+See L<Poet::Conf|Poet::Conf> for more information on specifying and accessing
+configuration.
+
+=head1 POET VARIABLES
+
+Poet makes it easy to import certain variables into any package or script in
+your environment. You've seen references above to two of these, C<$env> and
+C<$conf>, above.
+
+The variables are:
+
+=over
+
+=item $env
+
+The global environment object, provided by
+L<Poet::Environment|Poet::Environment>. This provides information such as the
+root directory and paths to subdirectories.
+
+=item $conf
+
+The global configuration object, provided by L<Poet::Conf|Poet::Conf>. This
+allows you to get values defined in conf files.
+
+=item $cache
+
+The cache for the current package, provided by L<Poet::Cache|Poet::Cache>.
+
+=item $log
+
+The logger for the current package, provided by L<Poet::Log|Poet::Log>.
+
+=back
+
+=head2 Accessing in a script
+
+    use Poet::Script qw($conf $env ...);
+
+This will import the specified variables into the script namespace (usually
+C<main>).
+
+=head2 Accessing in a module
+
+    use Poet qw($conf $env ...);
+
+This will import the specified variables into the package's namespace.
+
+=head2 Accessing in a Mason component
+
+C<$conf> and C<$env> are automatically available as package globals in all
+Mason components.
+
+C<$m->E<gt>cache> and C<$m->E<gt>log> will get you the cache and log objects
+for a particular Mason component.
+
+=head2 Accessing without magic
+
+If for some reason you can't rely on the above ways of getting to these
+variables, here's how you'd get them the old-fashioned way:
+
+    my $env   = Poet::Environment->instance;
+    my $conf  = $env->conf;
+    my $cache = MyApp::Cache->new(namespace => '...');
+    my $log   = Log::Any-=>get_logger(category => '...');
+
+=head2 Adding your own variables
+
+You can add your own import variables to this list by customizing
+L<Poet::Vars|Poet::Vars>. Obviously too many magic "globals" like this can be
+harmful to code quality; choose only those of high utility and that are either
+truly global or have one natural instance per package.
+
+=head1 HANDLING HTTP REQUESTS
+
+HTTP requests are handled with L<PSGI|PSGI>/L<Plack|Plack> and L<Mason|Mason>.
+
+A persistent L<Mason interpreter|Mason::Interp> is created at server startup,
+with L<component root|Mason::Manual::Components/The component root and
+component paths> set to the C<comps> subdirectory. (See
+L<Poet::Mason|Poet::Mason> for other default settings and how to configure
+them.)
+
+When an HTTP request comes in, Poet
+
+=over
+
+=item *
+
+Constructs a L<Poet::Request|Poet::Request> object from the plack environment. 
+This is a thin subclass of L<Plack::Request> and provides information such as
+the URL and incoming HTTP headers. It is made available in Mason components as
+C<< $m->req >>.
+
+=item *
+
+Constructs an empty L<Poet::Response|Poet::Response> object. This is a thin
+subclass of L<Plack::Response>, and you may use it to set things such as the
+HTTP status and headers. It is made available in Mason components as C<<
+$m->res >>.
+
+=item *
+
+Calls C<$interp-E<gt>run> with the URL and the GET/POST parameters. So for
+example, a URL like
+
+    /foo/bar?a=5&b=6
+
+would result in
+
+    $interp->run("/foo/bar", a=>5, b=>6);
+
+From there Mason will choose a component to dispatch to - see
+L<Mason::Manual::RequestDispatch|Mason::Manual::RequestDispatch>.
+
+=back
+
+=head2 Generating content with Mason
+
+Mason is a very full-featured templating system and we won't even attempt to
+summarize it here.  Recommended reading:
+
+=over
+
+=item *
+
+L<Poet::Manual::Tutorial|Poet::Manual::Tutorial>, especially starting
+L<here|Poet::Manual::Tutorial/MASON PAGES AND COMPONENTS>
+
+=item *
+
+L<Mason::Manual::Components|Mason::Manual::Components>
+
+=item *
+
+L<Mason::Manual::Syntax|Mason::Manual::Syntax>
+
+=back
+
+=head2 Success and failure results
+
+If the Mason request finishes successfully, the Mason output becomes the plack
+response body, the status code is set to 200 if it hasn't already been set, and
+the content type is set to text/html if it hasn't already been set.
+
+If the top-level component path cannot be found, the status code is set to 404.
+
+If any other kind of runtime error occurs in development mode, it will be
+displayed via L<Plack::Middleware::StackTrace|Plack::Middleware::StackTrace>.
+
+Otherwise, runtime errors are converted to 500 error responses.
+
+You can call C<< $m->redirect >> and C<< $m->not_found >> to generate redirect
+and not_found results from a component. These are documented in
+L<Poet::Mason|Poet::Mason>.
+
+=head2 Multiple values for parameters
+
+If there are multiple values for a GET or POST parameter, generally only the
+last value will be kept, as per L<Hash::MultiValue|Hash::MultiValue>. However,
+if the corresponding attribute in the page component is declared an
+C<ArrayRef>, then all values will be kept and passed in as an arrayref. For
+example, if the page component C</foo/bar.mc> has these declarations:
+
+    <%class>
+    has 'a';
+    has 'b' => (isa => "Int");
+    has 'c' => (isa => "ArrayRef");
+    has 'd' => (isa => "ArrayRef[Int]");
+    </%class>
+
+then this URL
+
+    /foo/bar?a=1&a=2&b=3&b=4&c=5&c=6&d=7&d=8
+
+would result in
+
+    $interp->run("/foo/bar", a=>2, b=>4, c=>[5,6], d => [7,8]);
+
+You can always get the original Hash::MultiValue object from C<<
+$m->request_args >>. e.g.
+
+    my $hmv = $m->request_args;
+    # get all values for 'e'
+    $hmv->get_all('e');
+
+=head1 LOGGING
+
+Poet uses the L<Log::Log4perl|Log::Log4perl> engine for logging, but with a
+much simpler configuration for the common cases.
+
+Once you have a L<$log|POET VARIABLES> variable, logging looks like:
+
+    $log->error("an error occurred");
+
+    $log->debugf("arguments are: %s", \@_)
+        if $log->is_debug();
+
+By default, all logs go to C<logs/poet.log> with a reasonable set of metadata
+such as timestamp.
+
+See L<Poet::Log|Poet::Log> for more information.
+
+=head1 CACHING
+
+Poet uses L<CHI|CHI> for caching, providing access to a wide variety of cache
+backends (memory, files, memcached, etc.) You can configure caching differently
+for different namespaces.
+
+Once you have a L<$cache|POET VARIABLES> variable, caching looks like:
+
+    my $customer = $cache->get($name);
+    if ( !defined $customer ) {
+        $customer = get_customer_from_db($name);
+        $cache->set( $name, $customer, "10 minutes" );
+    }
+
+or
+
+    my $customer2 = $cache->compute($name2, "10 minutes", sub {
+        get_customer_from_db($name2)
+    });
+
+By default, everything is cached in files under C<data/chi>.
+
+See L<Poet::Cache|Poet::Cache> for more information.
+
