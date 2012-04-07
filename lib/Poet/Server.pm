@@ -12,7 +12,7 @@ method get_plackup_options ($class:) {
         env => $conf->layer,
         %{ $conf->get_hash("plackup") },
     );
-    if ( $conf->is_development ) {
+    if ( $conf->is_internal ) {
         $defaults{Reload} = join( ",", $class->_reload_dirs );
     }
     else {
@@ -34,7 +34,7 @@ method plackup ($class:) {
 
 method build_psgi_app ($class:) {
     builder {
-        if ( $conf->is_development ) {
+        if ( $conf->is_internal ) {
             enable "Plack::Middleware::StackTrace";
             enable "Plack::Middleware::Debug";
         }
@@ -48,6 +48,23 @@ method build_psgi_app ($class:) {
             my $psgi_env = shift;
             $interp->handle_psgi($psgi_env);
         };
+    }
+}
+
+method build_test_mech ($class:) {
+    require Test::WWW::Mechanize::PSGI;
+    return Test::WWW::Mechanize::PSGI->new( app => $class->build_psgi_app );
+}
+
+method make_psgi_test_request ($class: $url) {
+    my $mech = $class->build_test_mech();
+    $mech->get($url);
+    if ( $mech->success ) {
+        print $mech->content;
+    }
+    else {
+        printf( "error getting '%s': %d\n%s",
+            $url, $mech->status, $mech->content ? $mech->content . "\n" : '' );
     }
 }
 
