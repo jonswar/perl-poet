@@ -312,16 +312,16 @@ When an HTTP request comes in, Poet
 
 =item *
 
-Constructs a L<Poet::Request|Poet::Request> object from the plack environment. 
-This is a thin subclass of L<Plack::Request> and provides information such as
-the URL and incoming HTTP headers. It is made available in Mason components as
-C<< $m->req >>.
+Constructs a L<Poet::Plack::Request|Poet::Plack::Request> object from the plack
+environment.  This is a thin subclass of L<Plack::Request> and provides
+information such as the URL and incoming HTTP headers. It is made available in
+Mason components as C<< $m->req >>.
 
 =item *
 
-Constructs an empty L<Poet::Response|Poet::Response> object. This is a thin
-subclass of L<Plack::Response>, and you may use it to set things such as the
-HTTP status and headers. It is made available in Mason components as C<<
+Constructs an empty L<Poet::Plack::Response|Poet::Plack::Response> object. This
+is a thin subclass of L<Plack::Response>, and you may use it to set things such
+as the HTTP status and headers. It is made available in Mason components as C<<
 $m->res >>.
 
 =item *
@@ -449,3 +449,8 @@ By default, everything is cached in files under C<data/chi>.
 
 See L<Poet::Cache|Poet::Cache> for more information.
 
+=head1 SEE ALSO
+
+Poet::Manual
+
+=cut
