@@ -16,7 +16,7 @@ method get_plackup_options ($class:) {
         $defaults{Reload} = join( ",", $class->_reload_dirs );
     }
     else {
-        $defaults{access_log} = $env->log_path("access.log");
+        $defaults{access_log} = $env->logs_path("access.log");
     }
     return ( %defaults, %{ $conf->get_hash("server") } );
 }

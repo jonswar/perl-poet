@@ -1,9 +1,11 @@
 package Poet::t::PSGIHandler;
 use Poet::Test::Util;
+use Capture::Tiny qw();
 use File::Basename;
 use File::Path;
 use Poet::Util qw(trim write_file);
 use Test::Most;
+use IPC::System::Simple qw(run);
 use strict;
 use warnings;
 use base qw(Test::Class);
@@ -60,6 +62,17 @@ sub test_psgi_comp {
             }
         }
     }
+}
+
+sub test_get_pl : Tests {
+    my $self = shift;
+    $self->add_comp(
+        path => '/hi.mc',
+        src  => 'path = <% $m->req->path %>'
+    );
+    my $cmd = sprintf( "%s /hi", $env->bin_path("get.pl") );
+    my $output = Capture::Tiny::capture_merged { system($cmd) };
+    is( $output, 'path = /hi', "get.pl output" );
 }
 
 sub test_basic : Tests {

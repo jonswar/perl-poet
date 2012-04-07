@@ -11,7 +11,8 @@ use base qw(Test::Class);
 sub test_environment : Tests {
     my $self = shift;
 
-    my $env      = temp_env();
+    my $app_name = 'TheTestApp';
+    my $env      = temp_env( app_name => $app_name );
     my $root_dir = $env->root_dir;
 
     foreach my $subdir qw(bin conf lib) {
@@ -20,6 +21,10 @@ sub test_environment : Tests {
         ok( -d $env->$subdir_method, "$subdir exists" );
     }
     is( $env->conf->layer, 'development', "layer" );
+    foreach my $class qw(Cache Conf Log Mason Server) {
+        my $file = $env->lib_path("$app_name/$class.pm");
+        ok( -f $file, "$file exists" );
+    }
 }
 
 1;
