@@ -342,8 +342,8 @@ L<Mason::Manual::RequestDispatch|Mason::Manual::RequestDispatch>.
 
 =head2 Generating content with Mason
 
-Mason is a very full-featured templating system and we won't even attempt to
-summarize it here.  Recommended reading:
+Mason is a full-featured templating system and beyond our ability to summarize
+here. Recommended reading:
 
 =over
 
@@ -370,10 +370,9 @@ the content type is set to text/html if it hasn't already been set.
 
 If the top-level component path cannot be found, the status code is set to 404.
 
-If any other kind of runtime error occurs in development mode, it will be
-displayed via L<Plack::Middleware::StackTrace|Plack::Middleware::StackTrace>.
-
-Otherwise, runtime errors are converted to 500 error responses.
+If any other kind of runtime error occurs in development mode, it will either
+be displayed in the browser or converted to a 500 error response, depending on
+whether L<StackTrace|Plack::Middleware::StackTrace> middleware is present.
 
 You can call C<< $m->redirect >> and C<< $m->not_found >> to generate redirect
 and not_found results from a component. These are documented in
