@@ -111,6 +111,6 @@ Plack::Middleware::Static is used for /static paths
 
 =item *
 
-The request is handed off to Mason via Mason::Plugin::PSGIHandler.
+The request is handed off to Mason for dispatch and rendering
 
 =back

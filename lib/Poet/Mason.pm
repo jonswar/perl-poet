@@ -18,7 +18,7 @@ method get_options ($class:) {
         allow_globals => [qw($conf $env)],
         comp_root     => $env->comps_dir,
         data_dir      => $env->data_dir,
-        plugins       => [ 'HTMLFilters', 'PSGIHandler', 'RouterSimple' ]
+        plugins       => [ 'HTMLFilters', 'RouterSimple' ]
     );
     return ( %defaults, %{ $conf->get_hash("mason") } );
 }
@@ -103,13 +103,12 @@ default the C<data> subdirectory under the environment root.
 
 =item *
 
-C<plugins> is set to include L<PSGIHandler|Mason::Plugins::PSGIHandler>,
-L<RouterSimple|Mason::Plugins::RouterSimple>, and
-L<HTMLFilters|Mason::Plugins::HTMLFilters>.
+C<plugins> is set to include L<HTMLFilters|Mason::Plugins::HTMLFilters> and
+L<RouterSimple|Mason::Plugins::RouterSimple>.
 
 =item *
 
-C<allow_globals> is set to include C<$conf> and $<env>
+C<allow_globals> is set to include C<$conf> and $<env>.
 
 =back
 
@@ -118,7 +117,14 @@ C<allow_globals> is set to include C<$conf> and $<env>
 The Poet configuration entry 'mason', if any, will be treated as a hash of
 options that supplements and/or overrides the defaults above.
 
-If you specify C<plugins>, make sure to include C<PSGIHandler> or equivalent.
+If you specify plugins, you'll need to explicitly include the default plugins
+above, if you still want them. e.g.
+
+    mason:
+        plugins:
+           HTMLFilters
+           RouterSimple
+           AnotherFavoritePlugin
 
 =head1 POET VARIABLES
 
