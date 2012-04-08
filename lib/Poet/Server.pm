@@ -125,7 +125,7 @@ settings appropriate to the Poet environment.
 =head1 METHODS
 
 These methods can be overriden or modified with method modifiers in
-L<subclasses|<Poet::Subclasses>.
+L<subclasses|Poet::Subclassing>.
 
 =over
 

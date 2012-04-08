@@ -31,8 +31,8 @@ For example, to subclass C<Poet::Cache>:
 
     1;
 
-Note: L<Poet::Moose|Poet::Moose> is Moose plus a few Poet standards. You could
-also use plain C<Moose> here.
+(Note: L<Poet::Moose|Poet::Moose> is Moose plus a few Poet standards. You could
+also use plain C<Moose> here.)
 
 Poet will automatically detect, load and use any such subclasses. Internally it
 uses the L<app_class|Poet::Environment/app_class> environment method whenever
@@ -40,6 +40,30 @@ it needs a classname, e.g.
 
     # Do something with MyApp::Cache or Poet::Cache
     $env->app_class('Cache')->...
+
+=head2 Subclassing Mason
+
+As long as you have even a bare-bones C<Poet::Mason> subclass, e.g.
+
+    package MyApp::Mason;
+    use Poet::Moose;
+    extends 'Poet::Mason';
+
+    1;
+
+then your Mason subclasses will be autodetected as well, e.g.
+
+    package MyApp::Mason::Interp;
+    use Moose;
+    extends 'Mason::Interp';
+    # put your modifications here
+    1;
+
+C<poet new> will create the bare-bones subclass for you; it is otherwise
+harmless.
+
+See L<Mason::Manual::Subclassing|Mason::Manual::Subclassing> for more
+information.
 
 =head1 EXAMPLES
 
@@ -53,6 +77,32 @@ it needs a classname, e.g.
     override 'read_conf_file' => sub {
         my ($self, $file) = @_;
         return Config::INI::Reader->read_file($file);
+    };
+
+=head2 Perform tasks before and after each Mason request
+
+    package MyApp::Mason::Request;
+    use Moose;
+    extends 'Mason::Request';
+
+    override 'run' => sub {
+        my $self = shift;
+
+        # Perform tasks before request
+        my $result = super();
+        # Perform tasks after request
+
+        return $result;
+    };
+
+=head2 Add Perl code to the top of every compiled component
+
+    package MyApp::Mason::Compilation;
+    use Moose;
+    extends 'Mason::Compilation';
+
+    override 'output_class_header' => sub {
+         return join("\n", super(), 'use Foo;', 'use Bar qw(baz);');
     };
 
 =head2 Use Log::Dispatch instead of Log4perl for logging

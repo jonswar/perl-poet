@@ -104,7 +104,7 @@ this C<$cache> will be created with properties
 =head1 MODIFIABLE METHODS
 
 These methods are not intended to be called externally, but may be useful to
-override or modify with method modifiers in L<subclasses|<Poet::Subclasses>.
+override or modify with method modifiers in L<subclasses|<Poet::Subclassing>.
 
 =over
 
