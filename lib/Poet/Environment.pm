@@ -178,6 +178,17 @@ the Poet environment root is C</my/env/root>, then
 
 =over
 
+=item app_class
+
+Returns the full class name to use for the specified class, depending on
+whether there is a subclass in the environment. e.g.
+
+    $env->app_class('Cache')
+
+will return C<MyApp::Cache> if that module exists, and otherwise
+C<Poet::Cache>.  This is used internally by Poet to implement L<auto
+subclassing|Poet::Manual::Subclassing>.
+
 =item app_name
 
 Returns the app name, e.g. 'MyApp', found in .poet_root.
