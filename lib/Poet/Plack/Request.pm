@@ -12,6 +12,6 @@ Poet::Plack::Request - Poet's subclass of Plack::Request
 
 =head1 DESCRIPTION
 
-This is a Poet-specific subclass of Plack::Request, reserved for future
-additions and overrides.
+This is a Poet-specific subclass of L<Plack::Request|Plack::Request>, reserved
+for future additions and overrides.
 

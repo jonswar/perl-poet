@@ -1,4 +1,5 @@
 package Poet::Mason::Request;
+use Poet qw($env);
 use Poet::Moose;
 use Poet::Plack::Response;
 use Try::Tiny;
@@ -9,7 +10,7 @@ has 'req' => ( is => 'ro', required => 1, isa => 'Object' );
 has 'res' => ( is => 'ro', lazy_build => 1 );
 
 method _build_res () {
-    return Poet::Plack::Response->new();
+    return $env->app_class('Plack::Response')->new();
 }
 
 around 'run' => sub {

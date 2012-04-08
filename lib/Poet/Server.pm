@@ -4,6 +4,8 @@ use Plack::Builder;
 use Plack::Runner;
 use Method::Signatures::Simple;
 use IPC::System::Simple qw(run);
+use Scalar::Util qw(blessed);
+use Try::Tiny;
 use strict;
 use warnings;
 
@@ -46,7 +48,7 @@ method build_psgi_app ($class:) {
 
         sub {
             my $psgi_env = shift;
-            $interp->handle_psgi($psgi_env);
+            $class->handle_psgi_request( $psgi_env, $interp );
         };
     }
 }
@@ -66,6 +68,39 @@ method make_psgi_test_request ($class: $url) {
         printf( "error getting '%s': %d\n%s",
             $url, $mech->status, $mech->content ? $mech->content . "\n" : '' );
     }
+}
+
+method handle_psgi_request ($psgi_env, $interp) {
+    my $req      = $env->app_class('Plack::Request')->new($psgi_env);
+    my $response = try {
+        my $m = $interp->_make_request( req => $req );
+        $m->run( $self->_psgi_comp_path($req), $self->_psgi_parameters($req) );
+        $m->res;
+    }
+    catch {
+        my $err = $_;
+        if ( blessed($err) && $err->isa('Mason::Exception::TopLevelNotFound') )
+        {
+            $env->app_class('Plack::Response')->new(404);
+        }
+        else {
+
+            # Prevent Plack::Middleware::Debug from capturing this stack point
+            local $SIG{__DIE__} = undef;
+            die $err;
+        }
+    };
+    return $response->finalize;
+}
+
+method _psgi_comp_path ($req) {
+    my $comp_path = $req->path;
+    $comp_path = "/$comp_path" if substr( $comp_path, 0, 1 ) ne '/';
+    return $comp_path;
+}
+
+method _psgi_parameters ($req) {
+    return $req->parameters;
 }
 
 method _reload_dirs () {
