@@ -65,12 +65,11 @@ easily imported into any module or script. There is no user API here.
 
 =head1 ADDING YOUR OWN VARIABLES
 
-To add your own variable, say C<$dbh>, to this list, create a MyApp::Vars
+To add your own variable, say C<$dbh>, to this list, create a C<MyApp::Vars>
 subclass like so:
 
-    package MyApp::Vars
+    package MyApp::Vars;
     use Poet::Moose;
-    
     extends 'Poet::Vars';
     
     method provide_dbh ($caller, $env) {
