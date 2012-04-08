@@ -68,8 +68,6 @@ with a subclass.
 
 All documentation is indexed at L<Poet::Manual>.
 
-=head2 
-
 =head1 SUPPORT
 
 For now Poet shares a mailing list and IRC with Mason. The Mason mailing list

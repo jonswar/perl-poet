@@ -173,7 +173,7 @@ More information about this C<$env> variable L<below|POET VARIABLES>.
 Poet configuration files are kept in the C<conf> subdirectory. The files are in
 YAML form and are merged in a particular order to create a single configuration
 hash. (If you want to use something other than YAML you can L<customize
-this|Poet::Manual::Customizing>.)
+this|Poet::Manual::Subclassing>.)
 
 Configuration files come in three varieties: C<global>, C<layer>, and C<local>,
 in order from least to highest precedence.
@@ -258,6 +258,9 @@ The logger for the current package, provided by L<Poet::Log|Poet::Log>.
 
 =back
 
+You can add your own variables by L<customizing
+Poet::Vars|Poet::Manual::Subclassing>.
+
 =head2 Accessing in a script
 
     use Poet::Script qw($conf $env ...);
@@ -288,13 +291,6 @@ variables, here's how you'd get them the old-fashioned way:
     my $conf  = $env->conf;
     my $cache = MyApp::Cache->new(namespace => '...');
     my $log   = Log::Any-=>get_logger(category => '...');
-
-=head2 Adding your own variables
-
-You can add your own import variables to this list by customizing
-L<Poet::Vars|Poet::Vars>. Obviously too many magic "globals" like this can be
-harmful to code quality; choose only those of high utility and that are either
-truly global or have one natural instance per package.
 
 =head1 HANDLING HTTP REQUESTS
 
@@ -411,7 +407,8 @@ $m->request_args >>. e.g.
 =head1 LOGGING
 
 Poet uses the L<Log::Log4perl|Log::Log4perl> engine for logging, but with a
-much simpler configuration for the common cases.
+much simpler configuration for the common cases. (If you want to use something
+other than Log4perl you can L<customize this|Poet::Manual::Subclassing>.)
 
 Once you have a L<$log|POET VARIABLES> variable, logging looks like:
 
