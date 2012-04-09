@@ -2,56 +2,51 @@ package Poet::Script;
 use Cwd qw(realpath);
 use File::Basename;
 use File::Spec::Functions qw(rel2abs);
-use Poet;
+use Method::Signatures::Simple;
+use Poet::Environment;
 use Poet::Util qw(can_load read_file);
 use strict;
 use warnings;
 
-sub import {
-    my $pkg = shift;
-
+method import ($pkg:) {
     my $root_dir = determine_root_dir();
-    initialize_with_root_dir($root_dir);
-    Poet->export_to_level( 1, undef, @_ );
+    my $env      = initialize_with_root_dir($root_dir);
+    $env->app_class('Import')->import( scalar(caller), $env, @_ );
 }
 
-sub initialize_with_root_dir {
-    my $root_dir = shift;
-
+func initialize_with_root_dir($root_dir) {
     my $lib_dir = "$root_dir/lib";
-    unless ( $INC[0] eq $lib_dir ) {
+      unless ( $INC[0] eq $lib_dir ) {
         unshift( @INC, $lib_dir );
     }
 
     my ($app_name) = ( read_file("$root_dir/.poet_root") =~ /app_name: (.*)/ )
       or die "cannot find app_name in $root_dir/.poet_root";
 
-    return Poet::Environment->initialize_current_environment(
+      return Poet::Environment->initialize_current_environment(
         root_dir => $root_dir,
         app_name => $app_name
-    );
-}
+      );
+  }
 
-sub determine_root_dir {
+  func determine_root_dir() {
 
     # Search for .poet_root upwards from current directory, using rel2abs
     # first, then realpath.
     #
-    my $path1    = dirname( rel2abs($0) );
-    my $path2    = dirname( realpath($0) );
-    my $root_dir = search_upward($path1) || search_upward($path2);
-    unless ( defined $root_dir ) {
+    my $path1      = dirname( rel2abs($0) );
+      my $path2    = dirname( realpath($0) );
+      my $root_dir = search_upward($path1) || search_upward($path2);
+      unless ( defined $root_dir ) {
         die sprintf( "could not find .poet_root upwards from %s",
             ( $path1 eq $path2 ) ? "'$path1'" : "'$path1' or '$path2'" );
     }
     return $root_dir;
-}
+  }
 
-sub search_upward {
-    my ($path) = @_;
-
+  func search_upward($path) {
     my $count = 0;
-    while ( realpath($path) ne '/' && $count++ < 10 ) {
+      while ( realpath($path) ne '/' && $count++ < 10 ) {
         if ( -f "$path/.poet_root" ) {
             return realpath($path);
             last;
@@ -59,9 +54,9 @@ sub search_upward {
         $path = dirname($path);
     }
     return undef;
-}
+  }
 
-1;
+  1;
 
 =pod
 

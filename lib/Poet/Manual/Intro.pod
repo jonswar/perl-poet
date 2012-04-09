@@ -229,7 +229,7 @@ configuration.
 
 =head1 POET VARIABLES
 
-Poet makes it easy to import certain variables into any package or script in
+Poet makes it easy to import certain variables into any module or script in
 your environment. You've seen references above to two of these, C<$env> and
 C<$conf>, above.
 
@@ -259,7 +259,7 @@ The logger for the current package, provided by L<Poet::Log|Poet::Log>.
 =back
 
 You can add your own variables by L<customizing
-Poet::Vars|Poet::Manual::Subclassing>.
+Poet::Import|Poet::Manual::Subclassing>.
 
 =head2 Accessing in a script
 

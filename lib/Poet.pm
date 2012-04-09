@@ -1,24 +1,14 @@
 package Poet;
 use Poet::Environment;
-use Poet::Vars;
+use Poet::Import;
 use Method::Signatures::Simple;
 use strict;
 use warnings;
 
 method import ($class:) {
-    $class->export_to_level( 1, undef, @_ );
-}
-
-method export_to_level ($class: $level, $ignore, @params) {
-
-    # Import requested Poet vars into caller.
-    #
-    if ( my @vars = grep { /^\$/ } @params ) {
-        my ($caller) = caller($level);
-        my $env = Poet::Environment->instance
-          or die "environment has not been initialized!";
-        $env->app_class('Vars')->import( $caller, $env, @vars );
-    }
+    my $env = Poet::Environment->instance
+      or die "environment has not been initialized!";
+    $env->app_class('Import')->import( scalar(caller), $env, @_ );
 }
 
 1;

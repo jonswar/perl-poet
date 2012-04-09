@@ -3,6 +3,7 @@ use Poet::Test::Util;
 use Capture::Tiny qw();
 use File::Basename;
 use File::Path;
+use Guard;
 use Poet::Util qw(trim write_file);
 use Test::Most;
 use IPC::System::Simple qw(run);
@@ -38,7 +39,13 @@ sub test_psgi_comp {
     $self->add_comp(%params);
 
     my $mech = $self->mech();
-    $mech->get( $uri . $qs );
+    {
+
+        # Silence 'PSGI error' diagnostics if we're expecting error
+        Test::More->builder->no_diag(1) if $params{expect_code} == 500;
+        scope_guard { Test::More->builder->no_diag(0) };
+        $mech->get( $uri . $qs );
+    }
 
     if ( my $expect_content = $params{expect_content} ) {
 

@@ -6,7 +6,7 @@ use File::Slurp;
 use Poet::Environment;
 use Poet::Environment::Generator;
 use Poet::Util qw(tempdir_simple);
-use YAML::XS ();
+use YAML::XS qw();
 use strict;
 use warnings;
 use base qw(Exporter);
@@ -61,5 +61,9 @@ sub initialize_test_env {
     my $env = temp_env();
     Poet::Environment->initialize_current_environment( env => $env );
 }
+
+# prevent YAML::XS warning...wtf
+YAML::XS::Dump( {} );
+YAML::XS::Dump( {} );
 
 1;

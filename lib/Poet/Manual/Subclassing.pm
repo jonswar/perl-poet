@@ -12,7 +12,7 @@ You can subclass the following Poet classes for your application:
     Poet::Log
     Poet::Mason
     Poet::Server
-    Poet::Vars
+    Poet::Import
     
 and arrange things so that Poet always uses your subclass instead of its
 default class.
@@ -120,10 +120,10 @@ information.
 
 =head2 Add your own $dbh import variable
 
-    package MyApp::Vars;
+    package MyApp::Import
     use DBI;
     use Poet::Moose;
-    extends 'Poet::Vars';
+    extends 'Poet::Import';
     
     method provide_dbh ($caller, $env) {
         $dbh = DBI->connect(...);
