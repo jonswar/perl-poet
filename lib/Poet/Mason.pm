@@ -43,7 +43,7 @@ __END__
 
 =head1 NAME
 
-Poet::Mason -- Manage Mason default settings and main instance
+Poet::Mason -- Mason settings and enhancements for Poet
 
 =head1 SYNOPSIS
 
@@ -64,26 +64,28 @@ Poet::Mason -- Manage Mason default settings and main instance
 
 =head1 DESCRIPTION
 
-This module manages default settings for Mason and maintains a main Mason
-instance for handling web requests.
+This is a Poet-specific Mason subclass. It sets up sane default settings,
+maintains a main Mason instance for handling web requests, and adds
+Poet-specific methods to the Mason request ($m).
 
-=head1 METHODS
+=head1 CLASS METHODS
 
 =over
 
-=item new
+=item get_options
 
-Returns a new main Mason instance, using options from L<get_options>.
+Returns a hash of Mason options by combining L<default settings|DEFAULT
+SETTINGS> and L<configuration|CONFIGURATION>.
 
 =item instance
 
 Returns the main Mason instance used for web requests, which is created with
 options from L<get_options>.
 
-=item get_options
+=item new
 
-Returns a hash of Mason options by combining L<default settings|DEFAULT
-SETTINGS> and L<configuration|CONFIGURATION>.
+Returns a new main Mason object, using options from L<get_options>. Unless you
+specifically need a new object, you probably want to call L</instance>.
 
 =back
 
@@ -118,19 +120,75 @@ The Poet configuration entry 'mason', if any, will be treated as a hash of
 options that supplements and/or overrides the defaults above.
 
 If you specify plugins, you'll need to explicitly include the default plugins
-above, if you still want them. e.g.
+above if you still want them. e.g.
 
     mason:
         plugins:
-           HTMLFilters
-           RouterSimple
-           AnotherFavoritePlugin
+           - HTMLFilters
+           - RouterSimple
+           - AnotherFavoritePlugin
 
-=head1 POET VARIABLES
+=head1 POET VARIABLES IN COMPONENTS
 
-L<Poet variables|Poet/POET VARIABLES>C<$conf> and C<$env> are automatically
+L<Poet variables|Poet/POET VARIABLES> C<$conf> and C<$env> are automatically
 made available as package globals in all Mason components.
 
 C<$m->E<gt>cache> and C<$m->E<gt>log> will get you the cache and log objects
 for a particular Mason component.
 
+=head1 REQUEST METHODS
+
+These new methods are accessible via C<$m> in components.
+
+=over
+
+=item req ()
+
+A reference to the L<Plack::Request> object. e.g.
+
+    my $user_agent = $m->req->headers->header('User-Agent');
+
+=item res ()
+
+A reference to the L<Plack::Response> object. e.g.
+
+    $m->res->content_type('text/plain');
+
+=item redirect (url[, status])
+
+Sets headers and status for redirect, then clears the Mason buffer and aborts
+the request. e.g.
+
+    $m->redirect("http://somesite.com", 302);
+
+is equivalent to
+
+    $m->res->redirect("http://somesite.com", 302);
+    $m->clear_and_abort();
+
+=item not_found ()
+
+Sets the status to 404, then clears the Mason buffer and aborts the request.
+e.g.
+
+    $m->not_found();
+
+is equivalent to
+
+    $m->clear_and_abort(404);
+
+=item abort (status)
+
+=item clear_and_abort (status)
+
+These methods are overriden to set the response status before aborting, if
+I<status> is provided. e.g. to send back a FORBIDDEN result:
+
+    $m->clear_and_abort(403);
+
+This is equivalent to
+
+    $m->res->status(403);
+    $m->clear_and_abort();
+
+=back
