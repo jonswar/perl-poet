@@ -11,7 +11,7 @@ use warnings;
 method import ($pkg:) {
     my $root_dir = determine_root_dir();
     my $env      = initialize_with_root_dir($root_dir);
-    $env->app_class('Import')->import( scalar(caller), $env, @_ );
+    $env->importer->export_to_level( 1, @_ );
 }
 
 func initialize_with_root_dir($root_dir) {

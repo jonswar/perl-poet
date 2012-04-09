@@ -8,7 +8,7 @@ use strict;
 use warnings;
 use base qw(Test::Class);
 
-initialize_test_env();
+initialize_temp_env();
 
 sub test_log_config : Tests {
     my $env      = Poet::Environment->instance;

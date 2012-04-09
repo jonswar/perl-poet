@@ -8,6 +8,7 @@ use Poet::Util qw(can_load catdir);
 
 has 'app_name'    => ( required => 1 );
 has 'conf'        => ();
+has 'importer'    => ();
 has 'log_manager' => ();
 has 'root_dir'    => ( required => 1 );
 
@@ -69,6 +70,10 @@ method BUILD () {
     $self->{conf} =
       $self->app_class('Conf')->new( conf_dir => catdir( $root_dir, "conf" ) );
     my $conf = $self->{conf};
+
+    # Initialize importer
+    #
+    $self->{importer} = $self->app_class('Import')->new( env => $self );
 
     # Determine where our standard subdirectories (bin, comps, etc.)
     # are. Can override in configuration with env.bin_dir, env.comps_dir,

@@ -11,8 +11,7 @@ use strict;
 use warnings;
 use base qw(Test::Class);
 
-my $env = temp_env( conf => { layer => 'production' } );
-Poet::Environment->initialize_current_environment( env => $env );
+my $env = initialize_temp_env( conf => { layer => 'production' } );
 unlink( glob( $env->comps_path("*.mc") ) );
 
 sub mech {

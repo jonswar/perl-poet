@@ -11,7 +11,7 @@ use strict;
 use warnings;
 use base qw(Exporter);
 
-our @EXPORT = qw(initialize_test_env temp_env temp_env_dir write_conf_file);
+our @EXPORT = qw(initialize_temp_env temp_env temp_env_dir write_conf_file);
 
 sub write_conf_file {
     my ( $conf_file, $conf_content ) = @_;
@@ -57,7 +57,7 @@ sub temp_env_dir {
     return realpath($root_dir);
 }
 
-sub initialize_test_env {
+sub initialize_temp_env {
     my $env = temp_env();
     Poet::Environment->initialize_current_environment( env => $env );
 }

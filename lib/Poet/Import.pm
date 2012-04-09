@@ -1,41 +1,106 @@
 package Poet::Import;
-use Method::Signatures::Simple;
+use Carp;
+use Poet::Moose;
 use strict;
 use warnings;
 
-method valid_vars () { qw($cache $conf $env $log) };
+our @CARP_NOT = qw(Poet Poet::Script);
 
-method import ($caller, $env, @vars) {
-    foreach my $var (@vars) {
-        if ( substr( $var, 0, 1 ) eq '$' ) {
-            my $bare_var = substr( $var, 1 );
-            my $provide_method = "provide_" . $bare_var;
-            if ( $self->can($provide_method) ) {
-                my $value = $self->$provide_method( $caller, $env );
-                no strict 'refs';
-                *{ $caller . "\::$bare_var" } = \$value;
-                next;
-            }
+has 'env'         => ( required => 1, weak_ref => 1 );
+has 'package_map' => ( init_arg => undef, lazy_build => 1 );
+has 'tag_map'     => ( init_arg => undef, lazy_build => 1 );
+has 'valid_vars'  => ( init_arg => undef, lazy_build => 1 );
+
+method BUILD () {
+    foreach my $package ( keys( %{ $self->package_map } ) ) {
+        Class::MOP::load_class($package);
+    }
+}
+
+method export_to_level ($level, @params) {
+    foreach my $param (@params) {
+        if ( substr( $param, 0, 1 ) eq '$' ) {
+            $self->export_var_to_level( substr( $param, 1 ), $level + 1 );
         }
-        die sprintf(
-            "unknown import parameter '$var' passed to Poet: valid import parameters are %s",
+        elsif ( substr( $param, 0, 1 ) eq ':' ) {
+            $self->export_tag_to_level( substr( $param, 1 ), $level + 1 );
+        }
+    }
+    $self->export_tag_to_level( 'default', $level + 1 );
+}
+
+method export_var_to_level ($var, $level) {
+    my $provide_method = "provide_var_" . $var;
+    if ( $self->can($provide_method) ) {
+        my ($caller) = caller($level);
+        my $value = $self->$provide_method($caller);
+        no strict 'refs';
+        *{ $caller . "\::$var" } = \$value;
+    }
+    else {
+        croak sprintf( "unknown import var '\$$var': valid import vars are %s",
             join( ", ", map { "'$_'" } $self->valid_vars ) );
     }
 }
 
-method provide_cache ($caller, $env) {
-    $env->app_class('Cache')->new();
+method export_tag_to_level ($tag, $level) {
+    my $packages = $self->tag_map->{$tag}
+      or croak sprintf( "unknown import tag '$tag'; valid import tags are %s",
+        join( ", ", map { "':$_'" } sort( keys( %{ $self->{tag_map} } ) ) ) );
+    foreach my $package (@$packages) {
+        my $functions = $self->package_map->{$package}
+          or croak sprintf("unknown package '$package' in import tag '$tag'");
+        $package->export_to_level( $level + 1, $package, @$functions );
+    }
 }
 
-method provide_conf ($caller, $env) {
-    $env->conf();
+method _build_valid_vars () {
+    my @provide_methods = grep { /^provide_var_/ } $self->meta->get_method_list;
+    return [ sort( map { substr( $_, 12 ) } @provide_methods ) ];
 }
 
-method provide_env ($caller, $env) {
-    $env;
+method _build_package_map () {
+    return {
+        'File::Basename'        => [qw(basename dirname)],
+        'File::Path'            => [qw(make_path remove_tree)],
+        'File::Slurp'           => [qw(read_file write_file read_dir)],
+        'File::Spec::Functions' => [qw(catdir catfile)],
+        'List::MoreUtils'       => [
+            qw(all any none apply first_index first_value indexes last_index last_value uniq)
+        ],
+        'List::Util'        => [qw(first min max reduce shuffle)],
+        'Poet::Util::Debug' => [qw(dd dp dps dc dcs dh dhs)],
+        'Poet::Util::Web'   => [qw(html_escape js_escape)],
+        'Scalar::Util'      => [qw(blessed)],
+        'URI::Escape'       => [qw(uri_escape uri_unescape)],
+    };
 }
 
-method provide_log ($caller, $env) {
+method _build_tag_map () {
+    return {
+        'default' => ['Poet::Util::Debug'],
+        'list'    => [ 'List::MoreUtils', 'List::Util' ],
+        'file'    => [
+            'File::Basename', 'File::Path',
+            'File::Slurp',    'File::Spec::Functions'
+        ],
+        'web' => [ 'Poet::Util::Web', 'URI::Escape' ],
+    };
+}
+
+method provide_var_cache ($caller) {
+    $self->env->app_class('Cache')->new( namespace => $caller );
+}
+
+method provide_var_conf ($caller) {
+    $self->env->conf();
+}
+
+method provide_var_env ($caller) {
+    $self->env;
+}
+
+method provide_var_log ($caller) {
     require Log::Any;
     Log::Any->get_logger( category => $caller );
 }
@@ -71,8 +136,8 @@ and in a module:
 
     use Poet qw(...);
 
-where C<...> contains one or more variable names, method tags prefixed with
-":", and method names.
+where C<...> contains one or more variable names, tags prefixed with ":", and
+function names.
 
 Note that C<use Poet::Script> is also necessary for initializing the
 environment, whereas C<use Poet> has no effect other than importing.
@@ -107,11 +172,11 @@ The logger for the current package, provided by L<Poet::Log|Poet::Log>.
 
 =head1 UTILITIES
 
-=head2 Debug Utilities
+=head2 Debug utilities
 
-These debug utilities are always imported. Each function takes a single scalar
-value, which is serialized with L<Data::Dumper|Data::Dumper> before being
-output. The variants suffixed with 's' output a full stack trace.
+These utilities are always imported. Each function takes a single scalar value,
+which is serialized with L<Data::Dumper|Data::Dumper> before being output. The
+variants suffixed with 's' output a full stack trace.
 
 =over
 
@@ -136,9 +201,11 @@ Print the serialized I<$val> to STDOUT, surrounded by <pre> </pre>.
 
 =head2 Web utilities (":web")
 
+This includes
+
 =over
 
-=item html_escape ($str), html_unescape ($str)
+=item html_escape ($str)
 
 Return the string with HTML entities escaped/unescaped.
 
@@ -146,9 +213,9 @@ Return the string with HTML entities escaped/unescaped.
 
 Return the string URI escaped/unescaped.
 
-=item js_escape ($str), js_unescape ($str)
+=item js_escape ($str)
 
-Return the string Javascript escaped/unescaped.
+Return the string escaped for Javascript.
 
 =item make_uri ($path, $args)
 
@@ -158,24 +225,12 @@ I<$args>. e.g.
     make_uri("/foo/bar", { a => 5, b => 6 });
         ==> /foo/bar?a=5&b=6
 
-=item make_qs ($args)
-
-Create a query string from hashref I<$args>. e.g.
-
-    make_qs({ a => 5, b => 6 });
-        ==> a=5&b=6
-
 =back
 
 =head2 List Utilities (":list")
 
 This includes all the functions in L<List::Util|List::Util> and
 L<List::MoreUtils|List::MoreUtils>.
-
-=head2 Hash Utilities (":hash")
-
-This includes all the functions in L<Hash::Util|Hash::Util> and
-L<Hash::MoreUtils|Hash::MoreUtils>.
 
 =head2 File Utilities (":file")
 
@@ -213,9 +268,10 @@ where C<MyApp> is your app name.
 
 =head2 Adding variables
 
-To add your own variable, say C<$dbh>, add this to C<MyApp::Import>:
+To add your own variable, define a method called provide_var_I<varname> in
+C<MyApp::Import>. For example to add a variable C<$dbh>:
 
-    method provide_dbh ($caller, $env) {
+    method provide_var_dbh ($caller) {
         # Generate and return a dbh.
         # $caller is the package importing the variable.
         # $env is the current Poet environment.
