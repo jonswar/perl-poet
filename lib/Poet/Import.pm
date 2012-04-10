@@ -142,9 +142,9 @@ function names.
 Note that C<use Poet::Script> is also necessary for initializing the
 environment, whereas C<use Poet> has no effect other than importing.
 
-=head1 VARIABLES
+=head1 QUICK VARS
 
-Here is the built-in list of variables you can import. Some of the variables
+Here is the built-in list of quick vars you can import. Some of the variables
 are singletons, and some of them are specific to each package they are imported
 into.
 
@@ -170,13 +170,35 @@ The logger for the current package, provided by L<Poet::Log|Poet::Log>.
 
 =back
 
+For example, in a script:
+
+    use Poet::Script qw($conf $env ...);
+
+and in a module:
+
+    use Poet qw($conf $env ...);
+
+In a Mason component, C<$conf> and C<$env> are automatically available as
+package globals in all Mason components. C<$m->E<gt>cache> and C<$m->E<gt>log>
+will get you the cache and log objects for a particular Mason component.
+
+Finally, if for some reason you can't rely on the above ways of getting to
+these variables, here's how you'd get them the old-fashioned way:
+
+    my $env   = Poet::Environment->instance;
+    my $conf  = $env->conf;
+    my $cache = MyApp::Cache->new(namespace => '...');
+    my $log   = MyApp::Log->get_logger(category => '...');
+
 =head1 UTILITIES
 
 =head2 Debug utilities
 
-These utilities are always imported. Each function takes a single scalar value,
-which is serialized with L<Data::Dumper|Data::Dumper> before being output. The
-variants suffixed with 's' output a full stack trace.
+These utilities are imported wherever you have C<Poet::Script> or C<use Poet>.
+
+Each of the "d" functions takes a single scalar value, which is serialized with
+L<Data::Dumper|Data::Dumper> before being output. The variants suffixed with
+'s' output a full stack trace.
 
 =over
 
@@ -201,7 +223,10 @@ Print the serialized I<$val> to STDOUT, surrounded by <pre> </pre>.
 
 =head2 Web utilities (":web")
 
-This includes
+    use Poet::Script qw(:web ...)
+    use Poet qw(:web ...)
+
+This group includes:
 
 =over
 
@@ -229,12 +254,18 @@ I<$args>. e.g.
 
 =head2 List Utilities (":list")
 
-This includes all the functions in L<List::Util|List::Util> and
+    use Poet::Script qw(:list ...)
+    use Poet qw(:list ...)
+
+This group includes all the functions in L<List::Util|List::Util> and
 L<List::MoreUtils|List::MoreUtils>.
 
 =head2 File Utilities (":file")
 
-This includes
+    use Poet::Script qw(:file ...)
+    use Poet qw(:file ...)
+
+This group includes
 
 =over
 
