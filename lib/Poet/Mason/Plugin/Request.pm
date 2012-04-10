@@ -1,10 +1,8 @@
-package Poet::Mason::Request;
+package Poet::Mason::Plugin::Request;
+use Mason::PluginRole;
 use Poet qw($env);
-use Poet::Moose;
 use Poet::Plack::Response;
 use Try::Tiny;
-
-extends 'Mason::Request';
 
 has 'req' => ( is => 'ro', required => 1, isa => 'Object' );
 has 'res' => ( is => 'ro', lazy_build => 1 );

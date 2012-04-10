@@ -20,7 +20,9 @@ method get_options ($class:) {
         data_dir      => $env->data_dir,
         plugins       => [ 'HTMLFilters', 'RouterSimple' ]
     );
-    return ( %defaults, %{ $conf->get_hash("mason") } );
+    my %options = ( %defaults, %{ $conf->get_hash("mason") } );
+    push( @{ $options{plugins} }, '+Poet::Mason::Plugin' );    # mandatory
+    return %options;
 }
 
 method new ($class:) {
@@ -136,9 +138,9 @@ made available as package globals in all Mason components.
 C<$m->E<gt>cache> and C<$m->E<gt>log> will get you the cache and log objects
 for a particular Mason component.
 
-=head1 REQUEST METHODS
+=head1 NEW REQUEST METHODS
 
-These new methods are accessible via C<$m> in components.
+Under Poet these additional methods are accessible in components via C<$m>.
 
 =over
 
