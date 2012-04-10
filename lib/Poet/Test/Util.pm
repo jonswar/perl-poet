@@ -58,7 +58,7 @@ sub temp_env_dir {
 }
 
 sub initialize_temp_env {
-    my $env = temp_env();
+    my $env = temp_env(@_);
     Poet::Environment->initialize_current_environment( env => $env );
 }
 
