@@ -120,7 +120,7 @@ Basically this gives us a C<Blog::Article> object with a constructor for
 inserting articles, and instance methods for each of the columns.  See
 L<Rose::DB::Object::Tutorial> for more information.
 
-=head1 POET VARIABLES
+=head1 QUICK VARS AND UTILITIES
 
 In C<lib/Blog/DB.pm> above, we have
 
@@ -135,7 +135,7 @@ information about the environment and its directory paths.  We use it here to
 get the full path to our sqlite database, without having to hardcode our
 environment root.
 
-More generally C<$env> is one of several special Poet variables that can be
+More generally C<$env> is one of several special Poet "quick vars" that can be
 imported into any package, just by including it on the C<use Poet> line.
 Another important one is C<$conf>, which gives you access to configuration:
 
@@ -143,7 +143,9 @@ Another important one is C<$conf>, which gives you access to configuration:
     ...
     my $value = $conf->get('key', 'default');
 
-See L<Poet::Import|Poet::Import> for the full list of Poet variables.
+You can also import sets of utilities in the same way, e.g. ':list' for list
+utilities and ':web' for web-related utilities. See
+L<Poet::Import|Poet::Import> for the full list of Poet vars and utility sets.
 
 =head1 MASON PAGES AND COMPONENTS
 
@@ -513,9 +515,8 @@ C<use> your application modules.
 
 =item *
 
-Imports the specified variables - in this case C<$conf> and C<$env> - into the
-script namespace. The available variables are the same as discussed in L</POET
-VARIABLES>.
+Imports the specified quick vars - in this case C<$conf> and C<$env> - into the
+script namespace. See L<Poet::Import|Poet::Import>.
 
 =back
 

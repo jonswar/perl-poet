@@ -118,7 +118,7 @@ information.
         Log::Any::Adapter->set('Dispatch', dispatcher => $log);
     };
 
-=head2 Add your own $dbh import variable
+=head2 Add your own $dbh quick var
 
     package MyApp::Import
     use DBI;

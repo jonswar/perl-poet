@@ -145,8 +145,8 @@ C<use> your application modules.
 
 =item *
 
-Imports the specified I<Poet variables> - in this case C<$conf> and C<$env> -
-into the script namespace.
+Imports the specified I<quick vars> - in this case C<$conf> and C<$env> - into
+the script namespace.
 
 =back
 
@@ -166,7 +166,7 @@ you'll do this:
 
     system($env->bin_path("myscript.pl"));
 
-More information about this C<$env> variable L<below|POET VARIABLES>.
+More information about this C<$env> variable L<below|QUICK VARS AND UTILITIES>.
 
 =head1 CONFIGURATION AND LAYERS
 
@@ -222,75 +222,35 @@ There are a variety of ways to access configuration:
     my $hashref = $conf->get_hash('key', {'default' => 5});
     my $bool = $conf->get_boolean('key');
 
-More information about this C<$conf> variable L<below|POET VARIABLES>.
+More information about this C<$conf> variable L<below|QUICK VARS AND
+UTILITIES>.
 
 See L<Poet::Conf|Poet::Conf> for more information on specifying and accessing
 configuration.
 
-=head1 POET VARIABLES
+=head1 QUICK VARS AND UTILITIES
 
-Poet makes it easy to import certain variables into any module or script in
-your environment. You've seen references above to two of these, C<$env> and
-C<$conf>, above.
+Poet makes it easy to import certain variables (known as "quick vars") and sets
+of utilities into any module or script in your environment. You've seen two
+examples of quick vars above: C<$conf>, the global configuration variable, and
+C<$env>, the global environment object.
 
-The variables are:
+In a script, this looks like:
 
-=over
+    #!/usr/local/bin/perl
+    use Poet::Script qw($conf :file);
 
-=item $env
+In a module, this looks like:
 
-The global environment object, provided by
-L<Poet::Environment|Poet::Environment>. This provides information such as the
-root directory and paths to subdirectories.
+    package MyApp::Foo;
+    use Poet qw($cache $env :list);
 
-=item $conf
+And every Mason component automatically gets this on top:
 
-The global configuration object, provided by L<Poet::Conf|Poet::Conf>. This
-allows you to get values defined in conf files.
+    use Poet qw($conf $env :web);
 
-=item $cache
-
-The cache for the current package, provided by L<Poet::Cache|Poet::Cache>.
-
-=item $log
-
-The logger for the current package, provided by L<Poet::Log|Poet::Log>.
-
-=back
-
-You can add your own variables by L<customizing
-Poet::Import|Poet::Manual::Subclassing>.
-
-=head2 Accessing in a script
-
-    use Poet::Script qw($conf $env ...);
-
-This will import the specified variables into the script namespace (usually
-C<main>).
-
-=head2 Accessing in a module
-
-    use Poet qw($conf $env ...);
-
-This will import the specified variables into the package's namespace.
-
-=head2 Accessing in a Mason component
-
-C<$conf> and C<$env> are automatically available as package globals in all
-Mason components.
-
-C<$m->E<gt>cache> and C<$m->E<gt>log> will get you the cache and log objects
-for a particular Mason component.
-
-=head2 Accessing without magic
-
-If for some reason you can't rely on the above ways of getting to these
-variables, here's how you'd get them the old-fashioned way:
-
-    my $env   = Poet::Environment->instance;
-    my $conf  = $env->conf;
-    my $cache = MyApp::Cache->new(namespace => '...');
-    my $log   = Log::Any-=>get_logger(category => '...');
+See L<Poet::Import|Poet::Import> for a complete list of quick vars and utility
+sets.
 
 =head1 HANDLING HTTP REQUESTS
 

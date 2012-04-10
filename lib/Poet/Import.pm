@@ -113,7 +113,7 @@ __END__
 
 =head1 NAME
 
-Poet::Import -- Import Poet variables and utilities
+Poet::Import -- Import Poet quick vars and utilities
 
 =head1 SYNOPSIS
 
@@ -125,8 +125,8 @@ Poet::Import -- Import Poet variables and utilities
 
 =head1 DESCRIPTION
 
-Poet makes it easy to import certain variables and utilities into any script or
-module in your environment.
+Poet makes it easy to import certain variables (known as "quick vars") and
+utilities into any script or module in your environment.
 
 In a script:
 
@@ -136,11 +136,12 @@ and in a module:
 
     use Poet qw(...);
 
-where C<...> contains one or more variable names, tags prefixed with ":", and
-function names.
+where C<...> contains one or more quick var names (e.g. C<$conf>, C<$env>)
+and/or utility tags (e.g. C<:file>, C<:web>).
 
 Note that C<use Poet::Script> is also necessary for initializing the
-environment, whereas C<use Poet> has no effect other than importing.
+environment, even if you don't care to import anything, whereas C<use Poet> has
+no effect other than importing.
 
 =head1 QUICK VARS
 
@@ -170,31 +171,9 @@ The logger for the current package, provided by L<Poet::Log|Poet::Log>.
 
 =back
 
-For example, in a script:
-
-    use Poet::Script qw($conf $env ...);
-
-and in a module:
-
-    use Poet qw($conf $env ...);
-
-In a Mason component, C<$conf> and C<$env> are automatically available as
-package globals in all Mason components. C<$m->E<gt>cache> and C<$m->E<gt>log>
-will get you the cache and log objects for a particular Mason component.
-
-Finally, if for some reason you can't rely on the above ways of getting to
-these variables, here's how you'd get them the old-fashioned way:
-
-    my $env   = Poet::Environment->instance;
-    my $conf  = $env->conf;
-    my $cache = MyApp::Cache->new(namespace => '...');
-    my $log   = MyApp::Log->get_logger(category => '...');
-
 =head1 UTILITIES
 
 =head2 Debug utilities
-
-These utilities are imported wherever you have C<Poet::Script> or C<use Poet>.
 
 Each of the "d" functions takes a single scalar value, which is serialized with
 L<Data::Dumper|Data::Dumper> before being output. The variants suffixed with
@@ -222,9 +201,6 @@ Print the serialized I<$val> to STDOUT, surrounded by <pre> </pre>.
 =back
 
 =head2 Web utilities (":web")
-
-    use Poet::Script qw(:web ...)
-    use Poet qw(:web ...)
 
 This group includes:
 
@@ -254,16 +230,10 @@ I<$args>. e.g.
 
 =head2 List Utilities (":list")
 
-    use Poet::Script qw(:list ...)
-    use Poet qw(:list ...)
-
 This group includes all the functions in L<List::Util|List::Util> and
 L<List::MoreUtils|List::MoreUtils>.
 
 =head2 File Utilities (":file")
-
-    use Poet::Script qw(:file ...)
-    use Poet qw(:file ...)
 
 This group includes
 
@@ -286,6 +256,15 @@ From L<File::Slurp|File::Slurp>.
 From L<File::Spec::Functions|File::Spec::Functions>.
 
 =back
+
+=head1 MASON COMPONENTS
+
+Every Mason component automatically gets this on top:
+
+    use Poet qw($conf $env :web);
+
+C<$m->E<gt>cache> and C<$m->E<gt>log> will get you the cache and log objects
+for a particular Mason component.
 
 =head1 CUSTOMIZING
 
