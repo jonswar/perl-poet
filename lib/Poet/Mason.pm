@@ -18,11 +18,15 @@ method get_options ($class:) {
         allow_globals => [qw($conf $env)],
         comp_root     => $env->comps_dir,
         data_dir      => $env->data_dir,
-        plugins       => [ 'HTMLFilters', 'RouterSimple' ]
+        plugins       => [ $class->get_plugins ],
     );
     my %options = ( %defaults, %{ $conf->get_hash("mason") } );
     push( @{ $options{plugins} }, '+Poet::Mason::Plugin' );    # mandatory
     return %options;
+}
+
+method get_plugins ($class:) {
+    return ( 'HTMLFilters', 'RouterSimple' );
 }
 
 method new ($class:) {

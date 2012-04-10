@@ -115,6 +115,6 @@ override or modify with method modifiers in L<subclasses|<Poet::Subclassing>.
 =item initialize_caching
 
 Called once when the Poet environment is initialized. By default, calls C<<
-__PACKAGE__->config  >> with the configuration entry 'cache'.
+__PACKAGE__->config >> with the configuration entry 'cache'.
 
 =back
