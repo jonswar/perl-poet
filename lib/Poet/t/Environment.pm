@@ -21,7 +21,7 @@ sub test_environment : Tests {
         ok( -d $env->$subdir_method, "$subdir exists" );
     }
     is( $env->conf->layer, 'development', "layer" );
-    foreach my $class qw(Cache Conf Log Mason Server) {
+    foreach my $class qw(Conf Log Mason Server) {
         my $file = $env->lib_path("$app_name/$class.pm");
         ok( -f $file, "$file exists" );
     }

@@ -13,12 +13,15 @@ method instance ($class:) {
     $instance;
 }
 
+method new ($class:) {
+    return $class->SUPER::new( $class->get_options, @_ );
+}
+
 method get_options ($class:) {
     my %defaults = (
-        allow_globals => [qw($conf $env)],
-        comp_root     => $env->comps_dir,
-        data_dir      => $env->data_dir,
-        plugins       => [ $class->get_plugins ],
+        comp_root => $env->comps_dir,
+        data_dir  => $env->data_dir,
+        plugins   => [ $class->get_plugins ],
     );
     my %options = ( %defaults, %{ $conf->get_hash("mason") } );
     push( @{ $options{plugins} }, '+Poet::Mason::Plugin' );    # mandatory
@@ -27,18 +30,6 @@ method get_options ($class:) {
 
 method get_plugins ($class:) {
     return ( 'HTMLFilters', 'RouterSimple' );
-}
-
-method new ($class:) {
-    my $interp = $class->SUPER::new( $class->get_options, @_ );
-    $class->_set_poet_globals($interp);
-    return $interp;
-}
-
-method _set_poet_globals ($interp) {
-    my %allowed_globals = map { ( $_, 1 ) } @{ $interp->allow_globals };
-    $interp->set_global( '$conf', $conf ) if $allowed_globals{'$conf'};
-    $interp->set_global( '$env',  $env )  if $allowed_globals{'$env'};
 }
 
 1;
@@ -114,10 +105,6 @@ default the C<data> subdirectory under the environment root.
 C<plugins> is set to include L<HTMLFilters|Mason::Plugins::HTMLFilters> and
 L<RouterSimple|Mason::Plugins::RouterSimple>.
 
-=item *
-
-C<allow_globals> is set to include C<$conf> and $<env>.
-
 =back
 
 =head1 CONFIGURATION
@@ -134,13 +121,11 @@ above if you still want them. e.g.
            - RouterSimple
            - AnotherFavoritePlugin
 
-=head1 POET VARIABLES IN COMPONENTS
+=head1 QUICK VARS AND UTILITIES
 
-L<Poet variables|Poet/POET VARIABLES> C<$conf> and C<$env> are automatically
-made available as package globals in all Mason components.
+Every Mason component automatically gets this on top:
 
-C<$m->E<gt>cache> and C<$m->E<gt>log> will get you the cache and log objects
-for a particular Mason component.
+    use Poet qw($conf $env :web);
 
 =head1 NEW REQUEST METHODS
 

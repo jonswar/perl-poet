@@ -11,7 +11,8 @@ use strict;
 use warnings;
 use base qw(Test::Class);
 
-my $env = initialize_temp_env( conf => { layer => 'production' } );
+my $env =
+  initialize_temp_env( conf => { layer => 'production', 'foo.bar' => 5 } );
 unlink( glob( $env->comps_path("*.mc") ) );
 
 sub mech {
@@ -174,6 +175,32 @@ will not be printed
 ',
         expect_content => ' ',
         expect_code    => 404,
+    );
+}
+
+sub test_import : Tests {
+    my $self     = shift;
+    my $root_dir = $env->root_dir;
+    $self->test_psgi_comp(
+        path => '/import.mc',
+        src  => '
+foo.bar = <% $conf->get("foo.bar") %>
+root_dir = <% $env->root_dir %>
+<% dh({baz => "blargh"}) %>
+',
+        expect_content =>
+          sprintf( "
+foo.bar = 5
+root_dir = %s
+<pre>
+[%s/comps/import.mc line 4.] {
+  baz => 'blargh'
+}
+
+
+</pre>
+", $root_dir, $root_dir ),
+        expect_code => 200,
     );
 }
 
