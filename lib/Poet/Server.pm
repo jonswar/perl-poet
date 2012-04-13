@@ -44,11 +44,9 @@ method build_psgi_app ($class:) {
           path => qr{^/static/},
           root => $env->root_dir;
 
-        my $interp = $env->app_class('Mason')->instance;
-
         sub {
             my $psgi_env = shift;
-            $class->handle_psgi_request( $psgi_env, $interp );
+            $class->handle_psgi_request($psgi_env);
         };
     }
 }
@@ -70,9 +68,10 @@ method make_psgi_test_request ($class: $url) {
     }
 }
 
-method handle_psgi_request ($psgi_env, $interp) {
+method handle_psgi_request ($psgi_env) {
     my $req      = $env->app_class('Plack::Request')->new($psgi_env);
     my $response = try {
+        my $interp = $env->app_class('Mason')->instance;
         my $m = $interp->_make_request( req => $req );
         $m->run( $self->_psgi_comp_path($req), $self->_psgi_parameters($req) );
         $m->res;
