@@ -197,7 +197,7 @@ C<conf/global/*.cfg>.
 I<Layers> allow you to have different configuration for different contexts.
 With all but the simplest site you'll have at least two layers: I<development>
 (the internal environment where you develop) and I<production> (the live site).
- Later on, you might want a I<staging> environment (which looks like production
+Later on, you might want a I<staging> environment (which looks like production
 except for a different data source, etc.).
 
 In general you can have as many layers as you like.  Each layer has a
@@ -229,6 +229,32 @@ UTILITIES>.
 
 See L<Poet::Conf|Poet::Conf> for more information on specifying and accessing
 configuration.
+
+=head1 SERVER RUNNER AND MIDDLEWARE
+
+C<poet new> generates C<run.pl> and C<app.psgi> files for you in the C<bin>
+subdirectory.
+
+C<run.pl> is a wrapper around L<plackup>, which starts your server. It has a
+few sensible defaults, such as setting up autorestart in development mode and
+using an access log in live mode. It will also take options from the
+configuration entry 'plackup'. So if your C<local.cfg> contains this:
+
+    plackup:
+       port: 5000
+
+then --port 5000 will be passed to plackup.
+
+If you are using something other than plackup (e.g.
+L<Server::Starter|Server::Starter>) then you'll have to adapt this into your
+own startup script.
+
+C<app.psgi> defines your PSGI app. It's the place to add L<Plack
+middleware|Plack/Plack::Middleware>, or change the configuration of the default
+middleware. For example, to enable basic authentication with an
+C<conf/.htpasswd> file, add this to app.psgi:
+
+    enable "Auth::Htpasswd", file => $env->conf_path('.htpasswd');
 
 =head1 QUICK VARS AND UTILITIES
 
