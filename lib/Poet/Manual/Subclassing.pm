@@ -11,7 +11,6 @@ You can subclass the following Poet classes for your application:
     Poet::Conf
     Poet::Log
     Poet::Mason
-    Poet::Server
     Poet::Import
     
 and arrange things so that Poet always uses your subclass instead of its

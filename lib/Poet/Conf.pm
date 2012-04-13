@@ -12,11 +12,11 @@ use YAML::XS;
 use strict;
 use warnings;
 
-has 'conf_dir'    => ( required => 1 );
-has 'data'        => ( init_arg => undef );
-has 'is_internal' => ( init_arg => undef, lazy_build => 1 );
-has 'is_live'     => ( init_arg => undef, lazy_build => 1 );
-has 'layer'       => ( init_arg => undef, lazy_build => 1 );
+has 'conf_dir'       => ( required => 1 );
+has 'data'           => ( init_arg => undef );
+has 'is_development' => ( init_arg => undef, lazy_build => 1 );
+has 'is_live'        => ( init_arg => undef, lazy_build => 1 );
+has 'layer'          => ( init_arg => undef, lazy_build => 1 );
 
 our %get_cache;
 
@@ -87,12 +87,12 @@ method _build_layer () {
     return $layer;
 }
 
-method _build_is_internal () {
+method _build_is_development () {
     return $self->layer eq 'development';
 }
 
 method _build_is_live () {
-    return !$self->is_internal;
+    return !$self->is_development;
 }
 
 method ordered_conf_files () {
@@ -310,14 +310,14 @@ root:
       something_else.cfg
       ...
     layer/
-      internal.cfg
-      live.cfg
+      development.cfg
+      production.cfg
       ...
     local.cfg
   $ENV{POET_EXTRA_CONF_FILE}
 
 The files are read in the following order, with later files taking precedence
-over earlier files.
+over earlier files. None of the files have to exist except C<local.cfg>.
 
 =over
 
@@ -344,21 +344,13 @@ The layer/ directory contains version-controlled files specific to layers:
 
 development.cfg, production.cfg, etc. - settings for each particular layer
 
-=item *
-
-internal.cfg - read when is_internal is true
-
-=item *
-
-live.cfg - read when is_live is true
-
 =back
 
 =item *
 
 local.cfg contains settings for this particular instance of the environment. It
-is not checked into version control. local.cfg must contain at least the layer,
-e.g.
+is not checked into version control. local.cfg must exist and contain at least
+the layer, e.g.
 
     layer: development
 
@@ -474,13 +466,13 @@ simply indicates to the reader that a boolean is expected.
 
 Returns the current layer, as determined from C<local.cfg>.
 
-=item is_internal
+=item is_development
 
 Boolean; returns true iff the current layer is 'development'.
 
 =item is_live
 
-Boolean; the opposte of L<is_internal>.
+Boolean; the opposte of L<is_development>.
 
 =item get_keys
 
@@ -542,10 +534,10 @@ or to completely override how Poet gets its configuration:
 Determines the current layer before L</read_conf> is called. By default, looks
 for a C<layer> key in C<local.cfg>.
 
-=item _build_is_internal
+=item _build_is_development
 
-Determines the value of L</is_internal>, and subsequently its opposite
-L</is_live>.
+Determines the value of L</is_development>, and subsequently its opposite
+L</is_live>. By default, true iff layer == 'development'.
 
 =item ordered_conf_files
 

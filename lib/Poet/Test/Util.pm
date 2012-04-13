@@ -3,6 +3,7 @@ use Cwd qw(realpath);
 use File::Basename;
 use File::Path;
 use File::Slurp;
+use Plack::Util;
 use Poet::Environment;
 use Poet::Environment::Generator;
 use Poet::Util qw(tempdir_simple);
@@ -11,7 +12,8 @@ use strict;
 use warnings;
 use base qw(Exporter);
 
-our @EXPORT = qw(initialize_temp_env temp_env temp_env_dir write_conf_file);
+our @EXPORT =
+  qw(initialize_temp_env temp_env temp_env_dir write_conf_file build_test_mech);
 
 sub write_conf_file {
     my ( $conf_file, $conf_content ) = @_;
@@ -60,6 +62,13 @@ sub temp_env_dir {
 sub initialize_temp_env {
     my $env = temp_env(@_);
     Poet::Environment->initialize_current_environment( env => $env );
+}
+
+sub build_test_mech {
+    my $env = shift;
+    require Test::WWW::Mechanize::PSGI;
+    my $psgi_app = Plack::Util::load_psgi( $env->bin_path("app.psgi") );
+    return Test::WWW::Mechanize::PSGI->new( app => $psgi_app );
 }
 
 # prevent YAML::XS warning...wtf

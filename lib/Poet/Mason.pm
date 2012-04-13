@@ -3,6 +3,7 @@ use Poet qw($conf $env);
 use List::MoreUtils qw(uniq);
 use Method::Signatures::Simple;
 use Moose;
+use Try::Tiny;
 
 extends 'Mason';
 
@@ -30,6 +31,41 @@ method get_options ($class:) {
 
 method get_plugins ($class:) {
     return ( 'HTMLFilters', 'RouterSimple' );
+}
+
+method handle_psgi ($class: $psgi_env) {
+    my $req      = $env->app_class('Plack::Request')->new($psgi_env);
+    my $response = try {
+        my $interp = $env->app_class('Mason')->instance;
+        my $m = $interp->_make_request( req => $req );
+        $m->run( $class->_psgi_comp_path($req),
+            $class->_psgi_parameters($req) );
+        $m->res;
+    }
+    catch {
+        my $err = $_;
+        if ( blessed($err) && $err->isa('Mason::Exception::TopLevelNotFound') )
+        {
+            $env->app_class('Plack::Response')->new(404);
+        }
+        else {
+
+            # Prevent Plack::Middleware::Debug from capturing this stack point
+            local $SIG{__DIE__} = undef;
+            die $err;
+        }
+    };
+    return $response->finalize;
+}
+
+method _psgi_comp_path ($class: $req) {
+    my $comp_path = $req->path;
+    $comp_path = "/$comp_path" if substr( $comp_path, 0, 1 ) ne '/';
+    return $comp_path;
+}
+
+method _psgi_parameters ($class: $req) {
+    return $req->parameters;
 }
 
 1;

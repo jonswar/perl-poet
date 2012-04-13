@@ -16,7 +16,7 @@ my $env =
 unlink( glob( $env->comps_path("*.mc") ) );
 
 sub mech {
-    my $mech = $env->app_class('Server')->build_test_mech();
+    my $mech = build_test_mech($env);
     @{ $mech->requests_redirectable } = ();
     return $mech;
 }
@@ -30,7 +30,7 @@ sub add_comp {
     write_file( $file, $src );
 }
 
-sub test_psgi_comp {
+sub try_psgi_comp {
     my ( $self, %params ) = @_;
     my $path = $params{path} or die "must pass path";
     ( my $uri = $path ) =~ s/\.mc$//;
@@ -84,7 +84,7 @@ sub test_get_pl : Tests {
 
 sub test_basic : Tests {
     my $self = shift;
-    $self->test_psgi_comp(
+    $self->try_psgi_comp(
         path           => '/hi.mc',
         src            => 'path = <% $m->req->path %>',
         expect_content => 'path = /hi',
@@ -94,7 +94,7 @@ sub test_basic : Tests {
 
 sub test_error : Tests {
     my $self = shift;
-    $self->test_psgi_comp(
+    $self->try_psgi_comp(
         path           => '/die.mc',
         src            => '% die "bleah";',
         expect_code    => 500,
@@ -112,7 +112,7 @@ sub test_not_found : Tests {
 
 sub test_args : Tests {
     my $self = shift;
-    $self->test_psgi_comp(
+    $self->try_psgi_comp(
         path => '/args.mc',
         qs   => '?a=1&a=2&b=3&b=4&c=5&c=6&d=7&d=8',
         src  => '
@@ -145,7 +145,7 @@ EOF
 
 sub test_abort : Tests {
     my $self = shift;
-    $self->test_psgi_comp(
+    $self->try_psgi_comp(
         path => '/redirect.mc',
         src  => '
 will not be printed
@@ -157,7 +157,7 @@ will also not be printed
         expect_headers => { Location => 'http://www.google.com/' },
     );
     return;
-    $self->test_psgi_comp(
+    $self->try_psgi_comp(
         path => '/redirect_301.mc',
         src  => '
 will not be printed
@@ -167,7 +167,7 @@ will not be printed
         expect_code    => 301,
         expect_headers => { Location => 'http://www.yahoo.com/' },
     );
-    $self->test_psgi_comp(
+    $self->try_psgi_comp(
         path => '/not_found.mc',
         src  => '
 will not be printed
@@ -181,7 +181,7 @@ will not be printed
 sub test_import : Tests {
     my $self     = shift;
     my $root_dir = $env->root_dir;
-    $self->test_psgi_comp(
+    $self->try_psgi_comp(
         path => '/import.mc',
         src  => '
 foo.bar = <% $conf->get("foo.bar") %>
@@ -217,7 +217,7 @@ id=<% $m->id %>
 <% Mason::Util::dump_one_line($m->request_args) %>
 ',
     );
-    $self->test_psgi_comp(
+    $self->try_psgi_comp(
         path => '/subreq/visit.mc',
         src  => '
 begin

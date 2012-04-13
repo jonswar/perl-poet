@@ -58,8 +58,8 @@ method generate_environment_directory ($class: %params) {
     rename( "$root_dir/lib/MyApp", "$root_dir/lib/$app_name" )
       unless $app_name eq 'MyApp';
 
-    chmod( 0775, glob("$root_dir/bin/*") );
-    $msg->("\nNow run '$root_dir/bin/run' to start your server.");
+    chmod( 0775, glob("$root_dir/bin/*.pl") );
+    $msg->("\nNow run '$root_dir/bin/run.pl' to start your server.");
 
     return $root_dir;
 }
