@@ -57,9 +57,11 @@ You should now have a C<poet> app installed:
 Run this to create your initial environment:
 
     % poet new MyApp
-    my_app/bin/run
+    my_app/.poet_root
+    my_app/bin/app.psgi
+    my_app/bin/get.pl
     ...
-    Now run 'my_app/bin/run' to start your server.
+    Now run 'my_app/bin/run.pl' to start your server.
 
 The name of the app must be a valid Perl class name; it is used in your
 app-specific subclasses. The directory, if not specified with -d, will be
@@ -124,7 +126,7 @@ can use any of Poet's features. This is accomplished with something like:
     #!/usr/local/bin/perl
     use Poet::Script qw($conf $env);
 
-You'll see this in C<bin/run>, for example, the script you use to start your
+You'll see this in C<bin/run.pl>, for example, the script you use to start your
 webserver.  The C<use Poet::Script> line does several things:
 
 =over

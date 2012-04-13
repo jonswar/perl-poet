@@ -15,9 +15,11 @@ provided, a directory is chosen by lowercasing and underscoring the app
 name.
 
     % poet new MyApp
-    my_app/bin/run
-    my_app/comps/Base.mc
+    my_app/.poet_root
+    my_app/bin/app.psgi
+    my_app/bin/get.pl
     ...
+    Now run \'my_app/bin/run.pl\' to start your server.
 
 Options:';
 

@@ -32,10 +32,12 @@ You should now have a C<poet> app installed:
 
 Run this to create the initial environment:
 
-    % poet new -a Blog
-    blog/app.psgi
+    % poet new Blog
+    blog/.poet_root
+    blog/bin/app.psgi
+    blog/bin/get.pl
     ...
-    Now run 'blog/bin/run' to start your server.
+    Now run 'blog/bin/run.pl' to start your server.
 
 The name of the app, C<Blog>, will be used in app-specific class names. It is
 also used for the default directory name (C<blog>), though you can move that
@@ -43,7 +45,7 @@ wherever you want.
 
 Run this to start your server:
 
-    % blog/bin/run
+    % blog/bin/run.pl
 
 and you should see something like
 
@@ -521,7 +523,7 @@ script namespace. See L<Poet::Import|Poet::Import>.
 =back
 
 Poet initialization has to happen exactly once per process, before any Poet
-features are used. In fact, take a look at C<bin/run> -- which was generated
+features are used. In fact, take a look at C<bin/run.pl> -- which was generated
 for you initially -- and you'll see that it does 'use Poet::Script' as well.
 This initializes Poet for the entire web environment.
 
