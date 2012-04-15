@@ -186,17 +186,16 @@ sub test_import : Tests {
         src  => '
 foo.bar = <% $conf->get("foo.bar") %>
 root_dir = <% $env->root_dir %>
-<% dh({baz => "blargh"}) %>
+<% dh_live({baz => "blargh"}) %>
 ',
         expect_content =>
           sprintf( "
 foo.bar = 5
 root_dir = %s
 <pre>
-[%s/comps/import.mc line 4.] {
+[dh_live at %s/comps/import.mc line 4.] [$$] {
   baz => 'blargh'
 }
-
 
 </pre>
 ", $root_dir, $root_dir ),

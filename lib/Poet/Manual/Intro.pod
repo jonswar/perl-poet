@@ -224,11 +224,46 @@ There are a variety of ways to access configuration:
     my $hashref = $conf->get_hash('key', {'default' => 5});
     my $bool = $conf->get_boolean('key');
 
-More information about this C<$conf> variable L<below|QUICK VARS AND
+More information about this C<$conf> variable L<below|/QUICK VARS AND
 UTILITIES>.
 
 See L<Poet::Conf|Poet::Conf> for more information on specifying and accessing
 configuration.
+
+=head2 Development versus live mode
+
+Although you may have as many layers as you like, Poet also maintains a more
+limited binary notion of I<development mode> versus I<live mode>. By default,
+you're in development mode iff layer equals 'development', and in live mode
+otherwise.
+
+You can use these boolean methods to determine which mode you're in at runtime:
+
+    $conf->is_development
+    $conf->is_live
+
+These are mutually exclusive (exactly one is always true).
+
+Poet uses development/live mode to determine things like
+
+=over
+
+=item *
+
+whether to turn on L<automatic server restarting|/SERVER RUNNER AND MIDDLEWARE>
+
+=item *
+
+whether to L<display errors in the browser|/Success and failure results>
+
+=item *
+
+whether to enable L<debugging utilities|Poet::Util::Debug>
+
+=back
+
+You can customize how mode is determined by L<subclassing
+Poet::Conf|Poet::Manual::Subclassing>.
 
 =head1 SERVER RUNNER AND MIDDLEWARE
 
@@ -236,8 +271,9 @@ C<poet new> generates C<run.pl> and C<app.psgi> files for you in the C<bin>
 subdirectory.
 
 C<run.pl> is a wrapper around L<plackup>, which starts your server. It has a
-few sensible defaults, such as setting up autorestart in development mode and
-using an access log in live mode. It will also take options from the
+few sensible defaults, such as setting up autorestart in L<development
+mode|/Development versus live mode> and using an access log in L<live
+mode|/Development versus live mode>. It will also take options from the
 configuration entry 'plackup'. So if your C<local.cfg> contains this:
 
     plackup:
@@ -354,9 +390,10 @@ the content type is set to text/html if it hasn't already been set.
 
 If the top-level component path cannot be found, the status code is set to 404.
 
-If any other kind of runtime error occurs in development mode, it will either
-be displayed in the browser or converted to a 500 error response, depending on
-whether L<StackTrace|Plack::Middleware::StackTrace> middleware is present.
+If any other kind of runtime error occurs in L<development mode|/Development
+versus live mode>, it will be nicely displayed in the browser via
+L<StackTrace|Plack::Middleware::StackTrace> middleware. Outside of development
+it will be logged and sent as a 500 error response.
 
 You can call C<< $m->redirect >> and C<< $m->not_found >> to generate redirect
 and not_found results from a component. These are documented in

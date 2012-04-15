@@ -1,11 +1,13 @@
 package Poet::Util::Web;
 use Data::Dumper;
 use URI;
+use URI::Escape qw(uri_escape uri_unescape);
 use strict;
 use warnings;
 use base qw(Exporter);
 
-our @EXPORT_OK = qw(html_escape js_escape make_uri);
+our @EXPORT_OK = qw(html_escape js_escape make_uri uri_escape uri_unescape);
+our %EXPORT_TAGS = ( 'all' => \@EXPORT_OK );
 
 my %html_escape =
   ( '&' => '&amp;', '>' => '&gt;', '<' => '&lt;', '"' => '&quot;' );
@@ -51,3 +53,50 @@ sub make_uri {
 }
 
 1;
+
+__END__
+
+=pod
+
+=head1 NAME
+
+Poet::Util::Web - Web-related utilities
+
+=head1 SYNOPSIS
+
+    # In a script...
+    use Poet::Script qw(:web);
+
+    # In a module...
+    use Poet qw(:web);
+
+    # Automatically available in Mason components
+
+=head1 DESCRIPTION
+
+This group of utilities includes
+
+=over
+
+=item html_escape ($str)
+
+Return the string with HTML entities escaped/unescaped.
+
+=item uri_escape ($str), uri_unescape ($str)
+
+Return the string URI escaped/unescaped, from L<URI::Escape|URI::Escape>
+
+=item js_escape ($str)
+
+Return the string escaped for Javascript, from
+L<Javascript::Value::Escape|Javascript::Value::Escape>.
+
+=item make_uri ($path, $args)
+
+Create a URL by combining the C<$path> with a query string formed from hashref
+I<$args>. e.g.
+
+    make_uri("/foo/bar", { a => 5, b => 6 });
+        ==> /foo/bar?a=5&b=6
+
+=back

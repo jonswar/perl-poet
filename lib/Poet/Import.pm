@@ -1,20 +1,23 @@
 package Poet::Import;
 use Carp;
 use Poet::Moose;
+use Try::Tiny;
 use strict;
 use warnings;
 
 our @CARP_NOT = qw(Poet Poet::Script);
 
-has 'env'         => ( required => 1, weak_ref => 1 );
-has 'package_map' => ( init_arg => undef, lazy_build => 1 );
-has 'tag_map'     => ( init_arg => undef, lazy_build => 1 );
-has 'valid_vars'  => ( init_arg => undef, lazy_build => 1 );
+has 'default_tags' => ( init_arg => undef, lazy_build => 1 );
+has 'env'          => ( required => 1, weak_ref => 1 );
+has 'valid_vars'   => ( init_arg => undef, lazy_build => 1 );
 
-method BUILD () {
-    foreach my $package ( keys( %{ $self->package_map } ) ) {
-        Class::MOP::load_class($package);
-    }
+method _build_valid_vars () {
+    my @provide_methods = grep { /^provide_var_/ } $self->meta->get_method_list;
+    return [ sort( map { substr( $_, 12 ) } @provide_methods ) ];
+}
+
+method _build_default_tags () {
+    return ['debug'];
 }
 
 method export_to_level ($level, @params) {
@@ -26,7 +29,9 @@ method export_to_level ($level, @params) {
             $self->export_tag_to_level( substr( $param, 1 ), $level + 1 );
         }
     }
-    $self->export_tag_to_level( 'default', $level + 1 );
+    foreach my $tag ( @{ $self->default_tags } ) {
+        $self->export_tag_to_level( $tag, $level + 1 );
+    }
 }
 
 method export_var_to_level ($var, $level) {
@@ -44,48 +49,14 @@ method export_var_to_level ($var, $level) {
 }
 
 method export_tag_to_level ($tag, $level) {
-    my $packages = $self->tag_map->{$tag}
-      or croak sprintf( "unknown import tag '$tag'; valid import tags are %s",
-        join( ", ", map { "':$_'" } sort( keys( %{ $self->{tag_map} } ) ) ) );
-    foreach my $package (@$packages) {
-        my $functions = $self->package_map->{$package}
-          or croak sprintf("unknown package '$package' in import tag '$tag'");
-        $package->export_to_level( $level + 1, $package, @$functions );
+    my $util_class;
+    try {
+        $util_class = $self->env->app_class( "Util::" . ucfirst($tag) );
     }
-}
-
-method _build_valid_vars () {
-    my @provide_methods = grep { /^provide_var_/ } $self->meta->get_method_list;
-    return [ sort( map { substr( $_, 12 ) } @provide_methods ) ];
-}
-
-method _build_package_map () {
-    return {
-        'File::Basename'        => [qw(basename dirname)],
-        'File::Path'            => [qw(make_path remove_tree)],
-        'File::Slurp'           => [qw(read_file write_file read_dir)],
-        'File::Spec::Functions' => [qw(catdir catfile)],
-        'List::MoreUtils'       => [
-            qw(all any none apply first_index first_value indexes last_index last_value uniq)
-        ],
-        'List::Util'        => [qw(first min max reduce shuffle)],
-        'Poet::Util::Debug' => [qw(dd dp dps dc dcs dh dhs)],
-        'Poet::Util::Web'   => [qw(html_escape js_escape)],
-        'Scalar::Util'      => [qw(blessed)],
-        'URI::Escape'       => [qw(uri_escape uri_unescape)],
+    catch {
+        croak "problem with import tag ':$tag' ($_)";
     };
-}
-
-method _build_tag_map () {
-    return {
-        'default' => ['Poet::Util::Debug'],
-        'list'    => [ 'List::MoreUtils', 'List::Util' ],
-        'file'    => [
-            'File::Basename', 'File::Path',
-            'File::Slurp',    'File::Spec::Functions'
-        ],
-        'web' => [ 'Poet::Util::Web', 'URI::Escape' ],
-    };
+    $util_class->export_to_level( $level + 1, $util_class, ':all' );
 }
 
 method provide_var_cache ($caller) {
@@ -173,7 +144,19 @@ The logger for the current package, provided by L<Poet::Log|Poet::Log>.
 
 =head1 UTILITIES
 
-=head2 Debug utilities
+=head2 Default utilities
+
+The utilities in L<Poet::Util::Debug|Poet::Util::Debug> are always imported,
+with no tag necessary.
+
+=head2 :file
+
+This tag imports all the utilities in L<Poet::Util::File|Poet::Util::File>.
+
+=head2 :web
+
+This tag imports all the utilities in L<Poet::Util::Web|Poet::Util::Web>. It is
+automatically included in all Mason components.
 
 Each of the "d" functions takes a single scalar value, which is serialized with
 L<Data::Dumper|Data::Dumper> before being output. The variants suffixed with
@@ -225,35 +208,6 @@ I<$args>. e.g.
 
     make_uri("/foo/bar", { a => 5, b => 6 });
         ==> /foo/bar?a=5&b=6
-
-=back
-
-=head2 List Utilities (":list")
-
-This group includes all the functions in L<List::Util|List::Util> and
-L<List::MoreUtils|List::MoreUtils>.
-
-=head2 File Utilities (":file")
-
-This group includes
-
-=over
-
-=item basename, dirname
-
-From L<File::Basename|File::Basename>.
-
-=item make_path, remove_tree
-
-From L<File::Path|File::Path>.
-
-=item read_file, write_file, read_dir
-
-From L<File::Slurp|File::Slurp>.
-
-=item catdir, catfile
-
-From L<File::Spec::Functions|File::Spec::Functions>.
 
 =back
 

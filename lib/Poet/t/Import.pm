@@ -33,22 +33,23 @@ sub test_import_methods : Tests {
         BEGIN { $importer->export_to_level(0) }
         use Test::More;
         ok( TestImportMethods1->can('dp'),        'yes dp' );
-        ok( !TestImportMethods1->can('basename'), 'no read_file' );
+        ok( !TestImportMethods1->can('basename'), 'no basename' );
     }
     {
         package TestImportMethods2;
         BEGIN { $importer->export_to_level( 0, qw(:file) ) }
         use Test::More;
-        ok( TestImportMethods2->can('dp'),       'yes dp' );
-        ok( TestImportMethods2->can('basename'), 'yes basename' );
+        foreach my $function (qw(dp basename)) {
+            ok( TestImportMethods2->can($function), "yes $function" );
+        }
     }
     {
         package TestImportMethods3;
         BEGIN { $importer->export_to_level( 0, qw(:web) ) }
         use Test::More;
-        ok( TestImportMethods3->can('dp'),          'yes dp' );
-        ok( TestImportMethods3->can('html_escape'), 'yes html_escape' );
-        ok( TestImportMethods3->can('uri_escape'),  'yes uri_escape' );
+        foreach my $function (qw(dp html_escape uri_escape)) {
+            ok( TestImportMethods3->can($function), "yes $function" );
+        }
     }
 }
 

@@ -2,6 +2,7 @@ package Poet::Mason::Plugin::Request;
 use Mason::PluginRole;
 use Poet qw($env);
 use Poet::Plack::Response;
+use JSON::XS;
 use Try::Tiny;
 
 has 'req' => ( is => 'ro', required => 1, isa => 'Object' );
@@ -77,6 +78,17 @@ method redirect () {
 
 method not_found () {
     $self->clear_and_abort(404);
+}
+
+method session () {
+    $self->req->session;
+}
+
+method send_json ($data) {
+    $self->clear_buffer;
+    $self->print( JSON::XS::encode_json($data) );
+    $self->res->content_type("application/json");
+    $self->abort();
 }
 
 1;

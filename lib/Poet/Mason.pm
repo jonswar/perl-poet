@@ -159,13 +159,19 @@ above if you still want them. e.g.
 
 =head1 QUICK VARS AND UTILITIES
 
-Every Mason component automatically gets this on top:
+Poet inserts the following line at the top of of every compiled Mason
+component:
 
     use Poet qw($conf $env :web);
 
+which means that L<$conf|Poet::Conf>, L<$env|Poet::Environment>, and L<web
+utilities|Poet::Utils::Web> are available from every component.
+
 =head1 NEW REQUEST METHODS
 
-Under Poet these additional methods are accessible in components via C<$m>.
+Under Poet these additional web-related methods are available in the L<Mason
+request object|Mason::Request>, accessible in components via C<$m> or elsewhere
+via C<Mason::Request-C<gt>current_request>.
 
 =over
 
@@ -180,6 +186,22 @@ A reference to the L<Plack::Request> object. e.g.
 A reference to the L<Plack::Response> object. e.g.
 
     $m->res->content_type('text/plain');
+
+=item abort (status)
+
+=item clear_and_abort (status)
+
+These methods are overriden to set the response status before aborting, if
+I<status> is provided. e.g. to send back a FORBIDDEN result:
+
+    $m->clear_and_abort(403);
+
+This is equivalent to
+
+    $m->res->status(403);
+    $m->clear_and_abort();
+
+If a status is not provided, the methods work just as before.
 
 =item redirect (url[, status])
 
@@ -204,18 +226,30 @@ is equivalent to
 
     $m->clear_and_abort(404);
 
-=item abort (status)
+=item session
 
-=item clear_and_abort (status)
+A shortcut for C<$m-E<gt>req-E<gt>session>, the L<Plack
+session|Plack::Session>. e.g.
 
-These methods are overriden to set the response status before aborting, if
-I<status> is provided. e.g. to send back a FORBIDDEN result:
+    $m->session->get($key);
+    $m->session->set($key, $value);
 
-    $m->clear_and_abort(403);
+=item send_json ($data)
 
-This is equivalent to
+Output the JSON-encoded I<$data>, set the content type to "application/json",
+and abort. e.g.
 
-    $m->res->status(403);
-    $m->clear_and_abort();
+    method handle {
+        my $data;
+        # compute data somehow
+        $m->send_json($data);
+    }
+
+C<send_json> is a shortcut for
+
+    $m->clear_buffer;
+    $m->print(JSON::XS::encode_json($data));
+    $m->res->content_type("application/json");
+    $m->abort();
 
 =back
