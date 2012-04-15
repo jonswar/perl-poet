@@ -307,11 +307,14 @@ In a script, this looks like:
 In a module, this looks like:
 
     package MyApp::Foo;
-    use Poet qw($cache $env :list);
+    use Poet qw($cache $env);
 
 And every Mason component automatically gets this on top:
 
     use Poet qw($conf $env :web);
+
+L<Debug utilities|Poet::Util::Debug> are automatically imported without having
+to specify a tag.
 
 See L<Poet::Import|Poet::Import> for a complete list of quick vars and utility
 sets.
@@ -356,7 +359,8 @@ would result in
     $interp->run("/foo/bar", a=>5, b=>6);
 
 From there Mason will choose a component to dispatch to - see
-L<Mason::Manual::RequestDispatch|Mason::Manual::RequestDispatch>.
+L<Mason::Manual::RequestDispatch|Mason::Manual::RequestDispatch> and
+L<Mason::Plugin::RouterSimple|Mason::Plugin::RouterSimple>.
 
 =back
 
