@@ -1,4 +1,4 @@
-use Poet qw($conf $env);
+use Poet::Script qw($conf $env);
 use Plack::Builder;
 use Plack::Session::Store::Cache;
 use strict;

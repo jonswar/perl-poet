@@ -9,9 +9,11 @@ use strict;
 use warnings;
 
 method import ($pkg:) {
-    my $root_dir = determine_root_dir();
-    my $env      = initialize_with_root_dir($root_dir);
-    $env->importer->export_to_level( 1, @_ );
+    unless ( Poet::Environment->instance ) {
+        my $root_dir = determine_root_dir();
+        my $env      = initialize_with_root_dir($root_dir);
+    }
+    Poet::Environment->instance->importer->export_to_level( 1, @_ );
 }
 
 func initialize_with_root_dir($root_dir) {
