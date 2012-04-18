@@ -589,13 +589,13 @@ Their APIs will be kept as stable as possible.
 
 =over
 
-=item read_conf
+=item read_conf_data
 
 This is the main method that finds and parses conf files and returns a hash of
 conf keys to values. You can modify this to dynamically compute certain conf
 keys:
 
-    override 'read_conf' => sub {
+    override 'read_conf_data' => sub {
         my $hash = super();
         $hash->{complex_key} = ...;
         return $hash;
@@ -603,12 +603,19 @@ keys:
 
 or to completely override how Poet gets its configuration:
 
-    override 'read_conf' => sub {
+    override 'read_conf_data' => sub {
         return {
            some_conf_key => 'some conf value',
            ...
         };
     };
+
+=item initial_conf_data
+
+Returns a hash with initial configuration data before any conf files have been
+merged in. By default, just contains
+
+    ( root => '/path/to/root' )
 
 =item _build_layer
 
