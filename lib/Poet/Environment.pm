@@ -210,7 +210,7 @@ process. Usually you'd access this by importing C<$env>.
 
 =back
 
-=head1 OVERRIDING ENVIRONMENT SUBDIRECTORIES
+=head1 CONFIGURING ENVIRONMENT SUBDIRECTORIES
 
 Any subdirectories other than conf_dir can be overriden in configuration. e.g.
 
