@@ -9,11 +9,19 @@ Poet::Manual - Index of Poet documentation
 
 =item L<Poet::Manual::Tutorial>
 
-Provides a tour of Poet by showing how to build a micro-blog application.
+Provides a tour of Poet by showing how to build a micro-blog website.
 
-=item L<Poet::Manual::Devel>
+=item L<Poet::Manual::Intro>
 
+An introduction to Poet features with links to other documentation.
 
+=item L<Poet::Manual::Configuring>
+
+A list of Poet configuration options.
+
+=item L<Poet::Manual::Subclassing>
+
+A guide to customizing Poet behavior via subclassing.
 
 =back
 
@@ -21,12 +29,14 @@ Provides a tour of Poet by showing how to build a micro-blog application.
 
 =over
 
-=item L<Poet>
-
-=item L<Poet::Script>
-
 =item L<Poet::Environment>
 
 =item L<Poet::Conf>
+
+=item L<Poet::Mason>
+
+=item L<Poet::Log>
+
+=item L<Poet::Cache>
 
 =back
