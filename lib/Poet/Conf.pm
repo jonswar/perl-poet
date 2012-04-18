@@ -24,13 +24,12 @@ method BUILD () {
     $self->{data} = $self->read_conf_data();
 }
 
-method read_conf_data () {
-    my $conf_dir = $self->conf_dir();
-    my %data     = ();
+method initial_conf_data () {
+    return ( root => realpath( dirname( $self->conf_dir ) ) );
+}
 
-    # Provide some convenience globals.
-    #
-    $data{root} = realpath( dirname($conf_dir) );
+method read_conf_data () {
+    my %data = $self->initial_conf_data();
 
     # Collect list of conf files in appropriate order
     #
@@ -135,7 +134,23 @@ method read_conf_file ($file) {
 
 method merge_conf_data ($current_data, $new_data, $file) {
     while ( my ( $key, $value ) = each(%$new_data) ) {
-        $current_data->{$key} = $value;
+        my $orig_key       = $key;
+        my $assign_to_hash = $current_data;
+        while ( $key =~ /\./ ) {
+            my ( $first, $rest ) = split( /\./, $key, 2 );
+            if ( !defined( $assign_to_hash->{$first} ) ) {
+                $assign_to_hash->{$first} = {};
+            }
+            $assign_to_hash = $assign_to_hash->{$first};
+            if ( ref($assign_to_hash) ne 'HASH' ) {
+                die sprintf(
+                    "error assigning to '%s' in '%s'; '%s' already has non-hash value",
+                    $orig_key, $file,
+                    substr( $orig_key, 0, -1 * length($rest) - 1 ) );
+            }
+            $key = $rest;
+        }
+        $assign_to_hash->{$key} = $value;
     }
 }
 
@@ -151,6 +166,9 @@ method get ($key, $default) {
 
     my $orig_key = $key;
     my @firsts;
+    if ( $key =~ /\./ ) {
+        return $self->_get_dotted_key( $key, $default );
+    }
     my $value = $self->data->{$key};
     if ( defined($value) ) {
         while ( $value =~ /(\$ \{ ([\w\.\-]+) \} )/x ) {
@@ -162,6 +180,12 @@ method get ($key, $default) {
         }
     }
     $get_cache{$key} = $value;
+    return defined($value) ? $value : $default;
+}
+
+method _get_dotted_key ($key, $default) {
+    my ( $rest, $last ) = ( $key =~ /^(.*)\.([^\.]+)$/ );
+    my $value = $self->get_hash($rest)->{$last};
     return defined($value) ? $value : $default;
 }
 
@@ -286,7 +310,8 @@ Poet::Conf -- Poet configuration
 
     my @keys = grep { /^foo\./ } $conf->get_keys;
 
-    print $conf->as_hash;
+    my $hash = $conf->as_hash;
+    print $conf->as_string;
 
     { 
        my $lex = $conf->set_local({'key' => 'new_value'});
@@ -349,8 +374,8 @@ development.cfg, production.cfg, etc. - settings for each particular layer
 =item *
 
 local.cfg contains settings for this particular instance of the environment. It
-is not checked into version control. local.cfg must exist and contain at least
-the layer, e.g.
+is not checked into version control. local.cfg must exist and must contain at
+least the layer, e.g.
 
     layer: development
 
@@ -376,7 +401,7 @@ Basic conf file format is L<YAML|http://www.yaml.org/>, e.g.
        output: poet.log
        layout: "%d{dd/MMM/yyyy:HH:mm:ss.SS} [%p] %c - %m - %F:%L - %P%n"
 
-=head2 Referring to other entries
+=head2 Interpolation - referring to other entries
 
 Conf entries can refer to other entries via the syntax C<${key}>. For example:
 
@@ -394,6 +419,49 @@ Conf entries can refer to other entries via the syntax C<${key}>. For example:
       => "The number 5"
    $conf->get('baz')
       => "The number 500"
+
+There is a single built-in entry, C<$root>, containing the root of the
+environment that you can use in other entries, e.g.
+
+   cache:
+      defaults:
+         driver: File
+         root_dir: ${root}/data/cache
+
+=head2 Dot notation for hash access
+
+Conf entries can use dot (".") notation to refer to hash entries. e.g. this
+
+   foo.bar.baz: 5
+
+is the same as
+
+   foo:
+      bar:
+         baz: 5
+
+The dot notation is especially useful for I<overriding> individual hash
+elements from higher precedence config files. For example, if in
+C<global/cache.cfg> you have
+
+   cache:
+      defaults:
+         driver: File
+         root_dir: $root/data/cache
+         depth: 3
+
+and in local.cfg you have
+
+    cache.defaults.depth: 2
+
+then only C<depth> will be overriden; the C<driver> and C<root_dir> will remain
+as they were set in C<global/cache.cfg>. If instead local.cfg had
+
+   cache:
+      defaults:
+         depth: 3
+
+then this would completely replace the entire hash under C<cache>.
 
 =head1 OBTAINING $conf SINGLETON
 
@@ -423,11 +491,18 @@ or undef if no default is given.
 The return value may be a scalar, list reference, or hash reference, though we
 recommend using L</get_list> and L</get_hash> if you expect a list or hash.
 
+I<key> can contain dot notation to refer to hash entries. e.g. these are
+equivalent:
+
+    $conf->get('foo.bar.baz');
+
+    $conf->get_hash('foo')->{bar}->{baz};
+
 =item get_or_die
 
     my $value = $conf->get_or_die('key');
 
-Like L</get>, but if I<key> is unavailable, throw a fatal error.
+Get I<key> from configuration. If I<key> is unavailable, throw a fatal error.
 
 =item get_list
 
@@ -486,6 +561,12 @@ Return a list of all keys in configuration.
 
 Return a hash reference mapping keys to their value as returned by C<<
 $conf->get >>.
+
+=item as_string
+
+    print $conf->as_string;
+
+Return a printable representation of the keys and values.
 
 =item set_local
 
@@ -572,7 +653,7 @@ with values from I<$new_data> taking precedence.
 
 =head1 CREDITS
 
-The ideas of merging multiple conf files and variable substitution came from
+The ideas of merging multiple conf files and variable interpolation came from
 L<YAML::AppConfig>.
 
 =head1 SEE ALSO

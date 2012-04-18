@@ -9,10 +9,15 @@ use strict;
 use warnings;
 
 my $app_psgi = $env->bin_path("app.psgi");
+my @options;
 
 # Pass -E with the layer name, e.g. "development" or "production"
 #
-my @options = ('-E', $conf->layer);
+push(@options, '-E', $conf->layer);
+
+if (defined(my $port = $conf->get('server.port'))) {
+    push(@options, '--port', $port);
+}
 
 if ( $conf->is_development ) {
 
@@ -26,14 +31,6 @@ else {
     #
     push(@options, '--access_log', $env->logs_path("access.log"));
 }
-
-# Add options from plackup conf entry, e.g.
-#
-#   plackup:
-#      port: 5000
-#
-my %plackup_conf = %{ $conf->get_hash('plackup') };
-push(@options, map { ("--$_", $plackup_conf{$_}) } keys(%plackup_conf));
 
 # Run via Plack::Runner instead of plackup so that environment is already initialized
 #

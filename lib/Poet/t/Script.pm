@@ -19,8 +19,7 @@ sub test_script : Tests {
     my $self     = shift;
     my $root_dir = temp_env_dir();
 
-    write_conf_file( "$root_dir/conf/global/server.cfg",
-        { 'server.baz' => 42 } );
+    write_conf_file( "$root_dir/conf/global/server.cfg", { 'foo.bar' => 42 } );
 
     my $script = "$root_dir/bin/foo/bar.pl";
     mkpath( dirname($script), 0, 0775 );
@@ -39,7 +38,7 @@ use lib qw(%s);
 use Poet::Script qw($conf $env);
 use YAML::XS;
 
-print Dump([$env->root_dir, $env->lib_dir, $INC[0], $conf->get("server.baz")]);
+print Dump([$env->root_dir, $env->lib_dir, $INC[0], $conf->get("foo.bar")]);
 ';
 
 1;

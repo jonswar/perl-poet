@@ -72,7 +72,7 @@ Here's a simple configuration that caches everything to files under data/chi
    cache:
       defaults:
          driver: File
-         root_dir: $root/data/cache
+         root_dir: ${root}/data/cache
 
 Here's a more involved configuration that defines several "storage types" and
 assigns each namespace a storage type.
@@ -83,7 +83,7 @@ assigns each namespace a storage type.
       storage:
          file:
             driver: File
-            root_dir: $root/data/cache
+            root_dir: ${root}/data/cache
          memcached:
             driver: Memcached
             servers: ["10.0.0.15:11211", "10.0.0.15:11212"]

@@ -78,4 +78,76 @@ sub test_set_local : Tests {
     is( $conf->get('c'), 7, 'c = 7 (restored)' );
 }
 
+sub test_dot_notation : Tests {
+    my $conf_files = {
+        'layer/personal.cfg' => '
+a:
+   b:
+      c: 1
+      d: 2
+e:
+   f:
+      g: 3
+      h: 4
+',
+        'local.cfg' => '
+layer: personal
+a.b.c: 6
+e:
+   f:
+      g: 7
+
+'
+    };
+    my $env = temp_env( conf_files => $conf_files );
+    my %expected_values = (
+        'a' => { 'b' => { c => 6, d => 2 } },
+        'a.b'   => { c => 6, d => 2 },
+        'a.b.c' => 6,
+        'a.b.d' => 2,
+        'e'     => { f => { g => 7 } },
+        'e.f'   => { g => 7 },
+        'e.f.g' => 7,
+        'x.y.z' => undef
+    );
+    my $conf           = $env->conf();
+    my $check_expected = sub {
+        my $desc = shift;
+        foreach my $key ( sort( keys(%expected_values) ) ) {
+            my $value = $expected_values{$key};
+            cmp_deeply( $conf->get($key), $value, "$key - $desc" );
+        }
+    };
+
+    $check_expected->('initial');
+    throws_ok( sub { $conf->get('a.b.c.z') },
+        qr/hash value expected for conf key 'a.b.c', got non-hash '6'/,
+        "a.b.c.z" );
+
+    $conf_files->{'layer/personal.cfg'} = { 'a' => { 'b' => 17 } };
+    throws_ok(
+        sub { $env = temp_env( conf_files => $conf_files ) },
+        qr/error assigning to 'a.b.c' in .*; 'a.b' already has non-hash value/,
+        "e.f: 17"
+    );
+
+    {
+        my $lex = $conf->set_local( { 'a.b.c' => 16 } );
+        local $expected_values{'a'} = { 'b' => { c => 16, d => 2 } },
+          local $expected_values{'a.b'} = { c => 16, d => 2 };
+        local $expected_values{'a.b.c'} = 16;
+        $check_expected->('set_local');
+    }
+
+    $check_expected->('after set_local');
+}
+
+sub test_layer_required : Tests {
+    throws_ok(
+        sub { temp_env( conf_files => { 'local.cfg' => {} } ) },
+        qr/must specify layer/,
+        'no layer'
+    );
+}
+
 1;

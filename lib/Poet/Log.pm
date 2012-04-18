@@ -108,7 +108,7 @@ Poet::Log -- Poet logging
           level: debug
           output: chi.log
           layout: "%d{dd/MMM/yyyy:HH:mm:ss.SS} %m - %P%n"
-        Foo:
+        MyApp::Foo:
           output: stdout
 
     # In a script...
@@ -121,7 +121,7 @@ Poet::Log -- Poet logging
     my $log = $m->log;
 
     # For an arbitrary category...
-    my $log = Poet::Log->get_logger(category => 'Foo::Bar');
+    my $log = Poet::Log->get_logger(category => 'MyApp::Bar');
 
     # then...
     $log->error("an error occurred");
@@ -132,7 +132,7 @@ Poet::Log -- Poet logging
 =head1 DESCRIPTION
 
 Poet uses L<Log::Any|Log::Any> and L<Log::Log4perl|Log::Log4perl> for logging,
-with an easy configuration option.
+with simplified configuration for the common case.
 
 Log::Any is a logging abstraction that allows CPAN modules to log without
 knowing about which logging framework is in use. It supports standard logging
@@ -140,16 +140,23 @@ methods (C<$log-E<gt>debug>, C<$log-E<gt>is_debug>) along with sprintf variants
 (C<$log-E<gt>debugf>).
 
 Log4perl is a powerful logging package that provides just about any
-logging-related feature you'd want. However, it can be rather verbose to
-configure, so we provide a way to configure Log4perl in a simpler way through
-Poet conf files if you just want common features.
+logging-related feature you'd want. Its main disadvantage is that it can be
+cumbersome to configure. So, we provide a way to configure Log4perl simply
+through L<Poet configuration|Poet::Conf> if you just want common features.
 
 =head1 CONFIGURATION
 
-=head2 Simple configuration
+Here's a simple configuration that caches everything to C<logs/poet.log> at
+info level (which is also the default if no configuration is present):
 
-Here's a sample logging configuration. This can go in any Poet conf file(s),
-e.g. local.cfg or global/log.cfg.
+    log:
+      defaults:
+        level: info
+        output: poet.log
+        layout: %d{dd/MMM/yyyy:HH:mm:ss.SS} [%p] %c - %m - %F:%L - %P%n
+
+Here's a more involved configuration that maintains the same default, but adds
+several "categories" that are logged differently:
 
     log:
       defaults:
@@ -161,11 +168,11 @@ e.g. local.cfg or global/log.cfg.
           level: debug
           output: chi.log
           layout: "%d{dd/MMM/yyyy:HH:mm:ss.SS} %m - %P%n"
-        Foo:
+        MyApp::Foo:
           output: stdout
 
-This defines default settings, and specific settings for category C<CHI> and
-C<MyApp::Foo>. There are three setting types:
+For the default and for each category, you can specify three different
+settings:
 
 =over
 
@@ -190,11 +197,11 @@ If a setting isn't defined for a specific category then it falls back to the
 default. In this example, C<MyApp::Foo> will inherit the default level and
 layout.
 
-=head2 Advanced configuration
+Notice that we use '::' instead of '.' to specify hierarchical category names,
+because '.' would interfere with Poet::Conf's dot notation.
 
-If you need a Log4perl feature that isn't handled by the simple configuration
-case above, you can specify a full L<Log4perl configuration
-file|Log::Log4perl::Config> instead:
+Finally, if you must use a full L<Log4perl configuration
+file|Log::Log4perl::Config>, you can specify it this way:
 
     log:
       log4perl_conf: /path/to/log4perl.conf
