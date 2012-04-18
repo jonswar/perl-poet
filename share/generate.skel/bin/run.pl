@@ -4,36 +4,18 @@
 #
 use Poet::Script qw($conf $env);
 use IPC::System::Simple qw(run);
-use Plack::Runner;
 use strict;
 use warnings;
 
 my $app_psgi = $env->bin_path("app.psgi");
-my @options;
+my $server = $env->app_class('Server');
 
-# Pass -E with the layer name, e.g. "development" or "production"
+# Get plackup options based on config (e.g. server.port) and layer
 #
-push(@options, '-E', $conf->layer);
+my @options = $server->get_plackup_options();
 
-if (defined(my $port = $conf->get('server.port'))) {
-    push(@options, '--port', $port);
-}
-
-if ( $conf->is_development ) {
-
-    # In development mode, reload server when conf or lib file changes
-    #
-    push(@options, '-R', join( ",", $env->conf_dir, $env->lib_dir ));
-}
-else {
-
-    # In live mode, use access log instead of STDERR
-    #
-    push(@options, '--access_log', $env->logs_path("access.log"));
-}
-
-# Run via Plack::Runner instead of plackup so that environment is already initialized
+# Load modules configured in server.load_modules
 #
-my $runner = Plack::Runner->new;
-$runner->parse_options(@options, $app_psgi);
-$runner->run;
+$server->load_startup_modules();
+
+run("plackup", @options, $app_psgi);
