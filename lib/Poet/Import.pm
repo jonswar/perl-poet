@@ -158,59 +158,6 @@ This tag imports all the utilities in L<Poet::Util::File|Poet::Util::File>.
 This tag imports all the utilities in L<Poet::Util::Web|Poet::Util::Web>. It is
 automatically included in all Mason components.
 
-Each of the "d" functions takes a single scalar value, which is serialized with
-L<Data::Dumper|Data::Dumper> before being output. The variants suffixed with
-'s' output a full stack trace.
-
-=over
-
-=item dd ($val)
-
-Die with the serialized I<$val>.
-
-=item dp ($val), dps ($val)
-
-Print the serialized I<$val> to STDERR.
-
-=item dc ($val), dcs ($val)
-
-Append the serialized I<$val> to "console.log" in the C<logs> subdirectory of
-the environment.
-
-=item dh ($val), dhs ($val)
-
-Print the serialized I<$val> to STDOUT, surrounded by <pre> </pre>.
-
-=back
-
-=head2 Web utilities (":web")
-
-This group includes:
-
-=over
-
-=item html_escape ($str)
-
-Return the string with HTML entities escaped/unescaped.
-
-=item uri_escape ($str), uri_unescape ($str)
-
-Return the string URI escaped/unescaped.
-
-=item js_escape ($str)
-
-Return the string escaped for Javascript.
-
-=item make_uri ($path, $args)
-
-Create a URL by combining the C<$path> with a query string formed from hashref
-I<$args>. e.g.
-
-    make_uri("/foo/bar", { a => 5, b => 6 });
-        ==> /foo/bar?a=5&b=6
-
-=back
-
 =head1 MASON COMPONENTS
 
 Every Mason component automatically gets this on top:
@@ -222,18 +169,14 @@ for a particular Mason component.
 
 =head1 CUSTOMIZING
 
-To customize, create a C<MyApp::Import> subclass like so:
-
-    package MyApp::Import;
-    use Poet::Moose;
-    extends 'Poet::Import';
-
-where C<MyApp> is your app name.
-
 =head2 Adding variables
 
 To add your own variable, define a method called provide_var_I<varname> in
 C<MyApp::Import>. For example to add a variable C<$dbh>:
+
+    package MyApp::Import;
+    use Poet::Moose;
+    extends 'Poet::Import';
 
     method provide_var_dbh ($caller) {
         # Generate and return a dbh.
@@ -248,3 +191,22 @@ Now your scripts and libraries can do
 
     use Poet::Script qw($dbh);
     use Poet qw($dbh);
+
+=head2 Adding utility tags
+
+To add your own utility tag, define a class C<MyApp::Util::Mytagname> that
+exports a set of functions via the ':all' tag. For example:
+
+    package MyApp::Util::Hash;
+    use Hash::Util qw(hash_seed all_keys);
+    use Hash::MoreUtils qw(slice slice_def slice_exists slice_grep hashsort);
+    
+    our @EXPORT_OK = qw(hash_seed all_keys slice slice_def slice_exists slice_grep hashsort);
+    our %EXPORT_TAGS = ( 'all' => \@EXPORT_OK );
+
+    1;
+
+Now your scripts and libraries can do
+
+    use Poet::Script qw(:hash);
+    use Poet qw(:hash);
