@@ -1,0 +1,113 @@
+
+=head1 NAME
+
+Poet::Manual::Configuring - Built-in Poet configuration options
+
+=head1 DESCRIPTION
+
+This is a list of configuration keys used by Poet itself. These may be placed
+in any L<Poet conf file|Poet::Conf/CONFIGURATION FILES>, e.g. C<local.cfg> or
+C<conf/global/*.cfg>.
+
+Remember that entries like C<foo.bar> can be listed either in dot notation
+
+    foo.bar: 5
+
+or as part of a hash:
+
+    foo:
+       bar: 5
+
+See L<Dot notation|Poet::Conf/Dot notation for hash access> for details.
+
+=over
+
+=item cache
+
+The entire hash under this entry will be passed to
+L<Poet::Cache-E<gt>config()|CHI/SUBCLASSING AND CONFIGURING CHI>. See
+L<Poet::Cache|Poet::Cache/CONFIGURATION> for examples. e.g.
+
+   cache:
+      defaults:
+         expires_variance: 0.2
+      storage:
+         file:
+            driver: File
+            root_dir: ${root}/data/cache
+         memcached:
+            driver: Memcached
+            servers: ["10.0.0.15:11211", "10.0.0.15:11212"]
+            compress_threshold: 4096
+      namespace:
+         /some/component:       { storage: file, expires_in: 5min }
+         /some/other/component: { storage: memcached, expires_in: 1h }
+         Some::Library:         { storage: memcached, expires_in: 10min } 
+
+=item env.bin_dir, env.comps_dir, etc.
+
+These entries affect what is returned from C<$env-E<gt>bin_dir>,
+C<$env-E<gt>bin_path>, C<$env-E<gt>comps_dir>, etc., and thus where various
+Poet resources are kept. See L<Poet::Environment|Poet::Environment/CONFIGURING
+ENVIRONMENT SUBDIRECTORIES>. For example, to move data and logs into external
+directories outside the environment:
+
+    env:
+      data_dir: /some/external/data/dir
+      logs_dir: /some/external/logs/dir
+
+=item log.defaults, log.category
+
+Specify the log level, output location, and layout string for logging, in the
+default case and per-category. See L<Poet::Log|Poet::Log/CONFIGURATION>. e.g.
+
+    log:
+      defaults:
+        level: info
+        output: poet.log
+        layout: "%d{dd/MMM/yyyy:HH:mm:ss.SS} [%p] %c - %m - %F:%L - %P%n"
+      category:
+        CHI:
+          level: debug
+          output: chi.log
+          layout: "%d{dd/MMM/yyyy:HH:mm:ss.SS} %m - %P%n"
+        MyApp::Foo:
+          output: stdout
+
+=item log.log4perl_conf
+
+Bypass Poet's simplified logging configuration and specify a log4perl conf file
+directly. e.g.
+
+    log:
+      log4perl_conf: /path/to/log4perl.conf
+
+=item mason
+
+The hash under this entry will be treated as options that are passed to
+C<Mason-E<gt>new> for the main Mason instance, overriding any default options.
+See L<Poet::Mason|Poet::Mason/CONFIGURATION>. e.g.
+
+    mason:
+      static_source: 1
+      static_source_touch_file: ${root}/data/purge.dat
+
+=item server.host
+
+The IP address to listen on.
+
+=item server.load_modules
+
+A list of modules to load on server startup, e.g.
+
+    server.load_modules:
+       - DBI
+       - List::Util
+       - MyApp::Foo
+       - MyApp::Bar
+
+=item server.port
+
+The port to listen on.
+
+=back
