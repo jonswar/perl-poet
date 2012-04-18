@@ -64,7 +64,8 @@ operations in one cannot interfere with another.
 
 The Poet configuration entry 'cache', if any, will be passed to
 L<Poet::Cache-E<gt>config()|CHI/SUBCLASSING AND CONFIGURING CHI>. This can go
-in any Poet conf file(s), e.g. local.cfg or global/log.cfg.
+in any L<Poet conf file|Poet::Conf/CONFIGURATION FILES>, e.g. local.cfg or
+global/cache.cfg.
 
 Here's a simple configuration that caches everything to files under data/chi
 (which is also the default if no configuration is present):
