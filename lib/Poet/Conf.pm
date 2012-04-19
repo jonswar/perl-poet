@@ -489,7 +489,7 @@ You can also get it via
 
 =over
 
-=item get
+=item get (key[, default])
 
     my $value = $conf->get('key' => 'default');
 
@@ -506,13 +506,13 @@ equivalent:
 
     $conf->get_hash('foo')->{bar}->{baz};
 
-=item get_or_die
+=item get_or_die (key)
 
     my $value = $conf->get_or_die('key');
 
 Get I<key> from configuration. If I<key> is unavailable, throw a fatal error.
 
-=item get_list
+=item get_list (key[, default])
 
     my $listref = $conf->get_list('key', ['default']);
 
@@ -522,7 +522,7 @@ error.
 If I<key> is unavailable, return the I<default>, or an empty list reference if
 no default is given.
 
-=item get_hash
+=item get_hash (key[, default])
 
     my $hashref = $conf->get_hash('key', {'default' => 5});
 
@@ -532,14 +532,15 @@ error.
 If I<key> is unavailable, return the I<default>, or an empty hash reference if
 no default is given.
 
-=item get_boolean
+=item get_boolean (key)
 
     my $bool = $conf->get_boolean('key');
 
 Get I<key> from configuration. Return 1 if the value represents true ("1", "t",
 "true", "y", "yes") and 0 if the value represents false ("0", "f", "false",
-"n", "no") or is not present in configuration. Throws an error if there is a
-value that does not match one of these true or false values.
+"n", "no") or is not present in configuration. These are case insensitive
+matches. Throws an error if there is a value that is a reference or does not
+match one of the valid options.
 
 =back
 
@@ -580,7 +581,7 @@ Return a printable representation of the keys and values.
 
 =item set_local
 
-    my $lex = $conf->set_local({'key', 'value', ['key', 'value', ...]});
+    my $lex = $conf->set_local({key => 'value', ...});
 
 Temporarily set each I<key> to I<value>. The original value will be restored
 when $lex goes out of scope.
