@@ -239,7 +239,16 @@ method get_hash ($key, $default) {
 }
 
 method get_boolean ($key) {
-    return $self->get($key) ? 1 : 0;
+    my $value = $self->get($key) || 0;
+    return
+        ( !ref($value) && $value =~ /^(1|t|true|y|yes)$/i ) ? 1
+      : ( !ref($value) && $value =~ /^(0|f|false|n|no)$/i ) ? 0
+      : croak(
+        sprintf(
+            "boolean value expected for conf key '%s', got non-boolean '%s'",
+            $key, $value
+        )
+      );
 }
 
 method set_local ($pairs) {
@@ -508,8 +517,8 @@ Get I<key> from configuration. If I<key> is unavailable, throw a fatal error.
 
     my $listref = $conf->get_list('key', ['default']);
 
-Get I<key> from configuration. If the value is not a list reference, throw a
-warning.
+Get I<key> from configuration. If the value is not a list reference, throw an
+error.
 
 If I<key> is unavailable, return the I<default>, or an empty list reference if
 no default is given.
@@ -518,8 +527,8 @@ no default is given.
 
     my $hashref = $conf->get_hash('key', {'default' => 5});
 
-Get I<key> from configuration. If the value is not a hash reference, throw a
-warning.
+Get I<key> from configuration. If the value is not a hash reference, throw an
+error.
 
 If I<key> is unavailable, return the I<default>, or an empty hash reference if
 no default is given.
@@ -528,8 +537,9 @@ no default is given.
 
     my $bool = $conf->get_boolean('key');
 
-Get I<key> from configuration, or undef if I<key> is unavailable. This method
-simply indicates to the reader that a boolean is expected.
+Get I<key> from configuration. Return 1 if the value represents true ("1", "t",
+"true", "y", "yes"), 0 if the value represents false ("0", "f", "false", "n",
+"no", or not present in configuration), and throws an error otherwise.
 
 =back
 

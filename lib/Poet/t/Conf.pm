@@ -142,6 +142,44 @@ e:
     $check_expected->('after set_local');
 }
 
+sub test_types : Tests {
+    my $truth   = { c => 't', d => 'true',  e => 'y', f => 'yes' };
+    my $falsity = { c => 'f', d => 'false', e => 'n', f => 'no' };
+    my $conf_files = {
+        'global.cfg' => {
+            scalar  => 5,
+            list    => [ 1, 2, 3 ],
+            hash    => { size => 'large', flavor => 'chocolate' },
+            truth   => $truth,
+            falsity => $falsity,
+        }
+    };
+
+    my $env = temp_env( conf_files => $conf_files );
+    my $conf = $env->conf();
+
+    cmp_deeply( $conf->get_list('list'), [ 1, 2, 3 ], 'list ok' );
+    foreach my $key qw(scalar hash) {
+        throws_ok( sub { $conf->get_list($key) }, qr/list value expected/ );
+    }
+    cmp_deeply(
+        $conf->get_hash('hash'),
+        { size => 'large', flavor => 'chocolate' },
+        'hash ok'
+    );
+    foreach my $key qw(scalar list) {
+        throws_ok( sub { $conf->get_hash($key) }, qr/hash value expected/ );
+    }
+    foreach my $key qw(c d e f) {
+        is( $conf->get_boolean("truth.$key"),   1, "$key = true" );
+        is( $conf->get_boolean("falsity.$key"), 0, "$key = false" );
+    }
+    foreach my $key qw(scalar list hash) {
+        throws_ok( sub { $conf->get_boolean($key) },
+            qr/boolean value expected/ );
+    }
+}
+
 sub test_layer_required : Tests {
     throws_ok(
         sub { temp_env( conf_files => { 'local.cfg' => {} } ) },
