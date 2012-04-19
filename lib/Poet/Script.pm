@@ -64,20 +64,35 @@ func initialize_with_root_dir($root_dir) {
 
 =head1 NAME
 
-Poet::Script -- Intialize the Poet environment for a script
+Poet::Script -- Intialize Poet for a script
 
 =head1 SYNOPSIS
 
     # In a script...
-    use Poet::Script qw($cache $conf $env $log);
+    use Poet::Script qw($cache $conf $env $log :file);
 
 =head1 DESCRIPTION
 
-Poet::Script initializes the Poet environment for a script. It determines the
-environment root by looking upwards from the directory of the current script
-until it finds the Poet marker file (.poet_root). It then shifts the lib/
-subdirectory of the environment root onto @INC.
+This module is used to initialize Poet for a script. It does the following:
 
-Imports such as '$conf' and $env' are handled the same way as in 'use Poet' -
-see L<Poet/IMPORTS>.
+=over
 
+=item *
+
+Determines the environment root by looking upwards from the directory of the
+current script until it finds the Poet marker file (C<.poet_root>).
+
+=item *
+
+Reads and parses configuration files.
+
+=item *
+
+Shifts the C<lib/> subdirectory of the environment root onto C<@INC>.
+
+=item *
+
+Imports the specified I<quick vars> and utility sets into the current package -
+see L<Poet::Import|Poet::Import>.
+
+=back
