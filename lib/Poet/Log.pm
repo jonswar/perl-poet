@@ -147,7 +147,7 @@ through L<Poet configuration|Poet::Conf> if you just want common features.
 =head1 CONFIGURATION
 
 The configurations below can go in any L<Poet conf
-file|Poet::Conf/CONFIGURATION FILES>, e.g. local.cfg or global/log.cfg.
+file|Poet::Conf/CONFIGURATION FILES>, e.g. C<local.cfg> or C<global/log.cfg>.
 
 Here's a simple configuration that caches everything to C<logs/poet.log> at
 info level (which is also the default if no configuration is present):

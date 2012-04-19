@@ -57,18 +57,18 @@ Poet::Cache is a subclass of L<CHI>. CHI provides a unified caching API over a
 variety of storage backends, such as memory, plain files, memory mapped files,
 memcached, and DBI.
 
-Each package and Mason component uses its own CHI I<CHI/namespace> so that
-operations in one cannot interfere with another.
+Each package and Mason component uses its own CHI L<namespace|CHI/namespace> so
+that caches remain separate.
 
 =head1 CONFIGURATION
 
 The Poet configuration entry 'cache', if any, will be passed to
 L<Poet::Cache-E<gt>config()|CHI/SUBCLASSING AND CONFIGURING CHI>. This can go
-in any L<Poet conf file|Poet::Conf/CONFIGURATION FILES>, e.g. local.cfg or
-global/cache.cfg.
+in any L<Poet conf file|Poet::Conf/CONFIGURATION FILES>, e.g. C<local.cfg> or
+C<global/cache.cfg>.
 
-Here's a simple configuration that caches everything to files under data/chi
-(which is also the default if no configuration is present):
+Here's a simple configuration that caches everything to files under
+C<data/cache>. This is also the default if no configuration is present.
 
    cache:
       defaults:
