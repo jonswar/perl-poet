@@ -5,34 +5,10 @@ Poet::Manual::Intro - A gentle introduction to Poet
 
 =head1 WHAT IS POET?
 
-Poet is a web framework for Mason developers. It uses
-L<PSGI|PSGI>/L<Plack|Plack> for web integration, L<Mason|Mason> for request
+Poet is a modern Perl web framework for Mason developers. It uses
+L<PSGI|PSGI>/L<Plack|Plack> for server integration, L<Mason|Mason> for request
 routing and templating, and a selection of best-of-breed CPAN modules for
 caching, logging and configuration.
-
-Poet gives you:
-
-=over
-
-=item *
-
-A standard useful directory hierarchy for web development
-
-=item *
-
-A multi-file configuration system with support for development/production
-layers and multiple developers
-
-=item *
-
-Easy access to configuration, caching and logging facilities
-
-=back
-
-Poet's conventions and defaults are based on the author's best practices from
-15+ years of Mason site development. That said, Poet was designed to be
-flexible; if you see a decision you don't like, you can generally change it
-with a subclass.
 
 =head1 INSTALLATION
 

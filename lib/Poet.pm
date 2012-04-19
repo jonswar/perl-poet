@@ -23,6 +23,13 @@ Poet -- a web framework for Mason developers
 =head1 SYNOPSIS
 
   % poet new MyApp
+  my_app/.poet_root
+  my_app/bin/app.psgi
+  ...
+
+  % my_app/bin/run.pl
+  Watching ... for file updates.
+  HTTP::Server::PSGI: Accepting connections at http://0:5000/
 
 =head1 DESCRIPTION
 
@@ -42,18 +49,18 @@ A common-sense directory hierarchy for web development
 =item *
 
 A multi-file configuration system with support for development/production
-layers and concurrent development
+layers
 
 =item *
 
-Easy access to configuration, caching and logging facilities
+Easy access to shared resources and utilities from scripts, libraries and
+templates
 
 =back
 
 Poet's conventions and defaults are based on the author's best practices from
-15+ years of Mason site development. That said, Poet was designed to be
-flexible; if you see a decision you don't like, you can generally change it
-with a subclass.
+15+ years of Mason site development. That said, if you see a decision you don't
+like, you can almost always change it with a subclass.
 
 All documentation is indexed at L<Poet::Manual>.
 
@@ -77,8 +84,8 @@ The latest source code can be browsed and fetched at:
 =head1 ACKNOWLEDGEMENTS
 
 Poet was originally designed and developed for the Digital Media group of the
-Hearst Corporation, a diversified media company based in New York City.  Many
-thanks to Hearst for agreeing to this open source release. Hearst has no direct
-involvement with this open source release and bears no responsibility for its
-support or maintenance.
+Hearst Corporation, a diversified media company based in New York City. Many
+thanks to Hearst for agreeing to this open source release. However, Hearst has
+no direct involvement with this open source release and bears no responsibility
+for its support or maintenance.
 
