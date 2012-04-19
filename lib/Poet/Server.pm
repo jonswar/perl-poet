@@ -1,5 +1,6 @@
 package Poet::Server;
 use Poet qw($conf $env);
+use Method::Signatures::Simple;
 use Class::MOP;
 use strict;
 use warnings;
@@ -15,7 +16,7 @@ method get_plackup_options () {
     if ( defined( my $port = $conf->get('server.port') ) ) {
         push( @options, '--port', $port );
     }
-    if ( defined( my $port = $conf->get('server.host') ) ) {
+    if ( defined( my $host = $conf->get('server.host') ) ) {
         push( @options, '--host', $host );
     }
 
