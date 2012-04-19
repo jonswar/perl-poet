@@ -97,7 +97,7 @@ Poet::Import -- Import Poet quick vars and utilities
 =head1 DESCRIPTION
 
 Poet makes it easy to import certain variables (known as "quick vars") and
-utilities into any script or module in your environment.
+utility sets into any script or module in your environment.
 
 In a script:
 
@@ -110,9 +110,9 @@ and in a module:
 where C<...> contains one or more quick var names (e.g. C<$conf>, C<$env>)
 and/or utility tags (e.g. C<:file>, C<:web>).
 
-Note that C<use Poet::Script> is also necessary for initializing the
+(Note that C<use Poet::Script> is also necessary for initializing the
 environment, even if you don't care to import anything, whereas C<use Poet> has
-no effect other than importing.
+no effect other than importing.)
 
 =head1 QUICK VARS
 
@@ -164,8 +164,8 @@ Every Mason component automatically gets this on top:
 
     use Poet qw($conf $env :web);
 
-C<$m->E<gt>cache> and C<$m->E<gt>log> will get you the cache and log objects
-for a particular Mason component.
+C<$m-E<gt>cache> and C<$m-E<gt>log> will get you the cache and log objects for
+a particular Mason component.
 
 =head1 CUSTOMIZING
 
@@ -199,9 +199,9 @@ exports a set of functions via the ':all' tag. For example:
 
     package MyApp::Util::Hash;
     use Hash::Util qw(hash_seed all_keys);
-    use Hash::MoreUtils qw(slice slice_def slice_exists slice_grep hashsort);
+    use Hash::MoreUtils qw(slice slice_def slice_exists);
     
-    our @EXPORT_OK = qw(hash_seed all_keys slice slice_def slice_exists slice_grep hashsort);
+    our @EXPORT_OK = qw(hash_seed all_keys slice slice_def slice_exists);
     our %EXPORT_TAGS = ( 'all' => \@EXPORT_OK );
 
     1;
