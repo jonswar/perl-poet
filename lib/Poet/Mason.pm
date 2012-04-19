@@ -24,8 +24,13 @@ method get_options ($class:) {
         data_dir  => $env->data_dir,
         plugins   => [ $class->get_plugins ],
     );
-    my %options = ( %defaults, %{ $conf->get_hash("mason") } );
-    push( @{ $options{plugins} }, '+Poet::Mason::Plugin' );    # mandatory
+    my %configured    = %{ $conf->get_hash("mason") };
+    my $extra_plugins = $conf->get_list("mason.extra_plugins");
+    delete( $configured{extra_plugins} );
+    my %options = ( %defaults, %configured );
+    $options{plugins} =
+      [ uniq( @{ $options{plugins} }, '+Poet::Mason::Plugin', @$extra_plugins )
+      ];
     return %options;
 }
 
@@ -97,9 +102,9 @@ Poet::Mason -- Mason settings and enhancements for Poet
 
 =head1 DESCRIPTION
 
-This is a Poet-specific Mason subclass. It sets up sane default settings,
-maintains a main Mason instance for handling web requests, and adds
-Poet-specific methods to the Mason request ($m).
+This is a Poet-specific L<Mason|Mason> subclass. It sets up sane default
+settings, maintains a main Mason instance for handling web requests, and adds
+Poet-specific methods to C<$m> (the Mason request object).
 
 =head1 CLASS METHODS
 
@@ -113,12 +118,13 @@ SETTINGS> and L<configuration|CONFIGURATION>.
 =item instance
 
 Returns the main Mason instance used for web requests, which is created with
-options from L<get_options>.
+options from L<get_options|/get_options>.
 
 =item new
 
-Returns a new main Mason object, using options from L<get_options>. Unless you
-specifically need a new object, you probably want to call L</instance>.
+Returns a new main Mason object, using options from
+L<get_options|/get_options>. Unless you specifically need a new object, you
+probably want to call L<instance|/instance>.
 
 =back
 
@@ -147,16 +153,14 @@ L<RouterSimple|Mason::Plugin::RouterSimple>.
 =head1 CONFIGURATION
 
 The Poet configuration entry 'mason', if any, will be treated as a hash of
-options that supplements and/or overrides the defaults above.
-
-If you specify plugins, you'll need to explicitly include the default plugins
-above if you still want them. e.g.
+options that supplements and/or overrides the defaults above. If the hash
+contains 'extra_plugins', these will be added to the default plugins. e.g.
 
     mason:
-        plugins:
-           - HTMLFilters
-           - RouterSimple
-           - AnotherFavoritePlugin
+      static_source: 1
+      static_source_touch_file: ${root}/data/purge.dat
+      extra_plugins:
+         - AnotherFavoritePlugin
 
 =head1 QUICK VARS AND UTILITIES
 
@@ -166,13 +170,13 @@ component:
     use Poet qw($conf $env :web);
 
 which means that L<$conf|Poet::Conf>, L<$env|Poet::Environment>, and L<web
-utilities|Poet::Utils::Web> are available from every component.
+utilities|Poet::Util::Web> are available from every component.
 
 =head1 NEW REQUEST METHODS
 
 Under Poet these additional web-related methods are available in the L<Mason
 request object|Mason::Request>, accessible in components via C<$m> or elsewhere
-via C<Mason::Request-C<gt>current_request>.
+via C<Mason::Request-E<gt>current_request>.
 
 =over
 
