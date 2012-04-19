@@ -140,8 +140,8 @@ methods (C<$log-E<gt>debug>, C<$log-E<gt>is_debug>) along with sprintf variants
 (C<$log-E<gt>debugf>).
 
 Log4perl is a powerful logging package that provides just about any
-logging-related feature you'd want. Its main disadvantage is that it can be
-cumbersome to configure. So, we provide a way to configure Log4perl simply
+logging-related feature you'd want. One of its only drawbacks is its somewhat
+cumbersome configuration. So, we provide a way to configure Log4perl simply
 through L<Poet configuration|Poet::Conf> if you just want common features.
 
 =head1 CONFIGURATION
@@ -150,7 +150,7 @@ The configurations below can go in any L<Poet conf
 file|Poet::Conf/CONFIGURATION FILES>, e.g. C<local.cfg> or C<global/log.cfg>.
 
 Here's a simple configuration that caches everything to C<logs/poet.log> at
-info level (which is also the default if no configuration is present):
+C<info> level. This is also the default if no configuration is present.
 
     log:
       defaults:
@@ -159,7 +159,7 @@ info level (which is also the default if no configuration is present):
         layout: %d{dd/MMM/yyyy:HH:mm:ss.SS} [%p] %c - %m - %F:%L - %P%n
 
 Here's a more involved configuration that maintains the same default, but adds
-several "categories" that are logged differently:
+several I<categories> that are logged differently:
 
     log:
       defaults:
@@ -201,7 +201,8 @@ default. In this example, C<MyApp::Foo> will inherit the default level and
 layout.
 
 Notice that we use '::' instead of '.' to specify hierarchical category names,
-because '.' would interfere with Poet::Conf's dot notation.
+because '.' would interfere with L<Poet::Conf dot notation|Poet::Conf/Dot
+notation for hash access>.
 
 Finally, if you must use a full L<Log4perl configuration
 file|Log::Log4perl::Config>, you can specify it this way:
@@ -265,7 +266,7 @@ Their APIs will be kept as stable as possible.
 =item initialize_logging
 
 Called once when the Poet environment is initialized. By default, initializes
-log4perl with the results of L</generate_log4perl_config>> and then calls C<<
+log4perl with the results of L</generate_log4perl_config> and then calls C<<
 Log::Any::Adapter->set('Log4perl') >>.  You can modify this to initialize
 log4perl in your own way, or use a completely different logging system.
 

@@ -106,6 +106,56 @@ this C<$cache> will be created with properties
     compress_threshold: 4096
     expires_in: 10min
 
+=head1 USAGE
+
+=head2 Obtaining cache handle
+
+=over
+
+=item *
+
+In a script (namespace will be 'main'):
+
+    use Poet::Script qw($cache);
+
+=item *
+
+In a module C<MyApp::Foo> (namespace will be 'MyApp::Foo'):
+
+    use Poet qw($cache);
+
+=item *
+
+In a component C</foo/bar> (namespace will be '/foo/bar'):
+
+    my $cache = $m->cache;
+
+=item *
+
+Manually for an arbitrary namespace:
+
+    my $cache = Poet::Cache->new(namespace => 'Some::Namespace');
+        
+    # or
+    
+    my $cache = MyApp::Cache->new(category => 'Some::Namespace');
+
+=back
+
+=head2 Using cache handle
+
+    my $customer = $cache->get($name);
+    if ( !defined $customer ) {
+        $customer = get_customer_from_db($name);
+        $cache->set( $name, $customer, "10 minutes" );
+    }
+    my $customer2 = $cache->compute($name2, "10 minutes", sub {
+        get_customer_from_db($name2)
+    });
+
+See L<CHI|CHI> and L<Mason::Plugin::Cache|Mason::Plugin::Cache> for more
+details.
+
 =head1 MODIFIABLE METHODS
 
 These methods are not intended to be called externally, but may be useful to
