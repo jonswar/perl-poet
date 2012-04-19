@@ -30,7 +30,7 @@ method get_options ($class:) {
 }
 
 method get_plugins ($class:) {
-    return ( 'HTMLFilters', 'RouterSimple' );
+    return ( 'HTMLFilters', 'RouterSimple', 'Cache' );
 }
 
 method handle_psgi ($class: $psgi_env) {
@@ -138,8 +138,9 @@ default the C<data> subdirectory under the environment root.
 
 =item *
 
-C<plugins> is set to include L<HTMLFilters|Mason::Plugins::HTMLFilters> and
-L<RouterSimple|Mason::Plugins::RouterSimple>.
+C<plugins> is set to include L<Cache|Mason::Plugin::Cache>,
+L<HTMLFilters|Mason::Plugin::HTMLFilters> and
+L<RouterSimple|Mason::Plugin::RouterSimple>.
 
 =back
 
