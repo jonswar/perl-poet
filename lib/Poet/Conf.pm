@@ -350,48 +350,43 @@ root:
     local.cfg
   $ENV{POET_EXTRA_CONF_FILE}
 
-The files are read in the following order, with later files taking precedence
-over earlier files. None of the files have to exist except C<local.cfg>.
+The files are read and merged in the following order, with later files taking
+precedence over earlier files. None of the files have to exist except
+C<local.cfg>.
 
 =over
 
 =item *
 
-global.cfg contains various settings for the environment, typically checked
+C<global.cfg> contains various settings for the environment, typically checked
 into version control. Having a single file is fine for a simple site and a
 single developer, but if this gets too unwieldy, see global/ below.
 
 =item *
 
-The global/ directory contains multiple .cfg files, all of which are read in
+The C<global/> directory contains multiple .cfg files, all of which are read in
 alphabetical order. This is an alternative to C<global.cfg> when the latter
 gets too crowded and you have multiple developers making simultaneous changes.
 It is an error for two global files to set the same key.
 
 =item *
 
-The layer/ directory contains version-controlled files specific to layers:
-
-=over
-
-=item *
-
-development.cfg, production.cfg, etc. - settings for each particular layer
-
-=back
+The C<layer/> directory contains version-controlled files specific to layers,
+e.g. C<development.cfg> and C<production.cfg>.  Only one of these files will be
+active at a time, depending on the current layer (as set in C<local.cfg>).
 
 =item *
 
-local.cfg contains settings for this particular instance of the environment. It
-is not checked into version control. local.cfg must exist and must contain at
-least the layer, e.g.
+C<local.cfg> contains settings for this particular instance of the environment.
+It is not checked into version control. local.cfg must exist and must contain
+at least the layer, e.g.
 
     layer: development
 
 =item *
 
-If $ENV{POET_EXTRA_CONF_FILE} is defined when configuration initializes, it is
-read as an extra conf file whose values override all others.
+If C<$ENV{POET_EXTRA_CONF_FILE}> is defined when configuration initializes, it
+is read as an extra conf file whose values override all others.
 
 =back
 
@@ -429,7 +424,7 @@ Conf entries can refer to other entries via the syntax C<${key}>. For example:
    $conf->get('baz')
       => "The number 500"
 
-There is a single built-in entry, C<$root>, containing the root of the
+There is a single built-in entry, C<root>, containing the root directory of the
 environment that you can use in other entries, e.g.
 
    cache:
@@ -474,15 +469,19 @@ then this would completely replace the entire hash under C<cache>.
 
 =head1 OBTAINING $conf SINGLETON
 
-To get $conf in a script:
+In a script:
 
     use Poet::Script qw($conf);
 
-To get $conf in a module:
+In a module:
 
     use Poet qw($conf);
 
-$conf is automatically available in components.
+C<$conf> is automatically available in components.
+
+You can also get it via
+
+    my $conf = Poet::Environment->current_env->conf;
 
 =head1 METHODS
 
@@ -538,8 +537,9 @@ no default is given.
     my $bool = $conf->get_boolean('key');
 
 Get I<key> from configuration. Return 1 if the value represents true ("1", "t",
-"true", "y", "yes"), 0 if the value represents false ("0", "f", "false", "n",
-"no", or not present in configuration), and throws an error otherwise.
+"true", "y", "yes") and 0 if the value represents false ("0", "f", "false",
+"n", "no") or is not present in configuration. Throws an error if there is a
+value that does not match one of these true or false values.
 
 =back
 

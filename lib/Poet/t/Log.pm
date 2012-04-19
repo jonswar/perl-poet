@@ -11,7 +11,7 @@ use base qw(Test::Class);
 initialize_temp_env();
 
 sub test_log_config : Tests {
-    my $env      = Poet::Environment->instance;
+    my $env      = Poet::Environment->current_env;
     my $conf     = $env->conf;
     my $logs_dir = $env->logs_dir;
 

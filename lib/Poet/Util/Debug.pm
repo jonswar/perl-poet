@@ -31,11 +31,11 @@ sub _define {
     my $funcs_live = $func . "s_live";
 
     *$func = sub {
-        return unless Poet::Environment->instance->conf->is_development;
+        return unless Poet::Environment->current_env->conf->is_development;
         $code->( _dump_value_with_caller( $_[0], $func ) );
     };
     *$funcs = sub {
-        return unless Poet::Environment->instance->conf->is_development;
+        return unless Poet::Environment->current_env->conf->is_development;
         $code->( longmess( _dump_value_with_caller( $_[0], $funcs ) ) );
     };
     *$func_live = sub {
@@ -49,7 +49,8 @@ sub _define {
 _define(
     'dc',
     sub {
-        $console_log ||= Poet::Environment->instance->logs_path("console.log");
+        $console_log ||=
+          Poet::Environment->current_env->logs_path("console.log");
         open( my $fh, ">>$console_log" );
         $fh->print( $_[0] );
     }

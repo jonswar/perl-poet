@@ -58,7 +58,7 @@ method initialize_current_environment ($class: %params) {
     return $current_env;
 }
 
-method instance ($class:) {
+method current_env ($class:) {
     return $current_env;
 }
 
@@ -203,7 +203,7 @@ Returns the app name, e.g. 'MyApp', found in .poet_root.
 Returns the L<Poet::Conf|Poet::Conf> object associated with the environment.
 Usually you'd access this by importing C<$conf>.
 
-=item instance
+=item current_env
 
 A class method that returns the current (singleton) environment for the
 process. Usually you'd access this by importing C<$env>.
