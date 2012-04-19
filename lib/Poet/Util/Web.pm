@@ -80,20 +80,20 @@ This group of utilities includes
 
 =item html_escape ($str)
 
-Return the string with HTML entities escaped/unescaped.
+Return I<$str> with HTML entities escaped/unescaped.
 
 =item uri_escape ($str), uri_unescape ($str)
 
-Return the string URI escaped/unescaped, from L<URI::Escape|URI::Escape>
+Return I<$str> URI escaped/unescaped, from L<URI::Escape|URI::Escape>
 
 =item js_escape ($str)
 
-Return the string escaped for Javascript, from
-L<Javascript::Value::Escape|Javascript::Value::Escape>.
+Return I<$str> escaped for Javascript, borrowed from
+L<JavaScript::Value::Escape|JavaScript::Value::Escape>.
 
 =item make_uri ($path, $args)
 
-Create a URL by combining the C<$path> with a query string formed from hashref
+Create a URL by combining I<$path> with a query string formed from hashref
 I<$args>. e.g.
 
     make_uri("/foo/bar", { a => 5, b => 6 });
