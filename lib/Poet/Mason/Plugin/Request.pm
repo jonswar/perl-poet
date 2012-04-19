@@ -1,6 +1,6 @@
 package Poet::Mason::Plugin::Request;
 use Mason::PluginRole;
-use Poet qw($env);
+use Poet qw($conf $env);
 use Poet::Plack::Response;
 use JSON::XS;
 use Try::Tiny;
@@ -18,7 +18,9 @@ around 'run' => sub {
 
     my $result = $self->$orig(@_);
     $self->res->status(200) if !$self->res->status;
-    $self->res->content_type('text/html') if !$self->res->content_type();
+    $self->res->content_type(
+        $conf->get( 'server.default_content_type' => 'text/html' ) )
+      if !$self->res->content_type();
     $self->res->content( $result->output );
     return $result;
 };

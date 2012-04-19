@@ -81,7 +81,3 @@ subdirectory of the environment root onto @INC.
 Imports such as '$conf' and $env' are handled the same way as in 'use Poet' -
 see L<Poet/IMPORTS>.
 
-=head1 SEE ALSO
-
-Poet
-

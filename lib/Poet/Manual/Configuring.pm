@@ -9,7 +9,7 @@ This is a list of configuration keys used by Poet itself. These may be placed
 in any L<Poet conf file|Poet::Conf/CONFIGURATION FILES>, e.g. C<local.cfg> or
 C<conf/global/*.cfg>.
 
-Remember that entries like C<foo.bar> can be listed either in dot notation
+Entries like C<foo.bar> can be listed either in dot notation
 
     foo.bar: 5
 
@@ -59,7 +59,8 @@ directories outside the environment:
 =item log.defaults, log.category
 
 Specify the log level, output location, and layout string for logging, in the
-default case and per-category. See L<Poet::Log|Poet::Log/CONFIGURATION>. e.g.
+default case and for particular categories respectively. See
+L<Poet::Log|Poet::Log/CONFIGURATION> for examples. e.g.
 
     log:
       defaults:
@@ -91,6 +92,11 @@ See L<Poet::Mason|Poet::Mason/CONFIGURATION>. e.g.
     mason:
       static_source: 1
       static_source_touch_file: ${root}/data/purge.dat
+
+=item server.default_content_type
+
+Content type for requests that don't explicitly set one. Defaults to
+C<text/html>.
 
 =item server.host
 

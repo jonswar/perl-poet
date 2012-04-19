@@ -22,11 +22,11 @@ Poet -- a web framework for Mason developers
 
 =head1 SYNOPSIS
 
-  % poet new -a MyApp
+  % poet new MyApp
 
 =head1 DESCRIPTION
 
-Poet is a web framework for Mason developers. It uses
+Poet is a modern Perl web framework for Mason developers. It uses
 L<PSGI|PSGI>/L<Plack|Plack> for server integration, L<Mason|Mason> for request
 routing and templating, and a selection of best-of-breed CPAN modules for
 caching, logging and configuration.
@@ -37,12 +37,12 @@ Poet gives you:
 
 =item *
 
-A standard useful directory hierarchy for web development
+A common-sense directory hierarchy for web development
 
 =item *
 
 A multi-file configuration system with support for development/production
-layers and multiple developers
+layers and concurrent development
 
 =item *
 
@@ -59,8 +59,8 @@ All documentation is indexed at L<Poet::Manual>.
 
 =head1 SUPPORT
 
-For now Poet shares a mailing list and IRC with Mason. The Mason mailing list
-is L<mason-users@lists.sourceforge.net>; you must be
+For now Poet will share a mailing list and IRC with Mason. The Mason mailing
+list is L<mason-users@lists.sourceforge.net>; you must be
 L<subscribed|https://lists.sourceforge.net/lists/listinfo/mason-users> to send
 a message. The Mason IRC channel is L<#mason|irc://irc.perl.org/#mason>.
 
@@ -82,4 +82,3 @@ thanks to Hearst for agreeing to this open source release. Hearst has no direct
 involvement with this open source release and bears no responsibility for its
 support or maintenance.
 
-=cut

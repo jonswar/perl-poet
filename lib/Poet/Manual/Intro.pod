@@ -63,9 +63,10 @@ Run this to create your initial environment:
     ...
     Now run 'my_app/bin/run.pl' to start your server.
 
-The name of the app must be a valid Perl class name; it is used in your
-app-specific subclasses. The directory, if not specified with -d, will be
-formed from the app name, with CamelCase converted to underscore_separated.
+The name of the app must be a valid Perl class name, generally either
+C<CamelCase> (C<MyApp>) or an all-uppercase acronym (C<TLA>). The directory, if
+not specified with -d, will be formed from the app name, but lowercased and
+underscored.
 
 =head1 ENVIRONMENT
 
@@ -73,7 +74,9 @@ In Poet, your entire web site lives within a single directory hierarchy called
 the I<environment>. It contains subdirectories for configuration, libraries,
 Mason components (templates), static files, etc.
 
-=head2 Environment subdirectories
+Here are the subdirectories that are generated for you. If you don't need some
+of these directories, feel free to delete them. The only ones really required
+by Poet are C<conf>, C<comps> and C<lib>.
 
 =over
 
@@ -115,13 +118,10 @@ C<t> - unit tests
 
 =back
 
-If you don't need some of these directories, you can just ignore or delete
-them. The only one really required by Poet is C<conf>.
+=head2 Initializing Poet
 
-=head2 Initializing the environment
-
-Any web server or script must first initialize the Poet environment before it
-can use any of Poet's features. This is accomplished with something like:
+Any web server or script must initialize Poet before it can use any of Poet's
+features. This is accomplished by with C<Poet::Script>:
 
     #!/usr/local/bin/perl
     use Poet::Script qw($conf $env);
@@ -147,20 +147,21 @@ C<use> your application modules.
 
 =item *
 
-Imports the specified I<quick vars> - in this case C<$conf> and C<$env> - into
-the script namespace.
+Imports the specified I<quick vars> - in this case C<$conf> and C<$env> - as
+well as some default utilities into the script namespace. More information
+about these L<below|QUICK VARS AND UTILITIES>.
 
 =back
 
 =head2 Relocatable environments
 
-Ideally your environment will be I<relocatable> -- if you move your entire
-environment, or checkout a second copy of it in a different directory, things
-should "just work".
+Ideally your environment will be I<relocatable> -- if you move your environment
+to a different root, or checkout a second copy of it in a different root,
+things should just work.
 
-Along these lines you should never refer to exact environment directory paths
-in your code; instead you'll call Poet methods that return them. e.g. instead
-of this:
+To achieve this you should never refer to exact environment directory paths in
+your code; instead you'll call Poet methods that return them. e.g. instead of
+this:
 
     system("/path/to/environment/bin/myscript.pl");
 
@@ -168,7 +169,8 @@ you'll do this:
 
     system($env->bin_path("myscript.pl"));
 
-More information about this C<$env> variable L<below|QUICK VARS AND UTILITIES>.
+(More information about this C<$env> variable L<below|QUICK VARS AND
+UTILITIES>.)
 
 =head1 CONFIGURATION AND LAYERS
 
@@ -184,12 +186,12 @@ in order from least to highest precedence.
 
 =item Global
 
-C<global> configuration applies to all environments, and is typically checked
-into version control.
+I<Global> configuration applies to all instances of your environment, and is
+typically checked into version control.
 
-When you create an environment you'll have a single file C<conf/global.cfg>.
-This is simplest to start out with, but as a site scales in size and number of
-developers, you can split out your global configuration into multiple files in
+Your generated environment includes a C<conf/global.cfg>.  This is simplest to
+start out with, but as a site scales in size and number of developers, you can
+split out your global configuration into multiple files in
 C<conf/global/*.cfg>.
 
 =item Layer
@@ -205,11 +207,15 @@ corresponding configuration file in C<conf/layer/*.cfg>; only one layer file
 will be loaded per environment. We recommend that these files all be checked
 into version control as well, so that changes to each layer are tracked.
 
+Note: I<layer> is analagous to Plack's I<environment> concept. And in fact,
+C<bin/run.pl> passes the layer to plackup's <-E> option.
+
 =item Local
 
 C<conf/local.cfg> contains configuration local to this specific environment
-This is where the current layer is defined. It is also the only configuration
-file that should not be checked into version control.
+instance.  This is where the current layer must be defined. It is also the only
+configuration file that must exist, and the only one that should I<not> be
+checked into version control.
 
 You can also specify an extra local file via C<$ENV{POET_EXTRA_CONF_FILE}>.
 
@@ -224,11 +230,9 @@ There are a variety of ways to access configuration:
     my $hashref = $conf->get_hash('key', {'default' => 5});
     my $bool = $conf->get_boolean('key');
 
-More information about this C<$conf> variable L<below|/QUICK VARS AND
-UTILITIES>.
-
-See L<Poet::Conf|Poet::Conf> for more information on specifying and accessing
-configuration.
+See L<below|/QUICK VARS AND UTILITIES> for more information about this C<$conf>
+variable, and see L<Poet::Conf|Poet::Conf> for more information on specifying
+and accessing configuration.
 
 =head2 Development versus live mode
 
@@ -267,25 +271,23 @@ Poet::Conf|Poet::Manual::Subclassing>.
 
 =head1 SERVER RUNNER AND MIDDLEWARE
 
-C<poet new> generates C<run.pl> and C<app.psgi> files for you in the C<bin>
-subdirectory.
+C<poet new> generates C<bin/run.pl> and C<bin/app.psgi> for you.
 
-C<run.pl> is a wrapper around L<plackup>, which starts your server. It has a
-few sensible defaults, such as setting up autorestart in L<development
+C<bin/run.pl> is a wrapper around L<plackup|plackup>, which starts your server.
+It has a few sensible defaults, such as setting up autorestart in L<development
 mode|/Development versus live mode> and using an access log in L<live
-mode|/Development versus live mode>. It will also take options from the
-configuration entry 'plackup'. So if your C<local.cfg> contains this:
+mode|/Development versus live mode>. It will also take a few options from
+configuration, e.g.
 
-    plackup:
+    server:
+       host: 127.0.0.1
        port: 5000
-
-then --port 5000 will be passed to plackup.
 
 If you are using something other than plackup (e.g.
 L<Server::Starter|Server::Starter>) then you'll have to adapt this into your
 own startup script.
 
-C<app.psgi> defines your PSGI app. It's the place to add L<Plack
+C<bin/app.psgi> defines your PSGI app. It's the place to add L<Plack
 middleware|Plack/Plack::Middleware>, or change the configuration of the default
 middleware. For example, to enable basic authentication with an
 C<conf/.htpasswd> file, add this to app.psgi:
@@ -294,8 +296,8 @@ C<conf/.htpasswd> file, add this to app.psgi:
 
 =head1 QUICK VARS AND UTILITIES
 
-Poet makes it easy to import certain variables (known as "quick vars") and sets
-of utilities into any module or script in your environment. You've seen two
+Poet makes it easy to import certain variables (known as "quick vars") and
+utility sets into any module or script in your environment. You've seen two
 examples of quick vars above: C<$conf>, the global configuration variable, and
 C<$env>, the global environment object.
 
@@ -390,7 +392,9 @@ L<Mason::Manual::Syntax|Mason::Manual::Syntax>
 
 If the Mason request finishes successfully, the Mason output becomes the plack
 response body, the status code is set to 200 if it hasn't already been set, and
-the content type is set to text/html if it hasn't already been set.
+the content type is set to C<text/html> (or the specified L<default content
+type|Poet::Manual::Configuring/server.default_content_type>) if it hasn't
+already been set.
 
 If the top-level component path cannot be found, the status code is set to 404.
 
@@ -475,8 +479,3 @@ By default, everything is cached in files under C<data/chi>.
 
 See L<Poet::Cache|Poet::Cache> for more information.
 
-=head1 SEE ALSO
-
-Poet::Manual
-
-=cut

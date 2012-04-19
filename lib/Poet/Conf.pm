@@ -663,8 +663,3 @@ with values from I<$new_data> taking precedence.
 The ideas of merging multiple conf files and variable interpolation came from
 L<YAML::AppConfig>.
 
-=head1 SEE ALSO
-
-Poet
-
-=cut

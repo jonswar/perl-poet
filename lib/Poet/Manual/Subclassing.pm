@@ -18,13 +18,14 @@ default class.
 
 Place Poet subclasses under C<lib/MyApp/Class.pm> in your environment, where
 C<MyApp> is the name of your app and C<Class> is the class you are subclassing
-minus the C<Poet> prefix.
+minus the C<Poet> prefix. A few of these subclasses are generated for you by
+C<poet new>.
 
 For example, to subclass C<Poet::Cache>:
 
     package MyApp::Cache;
     use Poet::Moose;
-    extends 'Poet::Interp';
+    extends 'Poet::Cache';
 
     # put your modifications here
 

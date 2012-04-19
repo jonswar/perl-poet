@@ -275,9 +275,3 @@ Returns a log4perl config string based on Poet configuration. You can modify
 this to construct and return your own config.
 
 =back
-
-=head1 SEE ALSO
-
-Poet
-
-=cut

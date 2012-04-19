@@ -224,8 +224,3 @@ With this configuration in place,
 
     $env->bin_path("foo/bar.pl")
        ==> returns /some/other/bin/dir/foo/bar.pl
-
-=head1 SEE ALSO
-
-L<Poet|Poet>
-
