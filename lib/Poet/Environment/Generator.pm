@@ -43,9 +43,10 @@ method generate_environment_directory ($class: %params) {
 
     foreach my $path (@paths) {
         my $output = trim( $interp->run($path)->output );
-        my $dest   = $root_dir . $path;
+        ( my $dest = $path ) =~ s{/DOT_}{/.}g;
+        $dest = $root_dir . $dest;
         mkpath( dirname($dest), 0, 0775 );
-        if ( $path =~ /\.empty$/ ) {
+        if ( $path =~ /EMPTY$/ ) {
             $msg->( dirname($dest) );
         }
         else {

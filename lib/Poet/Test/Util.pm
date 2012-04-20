@@ -47,8 +47,12 @@ sub temp_env {
 sub temp_env_dir {
     my (%params) = @_;
 
-    local $ENV{POET_SHARE_DIR} =
-      dirname( dirname( dirname( dirname( realpath(__FILE__) ) ) ) ) . "/share";
+    my $dist_root =
+      dirname( dirname( dirname( dirname( realpath(__FILE__) ) ) ) );
+    local ( $ENV{POET_SHARE_DIR} ) =
+      grep { -d $_ }
+      ( "$dist_root/share", "$dist_root/lib/auto/share/dist/Poet" );
+
     my $app_name = $params{app_name} || 'TestApp';
     my $root_dir = Poet::Environment::Generator->generate_environment_directory(
         root_dir => tempdir_simple('Poet-XXXX'),
