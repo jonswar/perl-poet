@@ -18,4 +18,7 @@ my @options = $server->get_plackup_options();
 #
 $server->load_startup_modules();
 
-run("plackup", @options, $app_psgi);
+my @cmd = ("plackup", @options, $app_psgi);
+print "Running " . join(", ", @cmd) . "\n";
+run(@cmd);
+
