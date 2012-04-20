@@ -1,8 +1,13 @@
 ^MANIFEST.SKIP$
 ^cp\.yml
 ^data
+^dist\.ini
+^docs
+^git
+^htdocs
 ^release
 ^tmp
+^weaver.ini
 ^NOTES
 ^TODO
 
