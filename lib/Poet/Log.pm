@@ -70,7 +70,7 @@ method _generate_lines ($class: $logger, $appender, $set) {
         [ "$full_appender.layout" => 'Log::Log4perl::Layout::PatternLayout' ],
         [ "$full_appender.layout.ConversionPattern" => $set->{layout} ]
     );
-    foreach my $key qw(filename stderr) {
+    foreach my $key (qw(filename stderr)) {
         if ( exists( $set->{$key} ) ) {
             push( @pairs, [ "$full_appender.$key" => $set->{$key} ] );
         }
