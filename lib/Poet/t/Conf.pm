@@ -159,7 +159,7 @@ sub test_types : Tests {
     my $conf = $env->conf();
 
     cmp_deeply( $conf->get_list('list'), [ 1, 2, 3 ], 'list ok' );
-    foreach my $key qw(scalar hash) {
+    foreach my $key (qw(scalar hash)) {
         throws_ok( sub { $conf->get_list($key) }, qr/list value expected/ );
     }
     cmp_deeply(
@@ -167,14 +167,14 @@ sub test_types : Tests {
         { size => 'large', flavor => 'chocolate' },
         'hash ok'
     );
-    foreach my $key qw(scalar list) {
+    foreach my $key (qw(scalar list)) {
         throws_ok( sub { $conf->get_hash($key) }, qr/hash value expected/ );
     }
-    foreach my $key qw(c d e f) {
+    foreach my $key (qw(c d e f)) {
         is( $conf->get_boolean("truth.$key"),   1, "$key = true" );
         is( $conf->get_boolean("falsity.$key"), 0, "$key = false" );
     }
-    foreach my $key qw(scalar list hash) {
+    foreach my $key (qw(scalar list hash)) {
         throws_ok( sub { $conf->get_boolean($key) },
             qr/boolean value expected/ );
     }
