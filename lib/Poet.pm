@@ -28,6 +28,7 @@ Poet -- a web framework for Mason developers
   ...
 
   % my_app/bin/run.pl
+  Running plackup --Reload ... --env development --port 5000
   Watching ... for file updates.
   HTTP::Server::PSGI: Accepting connections at http://0:5000/
 
