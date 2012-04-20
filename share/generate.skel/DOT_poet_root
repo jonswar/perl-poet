@@ -1,0 +1,2 @@
+# Marks the Poet environment root. Do not delete.
+app_name: <% $app_name %>
