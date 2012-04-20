@@ -20,6 +20,9 @@ L<here|http://search.cpan.org/perldoc?App::cpanminus#INSTALLATION>. Then run
 
     cpanm -S --notest Date::Format DBD::SQLite Poet Rose::DB::Object
 
+Omit the "-S" if you don't have root, in which case cpanminus will install Poet
+and prereqs into C<~/perl5>.
+
 Omit the "--notest" if you want to run all the installation tests. Note that
 this will take about four times as long.
 
@@ -49,9 +52,9 @@ Run this to start your server:
 
 and you should see something like
 
-    running plackup --Reload ... --env development --port 5000
+    Running plackup --Reload ... --env development --port 5000
     Watching ... for file updates.
-    HTTP::Server::PSGI: Accepting connections at http://127.0.0.1:5000/
+    HTTP::Server::PSGI: Accepting connections at http://0:5000/
 
 and you should be able to hit that URL to see the Poet welcome page.
 
@@ -64,9 +67,10 @@ environment root.
 
 =head1 DATA LAYER (MODEL)
 
-For any website it's a good idea to have a well-defined I<model> through which
-you retrieve and change data. Poet and Mason don't have much to say about how
-you do this, so we'll make some minimal reasonable choices here and move on.
+For any website it's a good idea to have a well-defined, object-oriented
+I<model> through which you retrieve and change data. Poet and Mason don't have
+much to say about how you do this, so we'll make some minimal reasonable
+choices here and move on.
 
 For this demo we'll represent blog articles with a single sqlite table. Create
 a file C<db/schema.sql> with:
@@ -145,7 +149,7 @@ Another important one is C<$conf>, which gives you access to configuration:
     ...
     my $value = $conf->get('key', 'default');
 
-You can also import sets of utilities in the same way, e.g. ':list' for list
+You can also import sets of utilities in the same way, e.g. ':file' for file
 utilities and ':web' for web-related utilities. See
 L<Poet::Import|Poet::Import> for the full list of Poet vars and utility sets.
 
@@ -162,11 +166,16 @@ in Mason parlance as the L<component root|Mason::Manual::Components/The
 component root and component paths>.
 
 Given a URL, Mason will dispatch to a L<top-level
-component|Mason::Manual::Components/COMPONENT FILES>. This component decides
-the overall page layout, and then may call other components to fill in the
-details.
+component|Mason::Manual::Components/Component file extensions>. This component
+decides the overall page layout, and then may call other components to fill in
+the details.
 
-Here's our first component to serve the home page, C<comps/index.mc>:
+C<poet new> generated a few starter components for us, but we're not going to
+use those, so let's clear them by running
+
+     rm -fR comps; mkdir comps
+
+Now here's our first component to serve the home page, C<comps/index.mc>:
 
      1  <html>
      2    <head>
@@ -197,7 +206,7 @@ written.  The single piece of special Mason syntax here is
 This is a L<component call|Mason::Manual::Components/CALLING COMPONENTS> - it
 invokes another component, whose output is inserted in place.
 
-=head1 INTERNAL COMPONENTS, %-LINES, SUBSTITUTION TAGS, <%INIT> BLOCKS
+=head2 %-lines, substitution tags, <%init> blocks
 
 Because C<all_articles.mi> has an C<.mi> extension (rather than C<.mc>), it is
 an L<internal|Mason::Manual::Components/Component file extensions> rather than
@@ -228,7 +237,7 @@ Three new pieces of syntax here:
 =item Init block
 
 The L<E<lt>%initE<gt>|Mason::Manual::Syntax/E<lt>%initE<gt>> block on lines
-13-16 specifies a block of Perl code to run when this component is first
+13-16 specifies a block of Perl code to run first when this component is 
 called. In this case it fetches and sorts the list of articles into a lexical
 variable C<< @articles >>.
 
@@ -255,7 +264,7 @@ single article; we pass the article object in a name/value argument pair.
 Components can be in different directories and component paths can be relative
 or absolute.
 
-=head1 ATTRIBUTES, DOLLAR-DOT NOTATION, PASSING ARGUMENTS TO COMPONENTS
+=head2 Attributes
 
 Next we create C</article/display.mi>, another internal component:
 
@@ -275,9 +284,14 @@ The L<E<lt>%classE<gt>|Mason::Manual::Syntax/E<lt>%classE<gt>> block on lines
 1-4 specifies a block of Perl code to place near the top of the generated
 component class, outside of any methods. This is the place to use modules,
 declare permanent constants/variables, declare attributes with 'has', and
-define helper methods.
+define helper methods. Most components of any complexity will probably have a
+C<< <%class> >> section.
 
-Throughout the component, we refer to the article attribute via the expression
+On line 4 we declare a single incoming attribute, C<article>. It is
+I<required>, meaning that if C<all_articles.mi> had forgotten to pass it, we'd
+get a fatal error.
+
+Throughout this component, we refer to the article attribute via the expression
 
     $.article
 
@@ -292,7 +306,7 @@ plugin|Mason::Plugin::DollarDot>, which is in the L<default
 plugins|Mason::PluginBundle::Default> list but can be omitted if the source
 filtering offends you. :)
 
-=head1 TEMPLATES / CONTENT WRAPPING, AUTOBASES, INHERITANCE, METHOD MODIFIERS
+=head2 Content wrapping, autobases, inheritance, method modifiers
 
 Now we have to handle the URL C</new_article>, linked from the home page. We do
 this with our second page component, C</new_article.mc>. It contains only HTML
@@ -340,42 +354,12 @@ It will render the upper portion of the template (lines 2-7), then call the
 specific page component (line 8), then render the lower portion of the template
 (lines 9-10).
 
-How does this magic work?
-
-=over
-
-=item 1.
-
-Any component named Base.mc is an L<autobase|Mason::Manual::Components/Autobase
-components> component. It automatically becomes the superclass of any component
-in its directory and below. Thus, C</index.mc> and C</node/view.mc> both
-automatically inherit from C</Base.mc>.
-
-=item 2.
-
-When Mason dispatches to a page component like C</index.mc> or
-C</new_article.mc>, it doesn't call its C<main> method directly. Instead, it
-calls this chain of methods:
-
-    handle -> render -> wrap -> main
-
-By default each method in the chain just calls the next one, so the usual
-behavior is to effectively call C<main>. However, in this case we are
-augmenting the wrap method, which uses the Moose inner/augment call pattern. In
-general, any superclass which augments the wrap method can output content
-before and after its subclasses.
-
-=back
-
-C<< <%augment> >> is actually a generic block that can be used with any method,
-though in practice is most often used with C<< wrap >>. There are analagous
-blocks for each of Moose's L<method modifiers|Moose::Manual::MethodModifiers>:
-C<< <%before> >>, C<< <%after> >>, C<< <%around> >> and C<< <%override> >>.
-
 Now, we can remove those nine boilerplate lines from C</index.mc> and
 C</node/view.mc>.
 
-=head1 FORM HANDLING, PURE-PERL COMPONENTS, CMETA
+More details on how content wrapping works L<here|Mason::Component/wrap>.
+
+=head2 Form handling, pure-perl components
 
 C</new_article.mc> posts to C</article/publish>. Let's create a component to
 handle that, called C</article/publish.mp>. It will not output anything, but
@@ -385,7 +369,7 @@ will simply take action and redirect.
      2  has 'title';
      3  
      4  method handle () {
-     5      my $session = $m->req->session;
+     5      my $session = $m->session;
      6      if ( !$.content || !$.title ) {
      7          $session->{message} = "Content and title required.";
      8          $session->{form_data} = $.args;
@@ -409,23 +393,26 @@ On lines 1 and 2 we declare incoming attributes. Because this is a top-level
 page component, the attributes will be populated with our POST parameters.
 
 On line 4 we define a C<handle> method to validate the POST parameters, create
-the article, and redirect. Recall from the previous chapter that Mason
-initially calls C<handle> on top-level page components and that it usually
-defaults to calling C<render>. By defining C<handle> we ensure that the page
-will not output anything, even in the C</Base.mc> wrapper.
+the article, and redirect. C<handle> is one of the L<structural
+methods|Mason::Component/STRUCTURAL METHODS> that Mason calls initially on all
+top-level page components; the default just renders the component's HTML as
+we've seen before.  Defining C<handle> is the way to take an action without
+rendering anything, which is perfect for form actions. (It's always better to
+redirect after a form action than to display content directly.)
 
 The C<method> keyword comes from L<Method::Signatures::Simple>, which is
 imported into components by default; see L<Mason::Component::Moose>.
 
-On line 5 we grab the Plack session. C<< $m->req >> returns the Plack request
-object; there is an analagous C<< $m->res >> for the Plack response object.
+On line 5 we grab the Plack session via C<< $m->session >>. This is one of a
+handful of L<web-related methods|Poet::Mason/NEW REQUEST METHODS> only
+available in Poet.
 
-On lines 7 and 14, we set a message in the Plack session that we want to
-display on the next page. Rather than just making this work for a specific
-page, let's add generic code to the template in C<Base.mc>:
+On lines 7 and 14, we set a message in the session that we want to display on
+the next page. Rather than just making this work for a specific page, let's add
+generic code to the template in C<Base.mc>:
 
      7      <body>
- =>  8  % if (my $message = delete($m->req->session->{message})) {
+ =>  8  % if (my $message = delete($m->session->{message})) {
  =>  9        <div class="message"><% $message %></div>
  => 10  % }      
     11        <% inner() %>
@@ -438,7 +425,7 @@ On line 8, we place the POST data in the session so that we can repopulate the
 form with it - we'll do that in the next chapter. C<< $.args >> is a special
 component attribute that contains all the arguments passed to the component.
 
-=head1 FILTERS
+=head2 Filters
 
 We need to change C<< /new_article.mc >> to repopulate the form with the
 submitted values when validation fails.
@@ -455,7 +442,7 @@ submitted values when validation fails.
     10  % }}
     11  
     12  <%init>
-    13  my $form_data = delete($m->req->session->{form_data});
+    13  my $form_data = delete($m->session->{form_data});
     14  </%init>
 
 On lines 3 and 10 we surround the form with a I<filter>. A filter takes a
