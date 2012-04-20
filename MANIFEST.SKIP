@@ -6,6 +6,7 @@
 ^git
 ^htdocs
 ^release
+^t/make
 ^tmp
 ^weaver.ini
 ^NOTES
