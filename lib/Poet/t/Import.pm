@@ -20,7 +20,7 @@ sub test_import_vars : Tests {
     {
         package TestImportVars;
         BEGIN { $importer->export_to_level( 0, qw($cache $conf $env) ) }
-        use Test::More;
+        use Test::Most;
         isa_ok( $cache, 'CHI::Driver',       '$cache' );
         isa_ok( $conf,  'Poet::Conf',        '$conf' );
         isa_ok( $env,   'Poet::Environment', '$env' );
@@ -31,14 +31,14 @@ sub test_import_methods : Tests {
     {
         package TestImportMethods1;
         BEGIN { $importer->export_to_level(0) }
-        use Test::More;
+        use Test::Most;
         ok( TestImportMethods1->can('dp'),        'yes dp' );
         ok( !TestImportMethods1->can('basename'), 'no basename' );
     }
     {
         package TestImportMethods2;
         BEGIN { $importer->export_to_level( 0, qw(:file) ) }
-        use Test::More;
+        use Test::Most;
         foreach my $function (qw(dp basename)) {
             ok( TestImportMethods2->can($function), "yes $function" );
         }
@@ -46,7 +46,7 @@ sub test_import_methods : Tests {
     {
         package TestImportMethods3;
         BEGIN { $importer->export_to_level( 0, qw(:web) ) }
-        use Test::More;
+        use Test::Most;
         foreach my $function (qw(dp html_escape uri_escape)) {
             ok( TestImportMethods3->can($function), "yes $function" );
         }

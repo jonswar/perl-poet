@@ -1,12 +1,12 @@
 package Poet::Conf;
 use Carp;
 use Cwd qw(realpath);
-use Clone qw(clone);
 use File::Basename;
 use File::Slurp qw(read_file);
 use File::Spec::Functions qw(catfile);
 use Guard;
 use Poet::Moose;
+use Storable qw(dclone);
 use Try::Tiny;
 use YAML::XS;
 use strict;
@@ -259,7 +259,7 @@ method set_local ($pairs) {
 
     # Make a deep copy of current data, then merge in the new pairs
     #
-    my $orig_data = clone( { %{ $self->{data} } } );
+    my $orig_data = dclone( $self->{data} );
     $self->merge_conf_data( $self->{data}, $pairs, "set_local" );
     $self->conf_has_changed();
 

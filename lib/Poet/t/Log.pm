@@ -1,9 +1,9 @@
 package Poet::t::Log;
 use Cwd qw(realpath);
 use File::Temp qw(tempdir);
-use Test::LongString;
 use Poet::Test::Util;
 use Poet::Util qw(json_encode);
+use Test::Most;
 use strict;
 use warnings;
 use base qw(Test::Class);
@@ -19,7 +19,7 @@ sub test_log_config : Tests {
         my ( $conf_settings, $expected ) = @_;
         my $lex      = $conf->set_local($conf_settings);
         my $log_conf = Poet::Log->generate_log4perl_config();
-        is_string( $log_conf, $expected, json_encode($conf_settings) );
+        is( $log_conf, $expected, json_encode($conf_settings) );
     };
 
     my $default_layout =

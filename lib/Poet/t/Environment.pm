@@ -2,7 +2,7 @@ package Poet::t::Environment;
 use File::Slurp;
 use Poet::Environment::Generator;
 use Poet::Test::Util;
-use Test::More;
+use Test::Most;
 use YAML::XS;
 use strict;
 use warnings;

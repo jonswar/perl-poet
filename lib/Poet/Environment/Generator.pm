@@ -6,8 +6,7 @@ use File::ShareDir;
 use File::Slurp qw(read_dir);
 use Mason;
 use Method::Signatures::Simple;
-use Poet::Util qw(write_file);
-use Text::Trim qw(trim);
+use Poet::Util qw(trim write_file);
 use strict;
 use warnings;
 
