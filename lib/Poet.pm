@@ -34,10 +34,10 @@ Poet -- a modern Perl web framework for Mason developers
 
 =head1 DESCRIPTION
 
-Poet is a modern Perl web framework for Mason developers. It uses
-L<PSGI|PSGI>/L<Plack|Plack> for server integration, L<Mason|Mason> for request
-routing and templating, and a selection of best-of-breed CPAN modules for
-caching, logging and configuration.
+Poet is a modern Perl web framework designed especially for L<Mason|Mason>
+developers. It uses L<PSGI|PSGI>/L<Plack|Plack> for server integration, Mason
+for request routing and templating, and a selection of best-of-breed CPAN
+modules for caching, logging and configuration.
 
 =head1 FEATURES
 
