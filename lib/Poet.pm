@@ -112,3 +112,7 @@ thanks to Hearst for agreeing to this open source release. However, Hearst has
 no direct involvement with this open source release and bears no responsibility
 for its support or maintenance.
 
+=head1 SEE ALSO
+
+L<Mason|Mason>, L<Plack|Plack>, L<PSGI|PSGI>
+
