@@ -7,19 +7,19 @@ Poet::Manual - Index of Poet documentation
 
 =over
 
-=item L<Poet::Manual::Tutorial>
+=item L<Poet::Manual::Tutorial|Poet::Manual::Tutorial>
 
 Provides a tour of Poet by showing how to build a micro-blog website.
 
-=item L<Poet::Manual::Intro>
+=item L<Poet::Manual::Intro|Poet::Manual::Intro>
 
 An introduction to Poet features with links to other documentation.
 
-=item L<Poet::Manual::Configuring>
+=item L<Poet::Manual::Configuring|Poet::Manual::Configuring>
 
 A list of Poet configuration options.
 
-=item L<Poet::Manual::Subclassing>
+=item L<Poet::Manual::Subclassing|Poet::Manual::Subclassing>
 
 A guide to customizing Poet behavior via subclassing.
 
@@ -29,14 +29,22 @@ A guide to customizing Poet behavior via subclassing.
 
 =over
 
-=item L<Poet::Environment>
+=item L<Poet::Environment|Poet::Environment>
 
-=item L<Poet::Conf>
+=item L<Poet::Conf|Poet::Conf>
 
-=item L<Poet::Mason>
+=item L<Poet::Mason|Poet::Mason>
 
-=item L<Poet::Log>
+=item L<Poet::Log|Poet::Log>
 
-=item L<Poet::Cache>
+=item L<Poet::Cache|Poet::Cache>
+
+=item L<Poet::Util::Debug|Poet::Util::Debug>
+
+=item L<Poet::Util::File|Poet::Util::File>
+
+=item L<Poet::Util::Web|Poet::Util::Web>
+
+=item L<poet|poet>
 
 =back
