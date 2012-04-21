@@ -33,6 +33,8 @@ A guide to customizing Poet behavior via subclassing.
 
 =item L<Poet::Conf|Poet::Conf>
 
+=item L<Poet::Script|Poet::Script>
+
 =item L<Poet::Mason|Poet::Mason>
 
 =item L<Poet::Log|Poet::Log>
