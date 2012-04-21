@@ -5,6 +5,7 @@
 ^docs
 ^git
 ^htdocs
+^lib/Pod
 ^release
 ^t/make
 ^tmp
