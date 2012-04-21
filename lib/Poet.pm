@@ -18,7 +18,7 @@ __END__
 
 =head1 NAME
 
-Poet -- a web framework for Mason developers
+Poet -- a modern Perl web framework for Mason developers
 
 =head1 SYNOPSIS
 
@@ -39,29 +39,51 @@ L<PSGI|PSGI>/L<Plack|Plack> for server integration, L<Mason|Mason> for request
 routing and templating, and a selection of best-of-breed CPAN modules for
 caching, logging and configuration.
 
-Poet gives you:
+=head1 FEATURES
 
 =over
 
 =item *
 
-A common-sense directory hierarchy for web development
+A common-sense L<directory hierarchy|Poet::Environment> for web development
 
 =item *
 
-A multi-file configuration system with support for development/production
-layers
+A L<configuration system|Poet::Conf> that scales elegantly with multiple coders
+and multiple layers (development/production)
 
 =item *
 
-Easy access to shared resources and utilities from scripts, libraries and
-templates
+Integration with L<Log4perl|Log::Log4perl> for logging, wrapped with
+dead-simple configuration
+
+=item *
+
+Integration with L<CHI|CHI> for powerful and flexible caching
+
+=item *
+
+The power of L<Mason|Mason>, an object-oriented templating system, for request
+routing and content generation
+
+=item *
+
+Easy access to common L<objects|Poet::Import/QUICK VARS> and
+L<utilities|Poet::Import/UTILITIES> from anywhere in your application
+
+=item *
+
+Conventions and defaults based on the author's best practices from over fifteen
+years of Perl web development; and
+
+=item *
+
+The freedom to L<override|Poet::Manual::Subclassing> just about any of Poet's
+behaviors
 
 =back
 
-Poet's conventions and defaults are based on the author's best practices from
-15+ years of Mason site development. That said, if you see a decision you don't
-like, you can almost always change it with a subclass.
+=head1 DOCUMENTATION
 
 All documentation is indexed at L<Poet::Manual>.
 
