@@ -3,7 +3,7 @@ use Poet qw($conf $env);
 use File::Spec::Functions qw(rel2abs);
 use Log::Any::Adapter;
 use Method::Signatures::Simple;
-use Poet::Util qw(read_file);
+use Poet::Util qw(can_load read_file write_file);
 use strict;
 use warnings;
 
@@ -13,12 +13,21 @@ method get_logger ($class: %params) {
 }
 
 method initialize_logging ($class:) {
-    require Log::Log4perl;
-    unless ( Log::Log4perl->initialized() ) {
-        my $config_string = $class->generate_log4perl_config();
-        Log::Log4perl->init( \$config_string );
+    if ( can_load('Log::Log4perl') ) {
+        unless ( Log::Log4perl->initialized() ) {
+            my $config_string = $class->generate_log4perl_config();
+            Log::Log4perl->init( \$config_string );
+        }
+        Log::Any::Adapter->set('Log4perl');
     }
-    Log::Any::Adapter->set('Log4perl');
+    else {
+        write_file(
+            $env->logs_path("poet.log.ERROR"),
+            sprintf(
+                "[%s] Could not load Log::Log4perl. Install it to enable logging, or modify logging for your application (see Poet::Manual::Subclassing).\n",
+                scalar(localtime) )
+        );
+    }
 }
 
 method generate_log4perl_config ($class:) {
@@ -144,6 +153,10 @@ logging-related feature you'd want. One of its only drawbacks is its somewhat
 cumbersome configuration. So, we provide a way to configure Log4perl simply
 through L<Poet configuration|Poet::Conf> if you just want common features.
 
+Note: Log4perl is not a strict dependency for Poet.  Log messages will simply
+not get logged until you install it or until you L<modify logging|MODIFIABLE
+METHODS> for your app.
+
 =head1 CONFIGURATION
 
 The configurations below can go in any L<Poet conf
@@ -258,8 +271,9 @@ See C<Log::Any|Log::Any> for more details.
 =head1 MODIFIABLE METHODS
 
 These methods are not intended to be called externally, but may be useful to
-override or modify with method modifiers in L<subclasses|Poet::Subclassing>.
-Their APIs will be kept as stable as possible.
+override or modify with method modifiers in
+L<subclasses|Poet::Manual::Subclassing>. Their APIs will be kept as stable as
+possible.
 
 =over
 
@@ -268,7 +282,8 @@ Their APIs will be kept as stable as possible.
 Called once when the Poet environment is initialized. By default, initializes
 log4perl with the results of L</generate_log4perl_config> and then calls C<<
 Log::Any::Adapter->set('Log4perl') >>.  You can modify this to initialize
-log4perl in your own way, or use a completely different logging system.
+log4perl in your own way, or use a different Log::Any adapter, or use a
+completely different logging system.
 
 =item generate_log4perl_config
 
