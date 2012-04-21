@@ -90,7 +90,7 @@ All documentation is indexed at L<Poet::Manual>.
 =head1 SUPPORT
 
 For now Poet will share a mailing list and IRC with Mason. The Mason mailing
-list is L<mason-users@lists.sourceforge.net>; you must be
+list is C<mason-users@lists.sourceforge.net>; you must be
 L<subscribed|https://lists.sourceforge.net/lists/listinfo/mason-users> to send
 a message. The Mason IRC channel is L<#mason|irc://irc.perl.org/#mason>.
 

@@ -62,7 +62,7 @@ then your Mason subclasses will be autodetected as well, e.g.
 C<poet new> will create the bare-bones subclass for you; it is otherwise
 harmless.
 
-See L<Mason::Manual::Subclassing|Mason::Manual::Subclassing> for more
+See L<Mason::Manual::Subclasses|Mason::Manual::Subclasses> for more
 information.
 
 =head1 EXAMPLES

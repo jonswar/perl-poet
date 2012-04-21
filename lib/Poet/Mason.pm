@@ -112,8 +112,8 @@ Poet-specific methods to C<$m> (the Mason request object).
 
 =item get_options
 
-Returns a hash of Mason options by combining L<default settings|DEFAULT
-SETTINGS> and L<configuration|CONFIGURATION>.
+Returns a hash of Mason options by combining L<default settings|/DEFAULT
+SETTINGS> and L<configuration|/CONFIGURATION>.
 
 =item instance
 

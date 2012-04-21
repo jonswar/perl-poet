@@ -154,7 +154,7 @@ cumbersome configuration. So, we provide a way to configure Log4perl simply
 through L<Poet configuration|Poet::Conf> if you just want common features.
 
 Note: Log4perl is not a strict dependency for Poet.  Log messages will simply
-not get logged until you install it or until you L<modify logging|MODIFIABLE
+not get logged until you install it or until you L<modify logging|/MODIFIABLE
 METHODS> for your app.
 
 =head1 CONFIGURATION

@@ -159,7 +159,7 @@ details.
 =head1 MODIFIABLE METHODS
 
 These methods are not intended to be called externally, but may be useful to
-override or modify with method modifiers in L<subclasses|<Poet::Subclassing>.
+override or modify with method modifiers in L<subclasses|/Poet::Subclassing>.
 
 =over
 

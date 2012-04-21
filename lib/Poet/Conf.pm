@@ -558,7 +558,7 @@ Boolean; returns true iff the current layer is 'development'.
 
 =item is_live
 
-Boolean; the opposte of L<is_development>.
+Boolean; the opposte of L</is_development>.
 
 =item get_keys
 
@@ -595,8 +595,9 @@ much more difficult to read and debug code!
 =head1 MODIFIABLE METHODS
 
 These methods are not intended to be called externally, but may be useful to
-override or modify with method modifiers in L<subclasses|Poet::Subclassing>.
-Their APIs will be kept as stable as possible.
+override or modify with method modifiers in
+L<subclasses|Poet::Manual::Subclassing>. Their APIs will be kept as stable as
+possible.
 
 =over
 
