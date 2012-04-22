@@ -5,23 +5,17 @@ use Fcntl qw( :DEFAULT :seek );
 use File::Find;
 use File::Spec::Functions ();
 use File::Temp qw(tempdir);
-use JSON;
 use Try::Tiny;
 use strict;
 use warnings;
 use base qw(Exporter);
 
 our @EXPORT_OK =
-  qw(can_load catdir catfile checksum find_wanted json_decode json_encode read_file taint_is_on tempdir_simple trim uniq write_file );
+  qw(can_load catdir catfile checksum find_wanted read_file taint_is_on tempdir_simple trim uniq write_file );
 
 my $Fetch_Flags          = O_RDONLY | O_BINARY;
 my $Store_Flags          = O_WRONLY | O_CREAT | O_BINARY;
 my $File_Spec_Using_Unix = $File::Spec::ISA[0] eq 'File::Spec::Unix';
-
-# Map null, true and false to real Perl values
-if ( JSON->VERSION < 2 ) {
-    $JSON::UnMapping = 1;
-}
 
 sub can_load {
 
@@ -80,22 +74,6 @@ sub find_wanted {
     find( sub { push @files, $File::Find::name if &$func }, @_ );
 
     return @files;
-}
-
-# Maintain compatibility with both JSON 1 and 2. Borrowed from Data::Serializer::JSON.
-#
-sub json_decode {
-    my ($text) = @_;
-    return JSON->VERSION < 2
-      ? JSON->new->jsonToObj($text)
-      : JSON->new->decode($text);
-}
-
-sub json_encode {
-    my ($data) = @_;
-    return JSON->VERSION < 2
-      ? JSON->new->objToJson($data)
-      : JSON->new->utf8->encode($data);
 }
 
 sub read_file {
