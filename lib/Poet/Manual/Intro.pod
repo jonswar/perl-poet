@@ -39,9 +39,9 @@ Run this to create your initial environment:
     ...
     Now run 'my_app/bin/run.pl' to start your server.
 
-The name of the app must be a valid Perl class name, generally either
-C<CamelCase> (C<MyApp>) or an all-uppercase acronym (C<TLA>). The directory, if
-not specified with -d, will be formed from the app name, but lowercased and
+The app name must be a valid Perl class name, generally either C<CamelCase>
+(C<MyApp>) or an all-uppercase acronym (C<TLA>). The directory, if not
+specified with -d, will be formed from the app name, but lowercased and
 underscored.
 
 =head1 ENVIRONMENT
@@ -147,6 +147,15 @@ you'll do this:
 
 (More information about this C<$env> variable L<below|/QUICK VARS AND
 UTILITIES>.)
+
+=head2 App name
+
+Your app name, e.g. C<MyApp>, is where you are expected to put app-specific
+subclasses. For example if you have a L<DBIx::Class|DBIx::Class> schema, you'd
+create it under C<MyApp::Schema> in the file C<lib/MyApp/Schema.pm>.
+
+The app name is also where Poet will look for
+L<subclasses|Poet::Manual::Subclassing> of its own classes.
 
 =head1 CONFIGURATION AND LAYERS
 
