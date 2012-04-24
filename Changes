@@ -2,6 +2,8 @@ Revision history for Poet
 
 ** denotes an incompatible change
 
+0.03  Apr 23, 2012
+
 0.02  Apr 23, 2012
 
 - Add JSON::XS dependency, remove use of JSON.pm
