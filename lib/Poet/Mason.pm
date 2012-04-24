@@ -20,9 +20,10 @@ method new ($class:) {
 
 method get_options ($class:) {
     my %defaults = (
-        comp_root => $env->comps_dir,
-        data_dir  => $env->data_dir,
-        plugins   => [ $class->get_plugins ],
+        cache_root_class => $env->app_class('Cache'),
+        comp_root        => $env->comps_dir,
+        data_dir         => $env->data_dir,
+        plugins          => [ $class->get_plugins ],
     );
     my %configured    = %{ $conf->get_hash("mason") };
     my $extra_plugins = $conf->get_list("mason.extra_plugins");
@@ -147,6 +148,12 @@ default the C<data> subdirectory under the environment root.
 C<plugins> is set to include L<Cache|Mason::Plugin::Cache>,
 L<HTMLFilters|Mason::Plugin::HTMLFilters> and
 L<RouterSimple|Mason::Plugin::RouterSimple>.
+
+=item *
+
+C<cache_root_class> (a parameter of the C<Cache> plugin) is set to
+C<MyApp::Cache> if it exists (replacing C<MyApp> with your L<app
+name|Poet::Manual::Intro/App name>), otherwise C<Poet::Cache>.
 
 =back
 

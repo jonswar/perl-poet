@@ -17,9 +17,9 @@ and arrange things so that Poet always uses your subclass instead of its
 default class.
 
 Place Poet subclasses under C<lib/MyApp/Class.pm> in your environment, where
-C<MyApp> is the name of your app and C<Class> is the class you are subclassing
-minus the C<Poet> prefix. A few of these subclasses are generated for you by
-C<poet new>.
+C<MyApp> is your app name and C<Class> is the class you are subclassing minus
+the C<Poet> prefix. A few of these subclasses are generated for you by C<poet
+new>.
 
 For example, to subclass C<Poet::Cache>:
 

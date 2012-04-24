@@ -35,6 +35,8 @@ sub try_psgi_comp {
     my $path = $params{path} or die "must pass path";
     ( my $uri = $path ) =~ s/\.mc$//;
     my $qs = $params{qs} || '';
+    my $expect_code =
+      defined( $params{expect_code} ) ? $params{expect_code} : 200;
 
     $self->add_comp(%params);
 
@@ -42,7 +44,7 @@ sub try_psgi_comp {
     {
 
         # Silence 'PSGI error' diagnostics if we're expecting error
-        Test::More->builder->no_diag(1) if $params{expect_code} == 500;
+        Test::More->builder->no_diag(1) if $expect_code == 500;
         scope_guard { Test::More->builder->no_diag(0) };
         $mech->get( $uri . $qs );
     }
@@ -59,9 +61,7 @@ sub try_psgi_comp {
                 "$path - content"
             );
         }
-        if ( my $expect_code = $params{expect_code} ) {
-            is( $mech->status, $expect_code, "$path - code" );
-        }
+        is( $mech->status, $expect_code, "$path - code" );
         if ( my $expect_headers = $params{expect_headers} ) {
             while ( my ( $hdr, $value ) = each(%$expect_headers) ) {
                 cmp_deeply( $mech->res->header($hdr),
@@ -88,7 +88,6 @@ sub test_basic : Tests {
         path           => '/hi.mc',
         src            => 'path = <% $m->req->path %>',
         expect_content => 'path = /hi',
-        expect_code    => 200
     );
 }
 
@@ -139,7 +138,6 @@ d = 7,8
 
 {a => '2',b => '4',c => ['5','6'],d => ['7','8']}
 EOF
-        expect_code => 200
     );
 }
 
@@ -193,13 +191,12 @@ root_dir = <% $env->root_dir %>
 foo.bar = 5
 root_dir = %s
 <pre>
-[dh_live at %s/comps/import.mc line 4.] [$$] {
+\[dh_live at %s/comps/import.mc line 4.] [$$] {
   baz => 'blargh'
 }
 
 </pre>
-", $root_dir, $root_dir ),
-        expect_code => 200,
+", $root_dir, $root_dir )
     );
 }
 
@@ -231,11 +228,27 @@ id=0
 id=1
 /subreq/other.mc
 /subreq/other
-{foo => 5}
+\{foo => 5}
 id=0
 end
+'
+    );
+}
+
+sub test_cache : Tests {
+    my $self = shift;
+
+    my $expected_root_dir = $env->root_dir . "/data/cache";
+    $self->try_psgi_comp(
+        path => '/cache.mc',
+        src  => '
+chi_root_class: <% $m->cache->chi_root_class %>
+root_dir: <% $m->cache->root_dir %>
 ',
-        expect_code => 200
+        expect_content => "
+chi_root_class: Poet::Cache
+root_dir: $expected_root_dir
+",
     );
 }
 
