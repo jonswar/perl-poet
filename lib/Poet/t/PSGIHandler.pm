@@ -222,7 +222,7 @@ id=<% $m->id %>
 id=<% $m->id %>
 end
 ',
-        expect_content => '
+        expect_content => "
 begin
 id=0
 id=1
@@ -231,7 +231,7 @@ id=1
 \{foo => 5}
 id=0
 end
-'
+"
     );
 }
 
