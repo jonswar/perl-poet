@@ -48,7 +48,10 @@ sub make_uri {
     my ( $base, $params ) = @_;
 
     my $uri = URI->new($base);
-    $uri->query_form($params) if defined($params);
+    if ( defined($params) ) {
+        die "second argument must be a hashref" if ref($params) ne 'HASH';
+        $uri->query_form($params);
+    }
     return $uri->as_string;
 }
 
