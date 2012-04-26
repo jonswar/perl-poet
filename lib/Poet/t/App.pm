@@ -11,8 +11,9 @@ sub test_app_name_to_dir : Tests {
     my $try = sub {
         return Poet::App::Command::new->app_name_to_dir( $_[0] );
     };
-    is( $try->("FooBar"), "foo_bar" );
-    is( $try->("HM"),     "hm" );
+    is( $try->("FooBar"),  "foo_bar" );
+    is( $try->("HM"),      "hm" );
+    is( $try->("foo_bar"), "foo_bar" );
 }
 
 1;

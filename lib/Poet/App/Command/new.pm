@@ -27,6 +27,11 @@ method abstract ()    { "Create a new Poet installation" }
 method description () { $description }
 method usage_desc ()  { "poet new [-d dir] [-q] <AppName>" }
 
+method BUILD ($args) {
+    $self->{app_name} = ucfirst( $args->{app_name} );
+    $self->{app_name} =~ s/_([a-z])/"_" . uc($1)/ge;
+}
+
 method _build_dir () {
     return $self->app_name_to_dir( $self->app_name );
 }
