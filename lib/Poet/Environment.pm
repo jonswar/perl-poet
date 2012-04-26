@@ -127,6 +127,14 @@ and its directory paths.
 Returns the root directory of the environment, i.e. where I<.poet_root> is
 located.
 
+=item root_path (subpath)
+
+Returns the root directory with a relative I<subpath> added. e.g. if the Poet
+environment root is C</my/env/root>, then
+
+    $env->conf_path("somefile.txt");
+       ==> returns /my/env/root/somefile.txt
+
 =item bin_dir
 
 =item comps_dir

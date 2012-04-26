@@ -4,6 +4,8 @@ Revision history for Poet
 
 0.03  Apr 23, 2012
 
+- Various documentation and generated environment tweaks
+
 0.02  Apr 23, 2012
 
 - Add JSON::XS dependency, remove use of JSON.pm
