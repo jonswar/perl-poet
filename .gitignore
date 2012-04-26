@@ -7,6 +7,7 @@ META.yml
 Makefile
 Makefile.old
 NOTES
+TAGS
 TODO
 VERSION
 _build*

@@ -4,7 +4,7 @@ use File::Basename;
 use File::Spec::Functions qw(rel2abs);
 use Method::Signatures::Simple;
 use Poet::Environment;
-use Poet::Util qw(can_load read_file);
+use Poet::Tools qw(can_load read_file);
 use strict;
 use warnings;
 

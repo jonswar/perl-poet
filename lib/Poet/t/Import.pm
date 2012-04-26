@@ -1,14 +1,10 @@
 package Poet::t::Import;
-use Poet::Test::Util;
-use Test::Most;
-use strict;
-use warnings;
-use base qw(Test::Class);
+use Test::Class::Most parent => 'Poet::Test::Class';
 
 my ( $temp_env, $importer );
 
 BEGIN {
-    $temp_env = initialize_temp_env();
+    $temp_env = __PACKAGE__->initialize_temp_env();
     $importer = $temp_env->importer;
 }
 

@@ -1,17 +1,13 @@
 package Poet::t::Run;
-use Poet::Test::Util;
-use Poet::Util qw(read_file);
+use Test::Class::Most parent => 'Poet::Test::Class';
+use Poet::Tools qw(read_file);
 use Guard;
 use IO::Socket;
-use IPC::System::Simple qw(run);
 use Test::WWW::Mechanize;
-use Test::Most;
-use strict;
-use warnings;
-use base qw(Test::Class);
 
 sub test_run : Tests {
-    my $env = temp_env(
+    my $self = shift;
+    my $env  = $self->temp_env(
         conf => { layer => 'development', server => { port => 9999 } } );
     my $root_dir = $env->root_dir;
     my $run_log  = "$root_dir/logs/run.log";

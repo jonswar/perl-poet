@@ -4,7 +4,7 @@ use File::Basename;
 use File::Path;
 use File::Slurp;
 use Poet::Moose;
-use Poet::Util qw(can_load catdir);
+use Poet::Tools qw(can_load catdir);
 
 has 'app_name'    => ( required => 1 );
 has 'conf'        => ();

@@ -4,9 +4,18 @@ Revision history for Poet
 
 0.03  Apr 26, 2012
 
-- Various documentation and generated environment tweaks
-- DWIM with lowercase, underscored argument to "poet new"
-- Remove some files from pause indexing
+* Improvements
+  - DWIM with lowercase and/or underscored argument to "poet new"
+
+* Fixes
+  - Fix #! line on get.pl (Pedro Melo)
+
+* Documentation
+  - Various documentation and generated environment tweaks
+
+* Backend
+  - Remove some files from pause indexing
+  - Switch to Test::Class::Most for all tests
 
 0.02  Apr 23, 2012
 

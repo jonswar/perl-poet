@@ -1,4 +1,6 @@
-package Poet::Util;
+# Internal Poet tools
+#
+package Poet::Tools;
 use Carp;
 use Class::MOP;
 use Fcntl qw( :DEFAULT :seek );

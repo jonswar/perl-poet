@@ -1,9 +1,5 @@
 package Poet::t::App;
-use Poet::Test::Util;
-use Test::Most;
-use strict;
-use warnings;
-use base qw(Test::Class);
+use Test::Class::Most parent => 'Poet::Test::Class';
 
 sub test_app_name_to_dir : Tests {
     require Poet::App::Command::new;

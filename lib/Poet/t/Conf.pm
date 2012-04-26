@@ -1,9 +1,5 @@
 package Poet::t::Conf;
-use Poet::Test::Util;
-use Test::Most;
-use strict;
-use warnings;
-use base qw(Test::Class);
+use Test::Class::Most parent => 'Poet::Test::Class';
 
 require Poet;
 
@@ -28,7 +24,8 @@ my $expected_values = {
 };
 
 sub test_global : Tests {
-    my $env = temp_env( conf_files => $conf_files );
+    my $self = shift;
+    my $env  = $self->temp_env( conf_files => $conf_files );
     my $conf = $env->conf();
     while ( my ( $key, $value ) = each(%$expected_values) ) {
         is( $conf->get($key), $value,
@@ -37,9 +34,10 @@ sub test_global : Tests {
 }
 
 sub test_duplicate : Tests {
+    my $self = shift;
     throws_ok(
         sub {
-            temp_env( conf_files =>
+            $self->temp_env( conf_files =>
                   { %$conf_files, 'global/fourth.cfg' => { j => 71, c => 72 } }
             );
         },
@@ -49,7 +47,8 @@ sub test_duplicate : Tests {
 }
 
 sub test_set_local : Tests {
-    my $env = temp_env(
+    my $self = shift;
+    my $env  = $self->temp_env(
         conf_files => { 'global/foo.cfg' => { a => 5, b => 6, c => 7 } } );
     my $conf = $env->conf();
 
@@ -79,6 +78,7 @@ sub test_set_local : Tests {
 }
 
 sub test_dot_notation : Tests {
+    my $self       = shift;
     my $conf_files = {
         'layer/personal.cfg' => '
 a:
@@ -99,7 +99,7 @@ e:
 
 '
     };
-    my $env = temp_env( conf_files => $conf_files );
+    my $env = $self->temp_env( conf_files => $conf_files );
     my %expected_values = (
         'a' => { 'b' => { c => 6, d => 2 } },
         'a.b'   => { c => 6, d => 2 },
@@ -126,7 +126,7 @@ e:
 
     $conf_files->{'layer/personal.cfg'} = { 'a' => { 'b' => 17 } };
     throws_ok(
-        sub { $env = temp_env( conf_files => $conf_files ) },
+        sub { $env = $self->temp_env( conf_files => $conf_files ) },
         qr/error assigning to 'a.b.c' in .*; 'a.b' already has non-hash value/,
         "e.f: 17"
     );
@@ -143,8 +143,9 @@ e:
 }
 
 sub test_types : Tests {
-    my $truth   = { c => 't', d => 'true',  e => 'y', f => 'yes' };
-    my $falsity = { c => 'f', d => 'false', e => 'n', f => 'no' };
+    my $self       = shift;
+    my $truth      = { c => 't', d => 'true', e => 'y', f => 'yes' };
+    my $falsity    = { c => 'f', d => 'false', e => 'n', f => 'no' };
     my $conf_files = {
         'global.cfg' => {
             scalar  => 5,
@@ -155,7 +156,7 @@ sub test_types : Tests {
         }
     };
 
-    my $env = temp_env( conf_files => $conf_files );
+    my $env = $self->temp_env( conf_files => $conf_files );
     my $conf = $env->conf();
 
     cmp_deeply( $conf->get_list('list'), [ 1, 2, 3 ], 'list ok' );
@@ -181,8 +182,9 @@ sub test_types : Tests {
 }
 
 sub test_layer_required : Tests {
+    my $self = shift;
     throws_ok(
-        sub { temp_env( conf_files => { 'local.cfg' => {} } ) },
+        sub { $self->temp_env( conf_files => { 'local.cfg' => {} } ) },
         qr/must specify layer/,
         'no layer'
     );

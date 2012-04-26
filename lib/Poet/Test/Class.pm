@@ -1,21 +1,22 @@
-package Poet::Test::Util;
+package Poet::Test::Class;
+use Method::Signatures::Simple;
+use Carp;
 use Cwd qw(realpath);
 use File::Basename;
 use File::Path;
-use File::Slurp;
 use Plack::Util;
-use Poet::Environment;
 use Poet::Environment::Generator;
-use Poet::Util qw(tempdir_simple);
-use YAML::XS qw();
+use Poet::Environment;
+use Poet::Mechanize;
+use Poet::Tools qw(tempdir_simple write_file);
+use Test::Class::Most;
+use YAML::XS;
 use strict;
 use warnings;
-use base qw(Exporter);
 
-our @EXPORT =
-  qw(initialize_temp_env temp_env temp_env_dir write_conf_file build_test_mech);
+__PACKAGE__->SKIP_CLASS("abstract base class");
 
-sub write_conf_file {
+method write_conf_file ($class:) {
     my ( $conf_file, $conf_content ) = @_;
 
     if ( ref($conf_content) eq 'HASH' ) {
@@ -25,17 +26,17 @@ sub write_conf_file {
     write_file( $conf_file, $conf_content );
 }
 
-sub temp_env {
+method temp_env ($class:) {
     my (%params) = @_;
 
-    my $root_dir = temp_env_dir(%params);
+    my $root_dir = $class->temp_env_dir(%params);
     my $app_name = $params{app_name} || 'TestApp';
     if ( my $conf = $params{conf} ) {
-        write_conf_file( "$root_dir/conf/local.cfg", $conf );
+        $class->write_conf_file( "$root_dir/conf/local.cfg", $conf );
     }
     if ( my $conf_files = $params{conf_files} ) {
         while ( my ( $conf_file, $contents ) = each(%$conf_files) ) {
-            write_conf_file( "$root_dir/conf/$conf_file", $contents );
+            $class->write_conf_file( "$root_dir/conf/$conf_file", $contents );
         }
     }
     return Poet::Environment->new(
@@ -44,7 +45,7 @@ sub temp_env {
     );
 }
 
-sub temp_env_dir {
+method temp_env_dir ($class:) {
     my (%params) = @_;
 
     my $dist_root =
@@ -63,16 +64,13 @@ sub temp_env_dir {
     return realpath($root_dir);
 }
 
-sub initialize_temp_env {
-    my $env = temp_env(@_);
+method initialize_temp_env ($class:) {
+    my $env = $class->temp_env(@_);
     Poet::Environment->initialize_current_environment( env => $env );
 }
 
-sub build_test_mech {
-    my $env = shift;
-    require Test::WWW::Mechanize::PSGI;
-    my $psgi_app = Plack::Util::load_psgi( $env->bin_path("app.psgi") );
-    return Test::WWW::Mechanize::PSGI->new( app => $psgi_app );
+method mech ($class:) {
+    return Poet::Mechanize->new(@_);
 }
 
 # prevent YAML::XS warning...wtf

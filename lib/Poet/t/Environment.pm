@@ -1,18 +1,12 @@
 package Poet::t::Environment;
-use File::Slurp;
+use Test::Class::Most parent => 'Poet::Test::Class';
 use Poet::Environment::Generator;
-use Poet::Test::Util;
-use Test::Most;
-use YAML::XS;
-use strict;
-use warnings;
-use base qw(Test::Class);
 
 sub test_environment : Tests {
     my $self = shift;
 
     my $app_name = 'TheTestApp';
-    my $env      = temp_env( app_name => $app_name );
+    my $env      = $self->temp_env( app_name => $app_name );
     my $root_dir = $env->root_dir;
 
     foreach my $subdir (qw(bin conf lib)) {

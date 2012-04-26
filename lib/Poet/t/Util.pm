@@ -1,14 +1,11 @@
 package Poet::t::Util;
-use Poet::Util qw(read_file);
-use Poet::Test::Util;
+use Test::Class::Most parent => 'Poet::Test::Class';
+use Poet::Tools qw(read_file);
 use Poet::Util::Debug qw(:all);
 use Capture::Tiny qw(capture_stderr);
-use Test::Most;
-use strict;
-use warnings;
-use base qw(Test::Class);
 
-my $env = initialize_temp_env( conf => { layer => 'development' } );
+my $env =
+  __PACKAGE__->initialize_temp_env( conf => { layer => 'development' } );
 
 sub test_debug : Tests {
     my $data = { foo => 5, bar => 6 };

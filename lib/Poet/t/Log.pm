@@ -1,14 +1,8 @@
 package Poet::t::Log;
-use Cwd qw(realpath);
-use File::Temp qw(tempdir);
 use JSON::XS;
-use Poet::Test::Util;
-use Test::Most;
-use strict;
-use warnings;
-use base qw(Test::Class);
+use Test::Class::Most parent => 'Poet::Test::Class';
 
-initialize_temp_env();
+__PACKAGE__->initialize_temp_env();
 
 sub test_log_config : Tests {
     my $env      = Poet::Environment->current_env;

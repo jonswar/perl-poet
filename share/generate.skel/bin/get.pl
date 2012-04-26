@@ -1,11 +1,11 @@
 #!/usr/bin/env perl
 use Poet::Script qw($env);
-use Poet::Test::Util qw();
+use Poet::Mechanize;
 use warnings;
 use strict;
 
 my $url = shift(@ARGV) or die "usage: $0 url";
-my $mech = Poet::Test::Util::build_test_mech($env);
+my $mech = Poet::Mechanize->new();
 $mech->get($url);
 if ( $mech->success ) {
     print $mech->content;
