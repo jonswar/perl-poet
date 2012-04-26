@@ -1,7 +1,6 @@
 <%text>
 
 <%class>
-use Poet qw($conf $env);
 </%class>
 
 <h2>Welcome to Poet!</h2>
