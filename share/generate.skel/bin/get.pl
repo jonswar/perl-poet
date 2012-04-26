@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 use Poet::Script qw($env);
 use Poet::Test::Util qw();
 use warnings;
