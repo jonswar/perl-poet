@@ -6,6 +6,7 @@ Revision history for Poet
 
 - Various documentation and generated environment tweaks
 - DWIM with lowercase, underscored argument to "poet new"
+- Remove some files from pause indexing
 
 0.02  Apr 23, 2012
 
