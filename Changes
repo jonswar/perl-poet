@@ -2,7 +2,7 @@ Revision history for Poet
 
 ** denotes an incompatible change
 
-0.03  Apr 23, 2012
+0.03  Apr 26, 2012
 
 - Various documentation and generated environment tweaks
 - DWIM with lowercase, underscored argument to "poet new"
