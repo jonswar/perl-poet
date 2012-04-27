@@ -42,7 +42,7 @@ method get_plugins ($class:) {
 method handle_psgi ($class: $psgi_env) {
     my $req      = $env->app_class('Plack::Request')->new($psgi_env);
     my $response = try {
-        my $interp = $env->app_class('Mason')->instance;
+        my $interp = $env->app_class('Mason')->instance($req);
         my $m = $interp->_make_request( req => $req );
         $m->run( $class->_psgi_comp_path($req),
             $class->_psgi_parameters($req) );
