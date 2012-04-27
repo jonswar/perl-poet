@@ -4,8 +4,6 @@ Revision history for Poet
 
 0.04  Apr 26, 2012
 
-0.03  Apr 26, 2012
-
 * Improvements
   - DWIM with lowercase and/or underscored argument to "poet new"
 
