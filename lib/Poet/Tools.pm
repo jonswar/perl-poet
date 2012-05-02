@@ -3,6 +3,7 @@
 package Poet::Tools;
 use Carp;
 use Class::MOP;
+use Config;
 use Fcntl qw( :DEFAULT :seek );
 use File::Find;
 use File::Spec::Functions ();
@@ -13,7 +14,7 @@ use warnings;
 use base qw(Exporter);
 
 our @EXPORT_OK =
-  qw(can_load catdir catfile checksum find_wanted read_file taint_is_on tempdir_simple trim uniq write_file );
+  qw(can_load catdir catfile checksum find_wanted perl_executable read_file taint_is_on tempdir_simple trim uniq write_file );
 
 my $Fetch_Flags          = O_RDONLY | O_BINARY;
 my $Store_Flags          = O_WRONLY | O_CREAT | O_BINARY;
@@ -76,6 +77,19 @@ sub find_wanted {
     find( sub { push @files, $File::Find::name if &$func }, @_ );
 
     return @files;
+}
+
+# Return perl executable - from ExtUtils::MM_Unix
+sub perl_executable {
+    my $interpreter;
+    if ( $Config{startperl} =~ m,^\#!.*/perl, ) {
+        $interpreter = $Config{startperl};
+        $interpreter =~ s,^\#!,,;
+    }
+    else {
+        $interpreter = $Config{perlpath};
+    }
+    return $interpreter;
 }
 
 sub read_file {

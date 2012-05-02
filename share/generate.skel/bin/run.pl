@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!<% Poet::Tools::perl_executable %>
 #
 # Runs plackup with appropriate options
 #

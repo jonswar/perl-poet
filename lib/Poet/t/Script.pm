@@ -28,7 +28,7 @@ sub test_script : Tests {
     is_deeply( $result, [ $root_dir, "$root_dir/lib", "$root_dir/lib", 42 ] );
 }
 
-$script_template = '#!/usr/bin/env perl
+$script_template = '#!%s
 use lib qw(%s);
 use Poet::Script qw($conf $env);
 use YAML::XS;

@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!<% Poet::Tools::perl_executable %>
 use Poet::Script qw($env);
 use Poet::Mechanize;
 use warnings;
