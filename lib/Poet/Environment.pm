@@ -49,6 +49,7 @@ method initialize_current_environment ($class: %params) {
             $current_env->root_dir() );
     }
     $current_env = $params{env} || $class->new(%params);
+    my $root_dir = $current_env->root_dir;
 
     # Unshift lib dir onto @INC
     #

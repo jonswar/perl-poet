@@ -15,7 +15,10 @@ my $env = __PACKAGE__->initialize_temp_env(
     }
 );
 unlink( glob( $env->comps_path("*.mc") ) );
-write_file( $env->lib_path("TestApp/Foo.pm"), "package TestApp::Foo;\n1;\n" );
+write_file(
+    $env->lib_path("TestApp/Foo.pm"),
+    "package TestApp::Foo;\nsub bar {}\n1;\n"
+);
 
 sub mech {
     my $self = shift;
@@ -252,6 +255,16 @@ root_dir: <% $m->cache->root_dir %>
 chi_root_class: Poet::Cache
 root_dir: $expected_root_dir
 ",
+    );
+}
+
+sub test_misc : Tests {
+    my $self = shift;
+    $self->try_psgi_comp(
+        path => '/hi.mc',
+        src =>
+          'TestApp::Foo = <% TestApp::Foo->can("bar") ? "loaded" : "not loaded" %>',
+        expect_content => 'TestApp::Foo = loaded',
     );
 }
 

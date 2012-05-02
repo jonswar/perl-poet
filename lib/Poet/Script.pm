@@ -17,11 +17,6 @@ method import ($pkg:) {
 }
 
 func initialize_with_root_dir ($root_dir) {
-    my $lib_dir = "$root_dir/lib";
-    unless ( $INC[0] eq $lib_dir ) {
-        unshift( @INC, $lib_dir );
-    }
-
     my ($app_name) = ( read_file("$root_dir/.poet_root") =~ /app_name: (.*)/ )
       or die "cannot find app_name in $root_dir/.poet_root";
 
