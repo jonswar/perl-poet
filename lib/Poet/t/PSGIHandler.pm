@@ -7,10 +7,15 @@ use Guard;
 use Poet::Tools qw(trim write_file);
 use IPC::System::Simple qw(run);
 
-my $env =
-  __PACKAGE__->initialize_temp_env(
-    conf => { layer => 'production', 'foo.bar' => 5 } );
+my $env = __PACKAGE__->initialize_temp_env(
+    conf => {
+        layer                 => 'production',
+        'foo.bar'             => 5,
+        'server.load_modules' => ['TestApp::Foo']
+    }
+);
 unlink( glob( $env->comps_path("*.mc") ) );
+write_file( $env->lib_path("TestApp/Foo.pm"), "package TestApp::Foo;\n1;\n" );
 
 sub mech {
     my $self = shift;

@@ -50,6 +50,13 @@ method initialize_current_environment ($class: %params) {
     }
     $current_env = $params{env} || $class->new(%params);
 
+    # Unshift lib dir onto @INC
+    #
+    my $lib_dir = "$root_dir/lib";
+    unless ( $INC[0] eq $lib_dir ) {
+        unshift( @INC, $lib_dir );
+    }
+
     # Initialize logging and caching
     #
     $current_env->app_class('Log')->initialize_logging();
