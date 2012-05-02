@@ -4,6 +4,10 @@ use Plack::Session::Store::Cache;
 use strict;
 use warnings;
 
+# Load modules configured in server.load_modules
+#
+$env->app_class('Server')->load_startup_modules();
+
 builder {
 
     # Add Plack middleware here

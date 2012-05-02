@@ -14,11 +14,6 @@ my $server = $env->app_class('Server');
 #
 my @options = $server->get_plackup_options();
 
-# Load modules configured in server.load_modules
-#
-$server->load_startup_modules();
-
 my @cmd = ("plackup", @options, $app_psgi);
 print "Running " . join(", ", @cmd) . "\n";
 run(@cmd);
-
