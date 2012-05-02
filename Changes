@@ -4,6 +4,12 @@ Revision history for Poet
 
 0.05  Apr 26, 2012
 
+* Fixes
+  - Generate the appropriate shebang line in bin/*.pl via Config
+
+* Improvements
+  - Various changes to scaffolding produced by 'poet new'
+
 0.04  Apr 26, 2012
 
 * Improvements
