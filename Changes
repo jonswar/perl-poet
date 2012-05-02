@@ -2,7 +2,7 @@ Revision history for Poet
 
 ** denotes an incompatible change
 
-0.05  Apr 26, 2012
+0.05  May 1, 2012
 
 * Fixes
   - Generate the appropriate shebang line in bin/*.pl via Config
