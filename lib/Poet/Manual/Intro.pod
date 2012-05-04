@@ -160,9 +160,9 @@ L<subclasses|Poet::Manual::Subclassing> of its own classes.
 =head1 CONFIGURATION AND LAYERS
 
 Poet configuration files are kept in the C<conf> subdirectory. The files are in
-YAML form and are merged in a particular order to create a single configuration
-hash. (If you want to use something other than YAML you can L<customize
-this|Poet::Manual::Subclassing>.)
+L<YAML|http://www.yaml.org/> form and are merged in a particular order to
+create a single configuration hash. (If you want to use something other than
+YAML you can L<customize this|Poet::Manual::Subclassing>.)
 
 Configuration files come in three varieties: C<global>, C<layer>, and C<local>,
 in order from least to highest precedence.

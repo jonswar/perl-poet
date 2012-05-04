@@ -78,18 +78,20 @@ a file C<db/schema.sql> with:
     create table if not exists articles (
       id integer primary key autoincrement,
       content string not null,
-      create_time integer not null,
+      create_time timestamp not null,
       title string not null
     );
 
 Then run
 
     % cd blog
-    % sqlite -batch data/blog.db < db/schema.sql
+    % sqlite3 -batch data/blog.db < db/schema.sql
 
 We'll use L<Rose::DB::Object> to provide a nice object-oriented API to our data
 (L<DBIx::Class> would work as well). Create a file C<lib/Blog/DB.pm> to tell
 Rose how to connect to our database:
+
+  lib/Blog/DB.pm:
 
     package Blog::DB;
     use Poet qw($env);
@@ -106,6 +108,8 @@ Rose how to connect to our database:
     1;
 
 and a file C<lib/Blog/Article.pm> to represent the articles table:
+
+  lib/Blog/Article.pm:
 
     package Blog::Article;
     use Blog::DB;
@@ -153,6 +157,31 @@ You can also import sets of utilities in the same way, e.g. ':file' for file
 utilities and ':web' for web-related utilities. See
 L<Poet::Import|Poet::Import> for the full list of Poet vars and utility sets.
 
+=head1 CONFIGURATION
+
+Poet configuration files are kept in the C<conf> subdirectory. The files are in
+L<YAML|http://www.yaml.org/> form and are merged in a particular order to
+create a single configuration hash.
+
+For this tutorial we can ignore everything but C<conf/local.cfg>. It currently
+contains:
+
+    layer: development
+    
+    server.port: 5000
+
+This says that you are in development mode (so that you'll see errors directly
+in the browser, etc.) and running on port 5000.
+
+You'll need to add one more entry:
+
+    server.load_modules:
+        - Blog::Article
+
+This says to load C<Blog::Article>, our model, on server startup.
+
+See L<Poet::Conf|Poet::Conf> for More information on configuration.
+
 =head1 MASON PAGES AND COMPONENTS
 
 Mason is the templating engine that you'll use to render pages (the I<view>),
@@ -176,6 +205,8 @@ use those, so let's clear them by running
      rm -fR comps; mkdir comps
 
 Now here's our first component to serve the home page, C<comps/index.mc>:
+
+  comps/index.mc:
 
      1  <html>
      2    <head>
@@ -208,10 +239,13 @@ invokes another component, whose output is inserted in place.
 
 =head2 %-lines, substitution tags, <%init> blocks
 
-Because C<all_articles.mi> has an C<.mi> extension (rather than C<.mc>), it is
-an L<internal|Mason::Manual::Components/Component file extensions> rather than
-a top-level component, and cannot be reached by an external URL. It can only be
-reached via a component call from another component.
+Next we create C<comps/all_articles.mi>. Because it has an C<.mi> extension
+rather than C<.mc>, it is an L<internal|Mason::Manual::Components/Component
+file extensions> rather than a top-level component, and cannot be reached by an
+external URL. It can only be reached via a component call from another
+component.
+
+  comps/all_articles.mi
 
      1  % if (@articles) {
      2  <b>Showing <% scalar(@articles) %> article<% @articles > 1 ? "s" : "" %>.</b>
@@ -266,7 +300,10 @@ or absolute.
 
 =head2 Attributes
 
-Next we create C</article/display.mi>, another internal component:
+Next we create C<comps/article/display.mi>. (It is in a new subdirectory,
+showing that you can freely organize components among different directories.)
+
+  comps/article/display.mi:
 
      1  <%class>
      2  use Date::Format;
@@ -309,8 +346,10 @@ filtering offends you. :)
 =head2 Content wrapping, autobases, inheritance, method modifiers
 
 Now we have to handle the URL C</new_article>, linked from the home page. We do
-this with our second page component, C</new_article.mc>. It contains only HTML
-(for now).
+this with our second page component, C<comps/new_article.mc>. It contains only
+HTML (for now).
+
+  comps/new_article.mc:
 
      1  <html>
      2    <head>
@@ -331,11 +370,13 @@ this with our second page component, C</new_article.mc>. It contains only HTML
     17    </body>
     18  </html>
 
-Notice that C</index.mc> and C</new_article.mc> have the same outer HTML
-template; other pages will as well.  It's going to be tedious to repeat this
-everywhere. And of course, we don't have to. We take the common pieces out of
-the C</index.mc> and C</new_article.mc> and place them into a new component
-called C</Base.mc>:
+Notice that C<comps/index.mc> and C<comps/new_article.mc> have the same outer
+HTML template; other pages will as well.  It's going to be tedious to repeat
+this everywhere. And of course, we don't have to. We take the common pieces out
+of the C<comps/index.mc> and C<comps/new_article.mc> and place them into a new
+component called C<comps/Base.mc>:
+
+  comps/Base.mc:
 
      1  <%augment wrap>
      2    <html>
@@ -349,21 +390,42 @@ called C</Base.mc>:
     10    </html>
     11  </%augment>
 
-When any page in our hierarchy is rendered, C</Base.mc> will get control first.
-It will render the upper portion of the template (lines 2-7), then call the
-specific page component (line 8), then render the lower portion of the template
-(lines 9-10).
+When any page in our hierarchy is rendered, C<comps/Base.mc> will get control
+first. It will render the upper portion of the template (lines 2-7), then call
+the specific page component (line 8), then render the lower portion of the
+template (lines 9-10).
 
-Now, we can remove those nine boilerplate lines from C</index.mc> and
-C</node/view.mc>.
+Now, we can remove everything but the inside of the C<< <body> >> tag from
+C<comps/index.mc> and C<comps/new_article.mc>.
+
+  comps/index.mc:
+
+    <h2>Welcome to my blog.</h2>
+    
+    <& all_articles.mi &>
+    
+    <a href="/new_article">Add an article</a>
+   
+  comps/new_article.mc
+
+    <h2>Add an article</h2>
+    
+    <form action="/article/publish" method=post>
+      <p>Title: <input type=text size=30 name=title></p>
+      <p>Text:</p>
+      <textarea name=content rows=20 cols=70></textarea>
+      <p><input type=submit value="Publish"></p>
+    </form>
 
 More details on how content wrapping works L<here|Mason::Component/wrap>.
 
 =head2 Form handling, pure-perl components
 
 C</new_article.mc> posts to C</article/publish>. Let's create a component to
-handle that, called C</article/publish.mp>. It will not output anything, but
-will simply take action and redirect.
+handle that, called C<comps/article/publish.mp>. It will not output anything,
+but will simply take action and redirect.
+
+  comps/article/publish.mp:
 
      1  has 'content';
      2  has 'title';
@@ -411,6 +473,8 @@ On lines 7 and 14, we set a message in the session that we want to display on
 the next page. Rather than just making this work for a specific page, let's add
 generic code to the template in C<Base.mc>:
 
+  comps/Base.mc:
+
      7      <body>
  =>  8  % if (my $message = delete($m->session->{message})) {
  =>  9        <div class="message"><% $message %></div>
@@ -427,23 +491,25 @@ component attribute that contains all the arguments passed to the component.
 
 =head2 Filters
 
-We need to change C<< /new_article.mc >> to repopulate the form with the
+We need to change C<< comps/new_article.mc >> to repopulate the form with the
 submitted values when validation fails.
 
-     1  <h2>Add an article</h2>
-     2  
-     3  % $.FillInForm($form_data) {{
-     4  <form action="/article/publish" method=post>
-     5    <p>Title: <input type=text size=30 name=title></p>
-     6    <p>Text:</p>
-     7    <textarea name=content rows=20 cols=70></textarea>
-     8    <p><input type=submit value="Publish"></p>
-     9  </form>
-    10  % }}
-    11  
-    12  <%init>
-    13  my $form_data = delete($m->session->{form_data});
-    14  </%init>
+  comps/new_article.mc:
+
+      1  <h2>Add an article</h2>
+      2  
+ ==>  3  % $.FillInForm($form_data) {{
+      4  <form action="/article/publish" method=post>
+      5    <p>Title: <input type=text size=30 name=title></p>
+      6    <p>Text:</p>
+      7    <textarea name=content rows=20 cols=70></textarea>
+      8    <p><input type=submit value="Publish"></p>
+      9  </form>
+ ==> 10  % }}
+     11  
+ ==> 12  <%init>
+ ==> 13  my $form_data = delete($m->session->{form_data});
+ ==> 14  </%init>
 
 On lines 3 and 10 we surround the form with a I<filter>. A filter takes a
 content block as input and returns a new content block which is output in its
@@ -516,6 +582,8 @@ This initializes Poet for the entire web environment.
 
 Now we can fill out our purge script:
 
+  bin/purge_old_entries.pl:
+
     #!/usr/local/bin/perl
     use Poet::Script qw($conf);
     use Blog::Article::Manager;
@@ -533,4 +601,10 @@ In line 7, we get C<$days_to_keep> from configuration, giving it a reasonable
 default if there's nothing in configuration.
 
 Finally in lines 8-10 we delete articles less than the minimum date.
+
+=head1 FILES FROM THIS TUTORIAL
+
+The final set of files for our blog demo are in the C<eg/blog> directory of the
+Poet distribution, or you can view them at
+L<github|https://github.com/jonswar/perl-poet/tree/master/eg/blog>.
 
