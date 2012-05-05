@@ -1,0 +1,5 @@
+The micro-blog demo built in Poet::Manual::Tutorial.
+
+Run bin/install.sh to install CPAN modules and the database.
+
+Run bin/run.pl to start the server.
