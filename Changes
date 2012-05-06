@@ -4,6 +4,9 @@ Revision history for Poet
 
 0.06  May 6, 2012
 
+* Fixes
+  - Require Mason 2.19
+
 * Documentation
   - Improve clarity of tutorial (Horia Cristescu)
   - Include tutorial files in distro, in eg/blog (Debi)
