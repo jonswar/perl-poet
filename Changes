@@ -4,6 +4,9 @@ Revision history for Poet
 
 0.07  May 6, 2012
 
+* Fixes
+  - Fix for Moose 2.06 - RT #76793 (doy)
+
 0.06  May 6, 2012
 
 * Fixes
