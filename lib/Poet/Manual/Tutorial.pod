@@ -18,7 +18,7 @@ First we install Poet and a few other support modules.
 If you don't yet have cpanminus (C<cpanm>), get it
 L<here|http://search.cpan.org/perldoc?App::cpanminus#INSTALLATION>. Then run
 
-    cpanm -S --notest Date::Format DBD::SQLite Poet Rose::DB::Object
+    cpanm -S --notest DateTime DBD::SQLite Poet Rose::DB::Object
 
 Omit the "-S" if you don't have root, in which case cpanminus will install Poet
 and prereqs into C<~/perl5>.
@@ -327,7 +327,7 @@ showing that you can freely organize components among different directories.)
      6  
      7  <div class="article">
      8    <h3><% $.article->title %></h3>
-     9    <h4><% time2str($date_fmt, $.article->create_time) %></h4>
+     9    <h4><% $.article->create_time->strftime($date_fmt) %></h4>
     10    <% $.article->content %>
     11  </div>
 
@@ -447,16 +447,19 @@ but will simply take action and redirect.
      4  method handle () {
      5      my $session = $m->session;
      6      if ( !$.content || !$.title ) {
-     7          $session->{message} = "Content and title required.";
+     7          $session->{message}   = "Content and title required.";
      8          $session->{form_data} = $.args;
      9          $m->redirect('/new_article');
     10      }
-    11      my $article = Blog::Article->new
-    12          ( title => $.title, content => $.content, create_time => time() );
-    13      $article->save;
-    14      $session->{message} = sprintf( "Article '%s' saved.", $.title );
-    15      $m->redirect('/');
-    16  }
+    11      my $article = Blog::Article->new(
+    12          title       => $.title,
+    13          content     => $.content,
+    14          create_time => DateTime->now( time_zone => 'local' )
+    15      );
+    16      $article->save;
+    17      $session->{message} = sprintf( "Article '%s' saved.", $.title );
+    18      $m->redirect('/');
+    19  } 
 
 The C<.mp> extension indicates that this is a
 L<pure-perl|Mason::Manual::Components/Component file extensions> component.
@@ -483,7 +486,7 @@ On line 5 we grab the Plack session via C<< $m->session >>. This is one of a
 handful of L<web-related methods|Poet::Mason/NEW REQUEST METHODS> only
 available in Poet.
 
-On lines 7 and 14, we set a message in the session that we want to display on
+On lines 7 and 17, we set a message in the session that we want to display on
 the next page. Rather than just making this work for a specific page, let's add
 generic code to the template in C<Base.mc>:
 

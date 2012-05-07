@@ -6,6 +6,6 @@ has 'article' => (required => 1);
 
 <div class="article">
   <h3><% $.article->title %></h3>
-  <h4><% time2str($date_fmt, $.article->create_time) %></h4>
+  <h4><% $.article->create_time->strftime($date_fmt) %></h4>
   <% $.article->content %>
 </div>
