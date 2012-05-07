@@ -17,3 +17,4 @@ method handle () {
     $session->{message} = sprintf( "Article '%s' saved.", $.title );
     $m->redirect('/');
 }
+

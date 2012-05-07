@@ -5,7 +5,7 @@ has 'article' => (required => 1);
 </%class>
 
 <div class="article">
-  <h3><% $.article->title %></h3>
-  <h4><% $.article->create_time->strftime($date_fmt) %></h4>
-  <% $.article->content %>
+   <h3><% $.article->title %></h3>
+   <h4><% $.article->create_time->strftime($date_fmt) %></h4>
+   <% $.article->content %>
 </div>
