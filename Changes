@@ -4,6 +4,9 @@ Revision history for Poet
 
 0.08  May 6, 2012
 
+* Fixes
+  - Handle Log::Any::Adapter::Log4perl being missing as well
+
 * Documentation
   - Fix blog article date/time issue in tutorial - Pat McNamee
 
