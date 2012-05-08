@@ -13,7 +13,9 @@ method get_logger ($class: %params) {
 }
 
 method initialize_logging ($class:) {
-    if ( can_load('Log::Log4perl') && can_load('Log::Any::Adapter::Log4perl') )
+    if (   can_load('Log::Log4perl')
+        && can_load('Log::Any::Adapter')
+        && can_load('Log::Any::Adapter::Log4perl') )
     {
         unless ( Log::Log4perl->initialized() ) {
             my $config_string = $class->generate_log4perl_config();
