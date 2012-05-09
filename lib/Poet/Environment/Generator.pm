@@ -42,6 +42,7 @@ method generate_environment_directory ($class: %params) {
       or die "could not find template components";
 
     foreach my $path (@paths) {
+        next if $path =~ m{/\.};    # .svn, .git, etc.
         my $output = trim( $interp->run($path)->output );
         ( my $dest = $path ) =~ s{/DOT_}{/.}g;
         $dest = $root_dir . $dest;
