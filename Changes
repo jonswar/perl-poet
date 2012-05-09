@@ -2,7 +2,7 @@ Revision history for Poet
 
 ** denotes an incompatible change
 
-0.08  May 6, 2012
+0.08  May 9, 2012
 
 * Fixes
   - Handle Log::Any::Adapter::Log4perl being missing as well
