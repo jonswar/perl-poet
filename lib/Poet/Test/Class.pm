@@ -48,11 +48,7 @@ method temp_env ($class:) {
 method temp_env_dir ($class:) {
     my (%params) = @_;
 
-    my $dist_root =
-      dirname( dirname( dirname( dirname( realpath(__FILE__) ) ) ) );
-    local ( $ENV{POET_SHARE_DIR} ) =
-      grep { -d $_ }
-      ( "$dist_root/share", "$dist_root/lib/auto/share/dist/Poet" );
+    local $ENV{POET_SHARE_DIR} = $params{share_dir} || $class->share_dir;
 
     my $app_name = $params{app_name} || 'TestApp';
     my $root_dir = Poet::Environment::Generator->generate_environment_directory(
@@ -62,6 +58,15 @@ method temp_env_dir ($class:) {
         style    => 'bare',
     );
     return realpath($root_dir);
+}
+
+method share_dir () {
+    my $dist_root =
+      dirname( dirname( dirname( dirname( realpath(__FILE__) ) ) ) );
+    my ($share_dir) =
+      grep { -d $_ }
+      ( "$dist_root/share", "$dist_root/lib/auto/share/dist/Poet" );
+    return $share_dir;
 }
 
 method initialize_temp_env ($class:) {
