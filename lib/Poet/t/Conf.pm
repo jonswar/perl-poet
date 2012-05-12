@@ -190,4 +190,20 @@ sub test_layer_required : Tests {
     );
 }
 
+sub test_substitutions : Tests {
+    my $self = shift;
+    my $env  = $self->temp_env(
+        conf => {
+            layer => 'development',
+            'a.b' => 'bar',
+            'c'   => '/foo/${a.b}/baz',
+            'd'   => '/foo/${huh}/baz'
+        }
+    );
+    my $conf = $env->conf();
+    is( $conf->get('c'), '/foo/bar/baz', 'substitution' );
+    throws_ok { $conf->get('d') } qr/could not get conf for 'huh'/,
+      'bad substitution';
+}
+
 1;

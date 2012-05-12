@@ -174,7 +174,7 @@ method get ($key, $default) {
         while ( $value =~ /(\$ \{ ([\w\.\-]+) \} )/x ) {
             my $var_decl  = $1;
             my $var_key   = $2;
-            my $var_value = $self->get($var_key);
+            my $var_value = $self->get_or_die($var_key);
             $var_value = '' if !defined($var_value);
             $value =~ s/\Q$var_decl\E/$var_value/;
         }
@@ -423,6 +423,8 @@ Conf entries can refer to other entries via the syntax C<${key}>. For example:
       => "The number 5"
    $conf->get('baz')
       => "The number 500"
+
+The key must exist or a fatal error will occur.
 
 There is a single built-in entry, C<root>, containing the root directory of the
 environment that you can use in other entries, e.g.
