@@ -80,27 +80,27 @@ sub try_psgi_comp {
 sub test_get_pl : Tests {
     my $self = shift;
     $self->add_comp(
-        path => '/hi.mc',
+        path => '/getpl.mc',
         src  => 'path = <% $m->req->path %>'
     );
-    my $cmd = sprintf( "%s /hi", $env->bin_path("get.pl") );
+    my $cmd = sprintf( "%s /getpl", $env->bin_path("get.pl") );
     my $output = Capture::Tiny::capture_merged { system($cmd) };
-    is( $output, 'path = /hi', "get.pl output" );
+    is( $output, 'path = /getpl', "get.pl output" );
 }
 
 sub test_basic : Tests {
     my $self = shift;
     $self->try_psgi_comp(
-        path           => '/hi.mc',
+        path           => '/basic.mc',
         src            => 'path = <% $m->req->path %>',
-        expect_content => 'path = /hi',
+        expect_content => 'path = /basic',
     );
 }
 
 sub test_error : Tests {
     my $self = shift;
     $self->try_psgi_comp(
-        path           => '/die.mc',
+        path           => '/error.mc',
         src            => '% die "bleah";',
         expect_code    => 500,
         expect_content => qr/bleah at/,
@@ -261,7 +261,7 @@ root_dir: $expected_root_dir
 sub test_misc : Tests {
     my $self = shift;
     $self->try_psgi_comp(
-        path => '/hi.mc',
+        path => '/misc.mc',
         src =>
           'TestApp::Foo = <% TestApp::Foo->can("bar") ? "loaded" : "not loaded" %>',
         expect_content => 'TestApp::Foo = loaded',
