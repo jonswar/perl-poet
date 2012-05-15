@@ -4,6 +4,9 @@ Revision history for Poet
 
 0.09  May 9, 2012
 
+* Fixes
+  - Allow for older File::Path versions - RT #77206 (Gavin Carr)
+
 0.08  May 9, 2012
 
 * Fixes
@@ -12,7 +15,7 @@ Revision history for Poet
   - Handle .svn and .git in share/generate.skel
 
 * Documentation
-  - Fix blog article date/time issue in tutorial - Pat McNamee
+  - Fix blog article date/time issue in tutorial (Pat McNamee)
 
 0.07  May 6, 2012
 

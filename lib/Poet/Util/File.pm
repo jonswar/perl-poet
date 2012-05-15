@@ -1,14 +1,19 @@
 package Poet::Util::File;
 use File::Basename qw(basename dirname);
-use File::Path qw(make_path remove_tree);
+use File::Path qw();
 use File::Slurp qw(read_dir read_file write_file);
 use File::Spec::Functions qw(abs2rel canonpath catdir catfile rel2abs);
+use List::MoreUtils qw(uniq);
 use strict;
 use warnings;
 use base qw(Exporter);
 
-our @EXPORT_OK =
-  qw(abs2rel basename canonpath catdir catfile dirname make_path read_dir read_file rel2abs remove_tree write_file);
+File::Path->import( @File::Path::EXPORT, @File::Path::EXPORT_OK );
+
+our @EXPORT_OK = uniq(
+    qw(abs2rel basename canonpath catdir catfile dirname read_file rel2abs write_file),
+    @File::Path::EXPORT, @File::Path::EXPORT_OK
+);
 our %EXPORT_TAGS = ( 'all' => \@EXPORT_OK );
 
 1;
@@ -44,7 +49,7 @@ This group of utilities includes
 
 From L<File::Basename|File::Basename>.
 
-=item make_path, remove_tree
+=item mkpath, make_path, rmtree, remove_tree
 
 From L<File::Path|File::Path>.
 

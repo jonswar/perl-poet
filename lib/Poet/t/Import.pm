@@ -35,7 +35,7 @@ sub test_import_methods : Tests {
         package TestImportMethods2;
         BEGIN { $importer->export_to_level( 0, qw(:file) ) }
         use Test::Most;
-        foreach my $function (qw(dp basename)) {
+        foreach my $function (qw(dp basename mkpath rmtree)) {
             ok( TestImportMethods2->can($function), "yes $function" );
         }
     }
