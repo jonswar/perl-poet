@@ -22,6 +22,8 @@ sub test_environment : Tests {
         my $file = $env->lib_path("$app_name/$class.pm");
         ok( -f $file, "$file exists" );
     }
+    ok( -x $env->bin_path("run.pl"), "run.pl executable" );
+    ok( -x $env->bin_path("get.pl"), "get.pl executable" );
 }
 
 sub test_dot_files_in_share_dir : Tests {
