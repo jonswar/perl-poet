@@ -15,6 +15,7 @@ sub test_environment : Tests {
         my $subdir_method = $subdir . "_dir";
         is( $env->$subdir_method, "$root_dir/$subdir", $subdir_method );
         ok( -d $env->$subdir_method, "$subdir exists" );
+        ok( -d $env->path($subdir),  "$subdir exists" );
     }
     is( $env->conf->layer, 'development', "layer" );
     foreach my $class (qw(Conf Log Mason)) {

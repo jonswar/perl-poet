@@ -29,7 +29,7 @@ method generate_subdir_methods ($class:) {
     foreach my $subdir ( 'root', @{ $class->subdirs() } ) {
         my $dir_method = $subdir . "_dir";
         has $dir_method => () if $subdir ne 'root';
-        my $path_method = $subdir . "_path";
+        my $path_method = $subdir eq 'root' ? "path" : $subdir . "_path";
         __PACKAGE__->meta->add_method(
             $path_method,
             sub {
@@ -118,6 +118,7 @@ Poet::Environment -- Poet environment
 
     # then...
     my $root_dir       = $env->root_dir;
+    my $file           = $env->path("some/file.txt");
     my $path_to_script = $env->bin_path("foo/bar.pl");
     my $path_to_lib    = $env->lib_path("Foo/Bar.pm");
 
@@ -135,12 +136,12 @@ and its directory paths.
 Returns the root directory of the environment, i.e. where I<.poet_root> is
 located.
 
-=item root_path (subpath)
+=item path (subpath)
 
 Returns the root directory with a relative I<subpath> added. e.g. if the Poet
 environment root is C</my/env/root>, then
 
-    $env->conf_path("somefile.txt");
+    $env->path("somefile.txt");
        ==> returns /my/env/root/somefile.txt
 
 =item bin_dir
