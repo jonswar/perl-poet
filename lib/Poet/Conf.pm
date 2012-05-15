@@ -1,6 +1,7 @@
 package Poet::Conf;
 use Carp;
 use Cwd qw(realpath);
+use Data::Rmap qw(rmap_scalar);
 use File::Basename;
 use File::Slurp qw(read_file);
 use File::Spec::Functions qw(catfile);
@@ -170,15 +171,7 @@ method get ($key, $default) {
         return $self->_get_dotted_key( $key, $default );
     }
     my $value = $self->data->{$key};
-    if ( defined($value) ) {
-        while ( $value =~ /(\$ \{ ([\w\.\-]+) \} )/x ) {
-            my $var_decl  = $1;
-            my $var_key   = $2;
-            my $var_value = $self->get_or_die($var_key);
-            $var_value = '' if !defined($var_value);
-            $value =~ s/\Q$var_decl\E/$var_value/;
-        }
-    }
+    rmap_scalar { $_ = $self->interpolate_value($_) if defined && !ref } $value;
     $get_cache{$key} = $value;
     return defined($value) ? $value : $default;
 }
@@ -187,6 +180,17 @@ method _get_dotted_key ($key, $default) {
     my ( $rest, $last ) = ( $key =~ /^(.*)\.([^\.]+)$/ );
     my $value = $self->get_hash($rest)->{$last};
     return defined($value) ? $value : $default;
+}
+
+method interpolate_value ($value) {
+    while ( $value =~ /(\$ \{ ([\w\.\-]+) \} )/x ) {
+        my $var_decl  = $1;
+        my $var_key   = $2;
+        my $var_value = $self->get_or_die($var_key);
+        $var_value = '' if !defined($var_value);
+        $value =~ s/\Q$var_decl\E/$var_value/;
+    }
+    return $value;
 }
 
 method get_or_die ($key) {
