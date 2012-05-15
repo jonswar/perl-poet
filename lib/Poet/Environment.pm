@@ -76,7 +76,8 @@ method BUILD () {
     # Initialize configuration
     #
     $self->{conf} =
-      $self->app_class('Conf')->new( conf_dir => catdir( $root_dir, "conf" ) );
+      $self->app_class('Conf')
+      ->new( root_dir => $root_dir, conf_dir => catdir( $root_dir, "conf" ) );
     my $conf = $self->{conf};
 
     # Initialize importer
