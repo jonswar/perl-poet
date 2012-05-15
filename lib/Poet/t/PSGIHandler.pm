@@ -5,7 +5,6 @@ use File::Basename;
 use File::Path;
 use Guard;
 use Poet::Tools qw(trim write_file);
-use IPC::System::Simple qw(run);
 
 my $env = __PACKAGE__->initialize_temp_env(
     conf => {
