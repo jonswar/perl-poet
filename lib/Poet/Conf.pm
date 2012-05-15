@@ -18,6 +18,7 @@ has 'data'           => ( init_arg => undef );
 has 'is_development' => ( init_arg => undef, lazy_build => 1 );
 has 'is_live'        => ( init_arg => undef, lazy_build => 1 );
 has 'layer'          => ( init_arg => undef, lazy_build => 1 );
+has 'root_dir'       => ( required => 1 );
 
 our %get_cache;
 
@@ -26,7 +27,7 @@ method BUILD () {
 }
 
 method initial_conf_data () {
-    return ( root => realpath( dirname( $self->conf_dir ) ) );
+    return ( root_dir => $self->root_dir, root => $self->root_dir );
 }
 
 method read_conf_data () {
@@ -430,13 +431,13 @@ Conf entries can refer to other entries via the syntax C<${key}>. For example:
 
 The key must exist or a fatal error will occur.
 
-There is a single built-in entry, C<root>, containing the root directory of the
-environment that you can use in other entries, e.g.
+There is a single built-in entry, C<root_dir>, containing the root directory of
+the environment that you can use in other entries, e.g.
 
    cache:
       defaults:
          driver: File
-         root_dir: ${root}/data/cache
+         root_dir: ${root_dir}/data/cache
 
 =head2 Dot notation for hash access
 
