@@ -1,13 +1,17 @@
 package Poet::t::Log;
+use Poet::Tools qw(tempdir_simple);
+use File::Path qw(rmtree);
 use JSON::XS;
 use Test::Class::Most parent => 'Poet::Test::Class';
 
 __PACKAGE__->initialize_temp_env();
 
 sub test_log_config : Tests {
-    my $env      = Poet::Environment->current_env;
-    my $conf     = $env->conf;
-    my $logs_dir = $env->logs_dir;
+    my $env       = Poet::Environment->current_env;
+    my $conf      = $env->conf;
+    my $logs_dir  = $env->logs_dir;
+    my $temp_dir  = tempdir_simple();
+    my $other_dir = "$temp_dir/other";
 
     my $test = sub {
         my ( $conf_settings, $expected ) = @_;
@@ -19,6 +23,7 @@ sub test_log_config : Tests {
     my $default_layout =
       "%d{dd/MMM/yyyy:HH:mm:ss.SS} [%p] %c - %m - %F:%L - %P%n";
 
+    rmtree($_) for ( $logs_dir, $other_dir );
     $test->(
         {},
         "log4perl.logger = INFO, default
@@ -28,7 +33,10 @@ log4perl.appender.default.layout.ConversionPattern = $default_layout
 log4perl.appender.default.filename = $logs_dir/poet.log
 "
     );
+    ok( -d $logs_dir,   "$logs_dir created" );
+    ok( !-d $other_dir, "$other_dir not created" );
 
+    rmtree($_) for ( $logs_dir, $other_dir );
     $test->(
         { log => { 'defaults' => { level => 'debug', output => 'foo.log' } } },
         "log4perl.logger = DEBUG, default
@@ -38,13 +46,16 @@ log4perl.appender.default.layout.ConversionPattern = $default_layout
 log4perl.appender.default.filename = $logs_dir/foo.log
 "
     );
+    ok( -d $logs_dir,   "$logs_dir created" );
+    ok( !-d $other_dir, "$other_dir not created" );
 
     $test->(
         {
             log => {
                 'defaults' => { level => 'info', output => 'foo.log' },
                 'class'    => {
-                    'Bar' => { level => 'warn', output => 'bar.log' },
+                    'Bar' =>
+                      { level => 'warn', output => "$other_dir/bar.log" },
                     'Bar.Errors'    => { output => 'stderr' },
                     'Bar.NonErrors' => { output => 'stdout' },
                 }
@@ -60,7 +71,7 @@ log4perl.logger.Bar = WARN, Bar
 log4perl.appender.Bar = Log::Log4perl::Appender::File
 log4perl.appender.Bar.layout = Log::Log4perl::Layout::PatternLayout
 log4perl.appender.Bar.layout.ConversionPattern = $default_layout
-log4perl.appender.Bar.filename = $logs_dir/bar.log
+log4perl.appender.Bar.filename = $other_dir/bar.log
 
 log4perl.logger.Bar.Errors = INFO, Bar_Errors
 log4perl.appender.Bar_Errors = Log::Log4perl::Appender::Screen
