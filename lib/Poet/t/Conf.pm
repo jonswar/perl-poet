@@ -1,4 +1,6 @@
 package Poet::t::Conf;
+use Poet::Tools qw(read_file write_file);
+use IPC::System::Simple qw(run);
 use Test::Class::Most parent => 'Poet::Test::Class';
 
 require Poet;
@@ -214,6 +216,25 @@ sub test_interpolation : Tests {
         'deep'
     );
 
+}
+
+sub test_dynamic_conf : Tests {
+    my $self = shift;
+    my $env  = $self->temp_env();
+    write_file( $env->conf_path("dynamic/foo.mc"), "<% 2+2 %>" );
+    ok(
+        !-d $env->data_path("conf/dynamic"),
+        "data/conf/dynamic does not exist"
+    );
+    run( $env->conf_path("dynamic/gen.pl") );
+    ok( -d $env->data_path("conf/dynamic"),     "data/conf/dynamic exists" );
+    ok( -f $env->data_path("conf/dynamic/foo"), "conf/dynamic/foo exists" );
+    is( read_file( $env->data_path("conf/dynamic/foo") ),
+        4, "foo has correct content" );
+    ok(
+        !-f $env->data_path("conf/dynamic/gen.pl"),
+        "conf/dynamic/gen.pl does not exist"
+    );
 }
 
 1;
