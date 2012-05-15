@@ -4,6 +4,10 @@ Revision history for Poet
 
 0.09  May 15, 2012
 
+* Improvements
+  - Referring to an unknown conf key in ${interpolated} syntax throws error instead of
+    inserting blank string
+
 * Fixes
   - Allow for older File::Path versions - RT #77206 (Gavin Carr)
   - Fix PSGIHandler test from using the same component paths for multiple test cases
