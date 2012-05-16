@@ -105,6 +105,7 @@ method generate_dynamic_conf () {
         dest_dir      => $dest_dir,
         ignore_files  => sub { $_[0] =~ /Base\.|\.mi$|gen\.pl|README/ },
         mason_options => {},
+        @_
     );
     $pd->process_dir();
 }
