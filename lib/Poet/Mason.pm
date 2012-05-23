@@ -241,10 +241,12 @@ is equivalent to
 =item session
 
 A shortcut for C<$m-E<gt>req-E<gt>session>, the L<Plack
-session|Plack::Session>. e.g.
+session|Plack::Session>.  This is simply a persistent hash that you can read
+from and write to. It is tied to the user's browser session via cookies and
+stored in a file cache in the data directory (by default).
 
-    $m->session->get($key);
-    $m->session->set($key, $value);
+    my $value = $m->session->{key};
+    $m->session->{key} = { some_complex => ['value'] };
 
 =item send_json ($data)
 
