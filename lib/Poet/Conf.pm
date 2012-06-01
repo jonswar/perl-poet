@@ -199,7 +199,7 @@ method get_or_die ($key) {
         return $value;
     }
     else {
-        die "could not get conf for '$key'";
+        croak "could not get conf for '$key'";
     }
 }
 
@@ -260,7 +260,7 @@ method set_local ($pairs) {
     if ( !defined(wantarray) ) {
         warn "result of set_local must be assigned!";
     }
-    die "set_local expects hashref" unless ref($pairs) eq 'HASH';
+    croak "set_local expects hashref" unless ref($pairs) eq 'HASH';
 
     # Make a deep copy of current data, then merge in the new pairs
     #
