@@ -1,5 +1,5 @@
 package Poet::t::Conf;
-use Poet::Tools qw(read_file write_file);
+use Poet::Tools qw(read_file tempdir_simple write_file);
 use IPC::System::Simple qw(run);
 use Test::Class::Most parent => 'Poet::Test::Class';
 
@@ -235,6 +235,32 @@ sub test_dynamic_conf : Tests {
         !-f $env->data_path("conf/dynamic/gen.pl"),
         "conf/dynamic/gen.pl does not exist"
     );
+}
+
+sub test_get_secure : Tests {
+    my $self        = shift;
+    my $tempdir     = tempdir_simple('poet-conf-XXXX');
+    my $secure_file = "$tempdir/supersecret.cfg";
+    write_file( $secure_file, "foo: 7\nbar: 8\nbaz: 9\n" );
+    my $env = $self->temp_env(
+        conf_files => {
+            'local.cfg' => {
+                layer                   => 'development',
+                'foo'                   => 0,
+                'conf.secure_conf_file' => $secure_file
+            }
+        }
+    );
+    my $conf = $env->conf;
+    my $lex = $conf->set_local( { bar => 4 } );
+
+    is( $conf->get_secure('foo'),    0,     "foo=0" );
+    is( $conf->get_secure('bar'),    4,     "bar=4" );
+    is( $conf->get_secure('baz'),    9,     "baz=9" );
+    is( $conf->get_secure('blargh'), undef, "blargh=undef" );
+
+    is( $conf->get('baz'), undef, "baz=undef" );
+    ok( ( !grep { /baz/ } $conf->get_keys() ), "no baz in keys" );
 }
 
 1;

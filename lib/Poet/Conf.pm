@@ -164,6 +164,7 @@ method _flush_get_cache () {
 }
 
 method get ($key, $default) {
+    croak "key required" if !defined($key);
     return $get_cache{$key} if exists( $get_cache{$key} );
 
     my $orig_key = $key;
@@ -272,6 +273,24 @@ method set_local ($pairs) {
     #
     my $guard = guard { $self->{data} = $orig_data; $self->conf_has_changed() };
     return $guard;
+}
+
+{
+    my $secure_conf;
+
+    method get_secure($key) {
+        die "key required"
+          unless defined($key);
+        if ( defined( my $value = $self->get($key) ) ) {
+            return $value;
+        }
+        $secure_conf ||= YAML::XS::LoadFile(
+            $self->get(
+                'conf.secure_conf_file' => $self->conf_dir . "/secure.cfg"
+            )
+        );
+          return $secure_conf->{$key};
+      }
 }
 
 method get_keys () {
@@ -548,6 +567,19 @@ Get I<key> from configuration. Return 1 if the value represents true ("1", "t",
 "n", "no") or is not present in configuration. These are case insensitive
 matches. Throws an error if there is a value that is a reference or does not
 match one of the valid options.
+
+=item get_secure (key)
+
+    my $password = $conf->get_secure('secret_password');
+
+Get I<key> from configuration as normal, but if it doesn't exist, then look for
+it in a separate non-version-controlled secure config file. Useful for
+passwords, encryption keys, etc. that might be ok in normal config on
+development, but ought to be secure on production.
+
+The location of the secure config file is determined by config entry
+conf.secure_conf_file; it defaults to C<conf/secure.cfg>. The file is in plain
+YAML format, with no interpolation or dot notation.
 
 =back
 
