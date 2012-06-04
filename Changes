@@ -2,7 +2,7 @@ Revision history for Poet
 
 ** denotes an incompatible change
 
-0.10  May 15, 2012
+0.10  Jun 4, 2012
 
 * Improvements
   - Add $conf->get_secure, for sensitive configuration entries
