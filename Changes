@@ -6,6 +6,7 @@ Revision history for Poet
 
 * Improvements
   - Add $conf->get_secure, for sensitive configuration entries
+  - Add $conf->generate_dynamic_config, for generating configuration files for external software
 
 0.09  May 15, 2012
 
