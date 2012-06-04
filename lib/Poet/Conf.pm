@@ -293,6 +293,21 @@ method set_local ($pairs) {
       }
 }
 
+method generate_dynamic_conf () {
+    require MasonX::ProcessDir;
+    my $env        = Poet::Environment->current_env;
+    my $source_dir = $self->conf_dir . "/dynamic";
+    my $dest_dir   = $env->data_path("conf/dynamic");
+    my $pd         = MasonX::ProcessDir->new(
+        source_dir    => $source_dir,
+        dest_dir      => $dest_dir,
+        ignore_files  => sub { $_[0] =~ /Base\.|\.mi$|gen\.pl|README/ },
+        mason_options => {},
+        @_
+    );
+    $pd->process_dir();
+}
+
 method get_keys () {
     return keys( %{ $self->{data} } );
 }
@@ -628,6 +643,20 @@ when $lex goes out of scope.
 This is intended for specialized use in unit tests and development tools, NOT
 for production code. Setting and resetting of configuration values will make it
 much more difficult to read and debug code!
+
+=item generate_dynamic_config
+
+    $conf->generate_dynamic_config();
+
+This method can be used to dynamically generate configuration files for
+external software (e.g. Apache, nginx, logrotate). It uses
+L<MasonX::ProcessDir|MasonX::ProcessDir> to process Mason templates in
+C<conf/dynamic> and generate destination files in C<data/conf/dynamic>.
+
+For example, if C<conf/dynamic/httpd.conf.mc> contains an Apache configuration
+file with Mason dynamic elements, this method will generate a static
+configuration file in C<data/conf/dynamic/httpd.conf.mc>, which you can then
+feed directly into Apache.
 
 =back
 

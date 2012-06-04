@@ -94,22 +94,6 @@ method BUILD () {
     }
 }
 
-# Not sure where this should go...in a plugin? in a random utilities module?
-#
-method generate_dynamic_conf () {
-    require MasonX::ProcessDir;
-    my $source_dir = $self->conf_path("dynamic");
-    my $dest_dir   = $self->data_path("conf/dynamic");
-    my $pd         = MasonX::ProcessDir->new(
-        source_dir    => $source_dir,
-        dest_dir      => $dest_dir,
-        ignore_files  => sub { $_[0] =~ /Base\.|\.mi$|gen\.pl|README/ },
-        mason_options => {},
-        @_
-    );
-    $pd->process_dir();
-}
-
 __PACKAGE__->generate_subdir_methods();
 __PACKAGE__->meta->make_immutable();
 

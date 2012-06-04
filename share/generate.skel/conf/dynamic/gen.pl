@@ -3,8 +3,8 @@
 # Processes the source files in this directory via MasonX::ProcessDir
 # and generates destination files in data/conf/dynamic.
 #
-use Poet::Script qw($env);
+use Poet::Script qw($conf);
 use strict;
 use warnings;
 
-$env->generate_dynamic_conf();
+$conf->generate_dynamic_conf();
