@@ -2,7 +2,7 @@ Revision history for Poet
 
 ** denotes an incompatible change
 
-0.11  Jun 4, 2012
+0.11  Jun 5, 2012
 
 * Improvements
   - Change $env to $poet to avoid confusion for existing PSGI developers. $env still works
