@@ -21,6 +21,7 @@ sub test_import_vars : Tests {
         isa_ok( $conf,  'Poet::Conf',        '$conf' );
         isa_ok( $env,   'Poet::Environment', '$env' );
         isa_ok( $poet,  'Poet::Environment', '$poet' );
+        is( $env, $poet, '$env/$poet backward compat' );
     }
 }
 
