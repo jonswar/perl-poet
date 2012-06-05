@@ -1,5 +1,5 @@
 package Poet::Cache;
-use Poet qw($conf $env);
+use Poet qw($conf $poet);
 use Method::Signatures::Simple;
 use Moose;
 
@@ -7,7 +7,7 @@ extends 'CHI';
 
 method initialize_caching () {
     my $default_config =
-      { defaults => { driver => 'File', root_dir => $env->data_path("cache") }
+      { defaults => { driver => 'File', root_dir => $poet->data_path("cache") }
       };
     my $config = $conf->get_hash( 'cache' => $default_config );
     __PACKAGE__->config($config);

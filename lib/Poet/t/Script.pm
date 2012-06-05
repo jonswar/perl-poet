@@ -18,9 +18,9 @@ sub test_script : Tests {
 
     my $script = "$root_dir/bin/foo/bar.pl";
     mkpath( dirname($script), 0, 0775 );
-    my $poet_lib_dir = realpath("lib");
+    my $env_lib_dir = realpath("lib");
     write_file( $script,
-        sprintf( $script_template, perl_executable(), $poet_lib_dir ) );
+        sprintf( $script_template, perl_executable(), $env_lib_dir ) );
     chmod( 0775, $script );
     my ( $stdout, $stderr ) = capture { system($script) };
     ok( !$stderr, "no stderr" . ( defined($stderr) ? " - $stderr" : "" ) );
@@ -31,10 +31,10 @@ sub test_script : Tests {
 
 $script_template = '#!%s
 use lib qw(%s);
-use Poet::Script qw($conf $env);
+use Poet::Script qw($conf $poet);
 use YAML::XS;
 
-print Dump([$env->root_dir, $env->lib_dir, $INC[0], $conf->get("foo.bar")]);
+print Dump([$poet->root_dir, $poet->lib_dir, $INC[0], $conf->get("foo.bar")]);
 ';
 
 1;

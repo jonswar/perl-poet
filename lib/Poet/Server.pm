@@ -1,5 +1,5 @@
 package Poet::Server;
-use Poet qw($conf $env);
+use Poet qw($conf $poet);
 use Method::Signatures::Simple;
 use Class::MOP;
 use strict;
@@ -24,13 +24,13 @@ method get_plackup_options () {
 
         # In development mode, reload server when conf or lib file changes
         #
-        push( @options, '-R', join( ",", $env->conf_dir, $env->lib_dir ) );
+        push( @options, '-R', join( ",", $poet->conf_dir, $poet->lib_dir ) );
     }
     else {
 
         # In live mode, use access log instead of STDERR
         #
-        push( @options, '--access_log', $env->logs_path("access.log") );
+        push( @options, '--access_log', $poet->logs_path("access.log") );
     }
 
     return @options;

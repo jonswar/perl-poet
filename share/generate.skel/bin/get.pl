@@ -1,5 +1,5 @@
 #!<% Poet::Tools::perl_executable %>
-use Poet::Script qw($env);
+use Poet::Script qw($poet);
 use Poet::Mechanize;
 use warnings;
 use strict;

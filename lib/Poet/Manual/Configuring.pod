@@ -46,8 +46,8 @@ L<Poet::Cache|Poet::Cache/CONFIGURATION> for examples. e.g.
 
 =item env.bin_dir, env.comps_dir, etc.
 
-These entries affect what is returned from C<$env-E<gt>bin_dir>,
-C<$env-E<gt>bin_path>, C<$env-E<gt>comps_dir>, etc., and thus where various
+These entries affect what is returned from C<$poet-E<gt>bin_dir>,
+C<$poet-E<gt>bin_path>, C<$poet-E<gt>comps_dir>, etc., and thus where various
 Poet resources are kept. See L<Poet::Environment|Poet::Environment/CONFIGURING
 ENVIRONMENT SUBDIRECTORIES>. For example, to move data and logs into external
 directories outside the environment:

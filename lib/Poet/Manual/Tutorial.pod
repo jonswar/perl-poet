@@ -94,7 +94,7 @@ Rose how to connect to our database:
   lib/Blog/DB.pm:
 
     package Blog::DB;
-    use Poet qw($env);
+    use Poet qw($poet);
     use strict;
     use warnings;
     use base qw(Rose::DB);
@@ -102,7 +102,7 @@ Rose how to connect to our database:
     __PACKAGE__->use_private_registry;
     __PACKAGE__->register_db(
         driver   => 'sqlite',
-        database => $env->data_path("blog.db"),
+        database => $poet->data_path("blog.db"),
     );
     
     1;
@@ -148,22 +148,22 @@ See L<Rose::DB::Object::Tutorial> for more information.
 
 In C<lib/Blog/DB.pm> above, we have
 
-    use Poet qw($env);
+    use Poet qw($poet);
 
 followed by
 
-    database => $env->data_path("blog.db"),
+    database => $poet->data_path("blog.db"),
 
-C<$env> is the global L<Poet::Environment|Poet::Environment> object, providing
+C<$poet> is the global L<Poet::Environment|Poet::Environment> object, providing
 information about the environment and its directory paths.  We use it here to
 get the full path to our sqlite database, without having to hardcode our
 environment root.
 
-More generally C<$env> is one of several special Poet "quick vars" that can be
+More generally C<$poet> is one of several special Poet "quick vars" that can be
 imported into any package, just by including it on the C<use Poet> line.
 Another important one is C<$conf>, which gives you access to configuration:
 
-    use Poet qw($conf $env);
+    use Poet qw($conf $poet);
     ...
     my $value = $conf->get('key', 'default');
 
@@ -562,7 +562,7 @@ Run this from anywhere inside your environment:
 Poet created a stub script for us inside C<bin>. Let's take a look:
 
     #!/usr/local/bin/perl
-    use Poet::Script qw($conf $env);
+    use Poet::Script qw($conf $poet);
     use strict;
     use warnings;
 
@@ -587,8 +587,8 @@ C<use> your application modules.
 
 =item *
 
-Imports the specified quick vars - in this case C<$conf> and C<$env> - into the
-script namespace. See L<Poet::Import|Poet::Import>.
+Imports the specified quick vars - in this case C<$conf> and C<$poet> - into
+the script namespace. See L<Poet::Import|Poet::Import>.
 
 =back
 
@@ -610,7 +610,7 @@ Now we can fill out our purge script:
     Blog::Article::Manager->delete_articles(
         where => [ create_time => { lt => $min_date } ] );
 
-In line 2, we've eliminated the unneeded C<$env>.
+In line 2, we've eliminated the unneeded C<$poet>.
 
 In line 7, we get C<$days_to_keep> from configuration, giving it a reasonable
 default if there's nothing in configuration.

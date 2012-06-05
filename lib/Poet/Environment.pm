@@ -17,11 +17,11 @@ my ($current_env);
 method subdirs () { [qw(bin comps conf data db lib logs static t)] }
 
 method app_class ($class_name) {
-    my $app_class_name  = join( "::", $self->app_name, $class_name );
-    my $poet_class_name = join( "::", "Poet",          $class_name );
+    my $app_class_name = join( "::", $self->app_name, $class_name );
+    my $env_class_name = join( "::", "Poet",          $class_name );
     return
-        can_load($app_class_name)  ? $app_class_name
-      : can_load($poet_class_name) ? $poet_class_name
+        can_load($app_class_name) ? $app_class_name
+      : can_load($env_class_name) ? $env_class_name
       :   die "cannot load $app_class_name or $class_name";
 }
 
@@ -110,18 +110,18 @@ Poet::Environment -- Poet environment
 =head1 SYNOPSIS
 
     # In a script...
-    use Poet::Script qw($env);
+    use Poet::Script qw($poet);
 
     # In a module...
-    use Poet qw($env);
+    use Poet qw($poet);
 
-    # $env is automatically available in Mason components
+    # $poet is automatically available in Mason components
 
     # then...
-    my $root_dir       = $env->root_dir;
-    my $file           = $env->path("some/file.txt");
-    my $path_to_script = $env->bin_path("foo/bar.pl");
-    my $path_to_lib    = $env->lib_path("Foo/Bar.pm");
+    my $root_dir       = $poet->root_dir;
+    my $file           = $poet->path("some/file.txt");
+    my $path_to_script = $poet->bin_path("foo/bar.pl");
+    my $path_to_lib    = $poet->lib_path("Foo/Bar.pm");
 
 =head1 DESCRIPTION
 
@@ -142,7 +142,7 @@ located.
 Returns the root directory with a relative I<subpath> added. e.g. if the Poet
 environment root is C</my/env/root>, then
 
-    $env->path("somefile.txt");
+    $poet->path("somefile.txt");
        ==> returns /my/env/root/somefile.txt
 
 =item bin_dir
@@ -164,10 +164,10 @@ environment root is C</my/env/root>, then
 Returns the specified subdirectory, which by default will be just below the
 root dirctory. e.g. if the Poet environment root is C</my/env/root>, then
 
-    $env->conf_dir
+    $poet->conf_dir
        ==> returns /my/env/root/conf
 
-    $env->lib_dir
+    $poet->lib_dir
        ==> returns /my/env/root/lib
 
 =item bin_path (subpath)
@@ -189,10 +189,10 @@ root dirctory. e.g. if the Poet environment root is C</my/env/root>, then
 Returns the specified subdirectory with a relative I<subpath> added. e.g. if
 the Poet environment root is C</my/env/root>, then
 
-    $env->conf_path("log4perl.conf");
+    $poet->conf_path("log4perl.conf");
        ==> returns /my/env/root/conf/log4perl.conf
 
-    $env->lib_path("Data/Type.pm");
+    $poet->lib_path("Data/Type.pm");
        ==> returns /my/env/root/lib/Data/Type.pm
 
 =back
@@ -206,7 +206,7 @@ the Poet environment root is C</my/env/root>, then
 Returns the full class name to use for the specified class, depending on
 whether there is a subclass in the environment. e.g.
 
-    $env->app_class('Cache')
+    $poet->app_class('Cache')
 
 will return C<MyApp::Cache> if that module exists, and otherwise
 C<Poet::Cache>.  This is used internally by Poet to implement L<auto
@@ -224,9 +224,25 @@ Usually you'd access this by importing C<$conf>.
 =item current_env
 
 A class method that returns the current (singleton) environment for the
-process. Usually you'd access this by importing C<$env>.
+process. Usually you'd access this by importing C<$poet>.
 
 =back
+
+=head1 OBTAINING $poet SINGLETON
+
+In a script:
+
+    use Poet::Script qw($poet);
+
+In a module:
+
+    use Poet qw($poet);
+
+C<$poet> is automatically available in components.
+
+You can also get it via
+
+    my $poet = Poet::Environment->current_env;
 
 =head1 CONFIGURING ENVIRONMENT SUBDIRECTORIES
 
@@ -237,8 +253,8 @@ Any subdirectories other than conf_dir can be overriden in configuration. e.g.
 
 With this configuration in place,
 
-    $env->bin_dir
+    $poet->bin_dir
        ==> returns /some/other/bin/dir
 
-    $env->bin_path("foo/bar.pl")
+    $poet->bin_path("foo/bar.pl")
        ==> returns /some/other/bin/dir/foo/bar.pl

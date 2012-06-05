@@ -1,5 +1,5 @@
 package Poet::Log;
-use Poet qw($conf $env);
+use Poet qw($conf $poet);
 use File::Spec::Functions qw(rel2abs);
 use File::Basename qw(dirname);
 use File::Path qw(mkpath);
@@ -27,7 +27,7 @@ method initialize_logging ($class:) {
     }
     else {
         write_file(
-            $env->logs_path("poet.log.ERROR"),
+            $poet->logs_path("poet.log.ERROR"),
             sprintf(
                 "[%s] Could not load Log::Log4perl or Log::Any::Adapter::Log4perl. Install them to enable logging, or modify logging for your application (see Poet::Manual::Subclassing).\n",
                 scalar(localtime) )
@@ -38,7 +38,7 @@ method initialize_logging ($class:) {
 method generate_log4perl_config ($class:) {
     my %log_config = %{ $conf->get_hash('log') };
     if ( my $log4perl_conf = $log_config{log4perl_conf} ) {
-        $log4perl_conf = rel2abs( $log4perl_conf, $env->conf_dir );
+        $log4perl_conf = rel2abs( $log4perl_conf, $poet->conf_dir );
         return read_file($log4perl_conf);
     }
 
@@ -62,7 +62,7 @@ method generate_log4perl_config ($class:) {
         }
         else {
             $set->{appender_class} = "Log::Log4perl::Appender::File";
-            $set->{filename} = rel2abs( $set->{output}, $env->logs_dir );
+            $set->{filename} = rel2abs( $set->{output}, $poet->logs_dir );
             mkpath( dirname( $set->{filename} ), 0, 0775 );
         }
     }

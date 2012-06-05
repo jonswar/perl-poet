@@ -1,5 +1,5 @@
 package <% $app_name %>::Log;
-use Poet qw($conf $env);
+use Poet qw($conf $poet);
 use Poet::Moose;
 
 extends 'Poet::Log';

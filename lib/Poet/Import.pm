@@ -43,8 +43,11 @@ method export_var_to_level ($var, $level) {
         *{ $caller . "\::$var" } = \$value;
     }
     else {
-        croak sprintf( "unknown import var '\$$var': valid import vars are %s",
-            join( ", ", map { "'$_'" } $self->valid_vars ) );
+        croak sprintf(
+            "unknown import var '\$$var': valid import vars are %s",
+            join( ", ",
+                map { "'\$$_'" } grep { $_ ne 'env' } @{ $self->valid_vars } )
+        );
     }
 }
 
@@ -76,6 +79,10 @@ method provide_var_log ($caller) {
     Log::Any->get_logger( category => $caller );
 }
 
+method provide_var_poet ($caller) {
+    $self->env;
+}
+
 1;
 
 __END__
@@ -89,10 +96,10 @@ Poet::Import -- Import Poet quick vars and utilities
 =head1 SYNOPSIS
 
     # In a script...
-    use Poet::Script qw($conf $env $log :file);
+    use Poet::Script qw($conf $poet $log :file);
 
     # In a module...
-    use Poet qw($conf $env $log :file);
+    use Poet qw($conf $poet $log :file);
 
 =head1 DESCRIPTION
 
@@ -107,7 +114,7 @@ and in a module:
 
     use Poet qw(...);
 
-where C<...> contains one or more quick var names (e.g. C<$conf>, C<$env>)
+where C<...> contains one or more quick var names (e.g. C<$conf>, C<$poet>)
 and/or utility tags (e.g. C<:file>, C<:web>).
 
 (Note that C<use Poet::Script> is also necessary for initializing the
@@ -122,11 +129,13 @@ into.
 
 =over
 
-=item $env
+=item $poet
 
 The global environment object, provided by
 L<Poet::Environment|Poet::Environment>. This provides information such as the
 root directory and paths to subdirectories.
+
+For backward compatibility this is also available as C<$env>.
 
 =item $conf
 
@@ -162,7 +171,7 @@ automatically included in all Mason components.
 
 Every Mason component automatically gets this on top:
 
-    use Poet qw($conf $env :web);
+    use Poet qw($conf $poet :web);
 
 C<$m-E<gt>cache> and C<$m-E<gt>log> will get you the cache and log objects for
 a particular Mason component.
@@ -181,7 +190,7 @@ C<MyApp::Import>. For example to add a variable C<$dbh>:
     method provide_var_dbh ($caller) {
         # Generate and return a dbh.
         # $caller is the package importing the variable.
-        # $env is the current Poet environment.
+        # $poet is the current Poet environment.
     }
 
 C<provide_dbh> can return a single global value, or a dynamic value depending

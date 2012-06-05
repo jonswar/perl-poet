@@ -8,22 +8,22 @@ sub test_environment : Tests {
     my $self = shift;
 
     my $app_name = 'TheTestApp';
-    my $env      = $self->temp_env( app_name => $app_name );
-    my $root_dir = $env->root_dir;
+    my $poet     = $self->temp_env( app_name => $app_name );
+    my $root_dir = $poet->root_dir;
 
     foreach my $subdir (qw(bin conf lib)) {
         my $subdir_method = $subdir . "_dir";
-        is( $env->$subdir_method, "$root_dir/$subdir", $subdir_method );
-        ok( -d $env->$subdir_method, "$subdir exists" );
-        ok( -d $env->path($subdir),  "$subdir exists" );
+        is( $poet->$subdir_method, "$root_dir/$subdir", $subdir_method );
+        ok( -d $poet->$subdir_method, "$subdir exists" );
+        ok( -d $poet->path($subdir),  "$subdir exists" );
     }
-    is( $env->conf->layer, 'development', "layer" );
+    is( $poet->conf->layer, 'development', "layer" );
     foreach my $class (qw(Conf Log Mason)) {
-        my $file = $env->lib_path("$app_name/$class.pm");
+        my $file = $poet->lib_path("$app_name/$class.pm");
         ok( -f $file, "$file exists" );
     }
-    ok( -x $env->bin_path("run.pl"), "run.pl executable" );
-    ok( -x $env->bin_path("get.pl"), "get.pl executable" );
+    ok( -x $poet->bin_path("run.pl"), "run.pl executable" );
+    ok( -x $poet->bin_path("get.pl"), "get.pl executable" );
 }
 
 sub test_dot_files_in_share_dir : Tests {

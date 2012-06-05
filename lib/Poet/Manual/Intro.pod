@@ -100,7 +100,7 @@ Any web server or script must initialize Poet before it can use any of Poet's
 features. This is accomplished by with C<Poet::Script>:
 
     #!/usr/local/bin/perl
-    use Poet::Script qw($conf $env);
+    use Poet::Script qw($conf $poet);
 
 You'll see this in C<bin/run.pl>, for example, the script you use to start your
 webserver.  The C<use Poet::Script> line does several things:
@@ -123,7 +123,7 @@ C<use> your application modules.
 
 =item *
 
-Imports the specified I<quick vars> - in this case C<$conf> and C<$env> - as
+Imports the specified I<quick vars> - in this case C<$conf> and C<$poet> - as
 well as some default utilities into the script namespace. More information
 about these L<below|/QUICK VARS AND UTILITIES>.
 
@@ -143,9 +143,9 @@ this:
 
 you'll do this:
 
-    system($env->bin_path("myscript.pl"));
+    system($poet->bin_path("myscript.pl"));
 
-(More information about this C<$env> variable L<below|/QUICK VARS AND
+(More information about this C<$poet> variable L<below|/QUICK VARS AND
 UTILITIES>.)
 
 =head2 App name
@@ -277,14 +277,14 @@ middleware|Plack/Plack::Middleware>, or change the configuration of the default
 middleware. For example, to enable basic authentication with an
 C<conf/.htpasswd> file, add this to app.psgi:
 
-    enable "Auth::Htpasswd", file => $env->conf_path('.htpasswd');
+    enable "Auth::Htpasswd", file => $poet->conf_path('.htpasswd');
 
 =head1 QUICK VARS AND UTILITIES
 
 Poet makes it easy to import certain variables (known as "quick vars") and
 utility sets into any module or script in your environment. You've seen two
 examples of quick vars above: C<$conf>, the global configuration variable, and
-C<$env>, the global environment object.
+C<$poet>, the global environment object.
 
 In a script, this looks like:
 
@@ -294,11 +294,11 @@ In a script, this looks like:
 In a module, this looks like:
 
     package MyApp::Foo;
-    use Poet qw($cache $env);
+    use Poet qw($cache $poet);
 
 And every Mason component automatically gets this on top:
 
-    use Poet qw($conf $env :web);
+    use Poet qw($conf $poet :web);
 
 L<Debug utilities|Poet::Util::Debug> are automatically imported without having
 to specify a tag.

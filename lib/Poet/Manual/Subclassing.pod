@@ -39,7 +39,7 @@ uses the L<app_class|Poet::Environment/app_class> environment method whenever
 it needs a classname, e.g.
 
     # Do something with MyApp::Cache or Poet::Cache
-    $env->app_class('Cache')->...
+    $poet->app_class('Cache')->...
 
 =head2 Subclassing Mason
 
@@ -125,6 +125,6 @@ information.
     use Poet::Moose;
     extends 'Poet::Import';
     
-    method provide_dbh ($caller, $env) {
+    method provide_dbh ($caller, $poet) {
         $dbh = DBI->connect(...);
     }

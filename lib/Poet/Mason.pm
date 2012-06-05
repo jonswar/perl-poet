@@ -1,5 +1,5 @@
 package Poet::Mason;
-use Poet qw($conf $env);
+use Poet qw($conf $poet);
 use List::MoreUtils qw(uniq);
 use Method::Signatures::Simple;
 use Moose;
@@ -20,9 +20,9 @@ method new ($class:) {
 
 method get_options ($class:) {
     my %defaults = (
-        cache_root_class => $env->app_class('Cache'),
-        comp_root        => $env->comps_dir,
-        data_dir         => $env->data_dir,
+        cache_root_class => $poet->app_class('Cache'),
+        comp_root        => $poet->comps_dir,
+        data_dir         => $poet->data_dir,
         plugins          => [ $class->get_plugins ],
     );
     my %configured    = %{ $conf->get_hash("mason") };
@@ -40,9 +40,9 @@ method get_plugins ($class:) {
 }
 
 method handle_psgi ($class: $psgi_env) {
-    my $req      = $env->app_class('Plack::Request')->new($psgi_env);
+    my $req      = $poet->app_class('Plack::Request')->new($psgi_env);
     my $response = try {
-        my $interp = $env->app_class('Mason')->instance;
+        my $interp = $poet->app_class('Mason')->instance;
         my $m = $interp->_make_request( req => $req );
         $m->run( $class->_psgi_comp_path($req),
             $class->_psgi_parameters($req) );
@@ -52,7 +52,7 @@ method handle_psgi ($class: $psgi_env) {
         my $err = $_;
         if ( blessed($err) && $err->isa('Mason::Exception::TopLevelNotFound') )
         {
-            $env->app_class('Plack::Response')->new(404);
+            $poet->app_class('Plack::Response')->new(404);
         }
         else {
 
@@ -135,12 +135,12 @@ probably want to call L<instance|/instance>.
 
 =item *
 
-C<comp_root> is set to L<$env-E<gt>comps_dir|Poet::Environment/comps_dir>, by
+C<comp_root> is set to L<$poet-E<gt>comps_dir|Poet::Environment/comps_dir>, by
 default the C<comps> subdirectory under the environment root.
 
 =item *
 
-C<data_dir> is set to L<$env-E<gt>data_dir|Poet::Environment/data_dir>, by
+C<data_dir> is set to L<$poet-E<gt>data_dir|Poet::Environment/data_dir>, by
 default the C<data> subdirectory under the environment root.
 
 =item *
@@ -174,9 +174,9 @@ contains 'extra_plugins', these will be added to the default plugins. e.g.
 Poet inserts the following line at the top of of every compiled Mason
 component:
 
-    use Poet qw($conf $env :web);
+    use Poet qw($conf $poet :web);
 
-which means that L<$conf|Poet::Conf>, L<$env|Poet::Environment>, and L<web
+which means that L<$conf|Poet::Conf>, L<$poet|Poet::Environment>, and L<web
 utilities|Poet::Util::Web> are available from every component.
 
 =head1 NEW REQUEST METHODS

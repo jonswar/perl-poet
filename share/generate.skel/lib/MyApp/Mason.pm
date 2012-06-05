@@ -1,5 +1,5 @@
 package <% $app_name %>::Mason;
-use Poet qw($conf $env);
+use Poet qw($conf $poet);
 use Poet::Moose;
 
 extends 'Poet::Mason';

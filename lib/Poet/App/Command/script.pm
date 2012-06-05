@@ -17,9 +17,9 @@ method usage_desc () {
 method execute ($opt, $args) {
     $self->usage_error("takes one argument (script name)") unless @$args == 1;
     my ($path) = @$args;
-    my $env = $self->initialize_environment();
+    my $poet = $self->initialize_environment();
     $path =~ s|^bin/||;
-    $path = rel2abs( $path, $env->bin_dir() );
+    $path = rel2abs( $path, $poet->bin_dir() );
     die "'$path' already exists, will not overwrite" if -e $path;
     write_file( $path, $self->script_template() );
     chmod( 0775, $path );
@@ -28,7 +28,7 @@ method execute ($opt, $args) {
 
 method script_template () {
     '#!/usr/local/bin/perl
-use Poet::Script qw($conf $env);
+use Poet::Script qw($conf $poet);
 use strict;
 use warnings;
 

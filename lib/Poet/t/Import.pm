@@ -9,17 +9,30 @@ BEGIN {
 }
 
 sub test_valid_vars : Tests {
-    cmp_deeply( $importer->valid_vars, supersetof(qw(cache conf env log)) );
+    cmp_deeply( $importer->valid_vars, supersetof(qw(cache conf log poet)) );
 }
 
 sub test_import_vars : Tests {
     {
         package TestImportVars;
-        BEGIN { $importer->export_to_level( 0, qw($cache $conf $env) ) }
+        BEGIN { $importer->export_to_level( 0, qw($cache $conf $env $poet) ) }
         use Test::Most;
         isa_ok( $cache, 'CHI::Driver',       '$cache' );
         isa_ok( $conf,  'Poet::Conf',        '$conf' );
         isa_ok( $env,   'Poet::Environment', '$env' );
+        isa_ok( $poet,  'Poet::Environment', '$poet' );
+    }
+}
+
+sub test_import_bad_vars : Tests {
+    {
+        package TestImportVars2;
+        use Test::Most;
+        throws_ok(
+            sub { $importer->export_to_level( 0, qw($bad) ) },
+            qr/unknown import var '\$bad': valid import vars are '\$cache', '\$conf', '\$log', '\$poet'/,
+            'bad import'
+        );
     }
 }
 

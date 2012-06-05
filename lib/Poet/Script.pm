@@ -11,7 +11,7 @@ use warnings;
 method import ($pkg:) {
     unless ( Poet::Environment->current_env ) {
         my $root_dir = determine_root_dir();
-        my $env      = initialize_with_root_dir($root_dir);
+        my $poet     = initialize_with_root_dir($root_dir);
     }
     Poet::Environment->current_env->importer->export_to_level( 1, @_ );
 }
@@ -64,7 +64,7 @@ Poet::Script -- Intialize Poet for a script
 =head1 SYNOPSIS
 
     # In a script...
-    use Poet::Script qw($cache $conf $env $log :file);
+    use Poet::Script qw($cache $conf $poet $log :file);
 
 =head1 DESCRIPTION
 

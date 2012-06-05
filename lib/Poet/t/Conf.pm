@@ -27,8 +27,8 @@ my $expected_values = {
 
 sub test_global : Tests {
     my $self = shift;
-    my $env  = $self->temp_env( conf_files => $conf_files );
-    my $conf = $env->conf();
+    my $poet = $self->temp_env( conf_files => $conf_files );
+    my $conf = $poet->conf();
     while ( my ( $key, $value ) = each(%$expected_values) ) {
         is( $conf->get($key), $value,
             "$key = " . ( defined($value) ? $value : 'undef' ) );
@@ -50,9 +50,9 @@ sub test_duplicate : Tests {
 
 sub test_set_local : Tests {
     my $self = shift;
-    my $env  = $self->temp_env(
+    my $poet = $self->temp_env(
         conf_files => { 'global/foo.cfg' => { a => 5, b => 6, c => 7 } } );
-    my $conf = $env->conf();
+    my $conf = $poet->conf();
 
     is( $conf->get('a'), 5, 'a = 5' );
     is( $conf->get( 'b' => 0 ), 6, 'b = 6' );
@@ -101,7 +101,7 @@ e:
 
 '
     };
-    my $env = $self->temp_env( conf_files => $conf_files );
+    my $poet = $self->temp_env( conf_files => $conf_files );
     my %expected_values = (
         'a' => { 'b' => { c => 6, d => 2 } },
         'a.b'   => { c => 6, d => 2 },
@@ -112,7 +112,7 @@ e:
         'e.f.g' => 7,
         'x.y.z' => undef
     );
-    my $conf           = $env->conf();
+    my $conf           = $poet->conf();
     my $check_expected = sub {
         my $desc = shift;
         foreach my $key ( sort( keys(%expected_values) ) ) {
@@ -128,7 +128,7 @@ e:
 
     $conf_files->{'layer/personal.cfg'} = { 'a' => { 'b' => 17 } };
     throws_ok(
-        sub { $env = $self->temp_env( conf_files => $conf_files ) },
+        sub { $poet = $self->temp_env( conf_files => $conf_files ) },
         qr/error assigning to 'a.b.c' in .*; 'a.b' already has non-hash value/,
         "e.f: 17"
     );
@@ -158,8 +158,8 @@ sub test_types : Tests {
         }
     };
 
-    my $env = $self->temp_env( conf_files => $conf_files );
-    my $conf = $env->conf();
+    my $poet = $self->temp_env( conf_files => $conf_files );
+    my $conf = $poet->conf();
 
     cmp_deeply( $conf->get_list('list'), [ 1, 2, 3 ], 'list ok' );
     foreach my $key (qw(scalar hash)) {
@@ -194,7 +194,7 @@ sub test_layer_required : Tests {
 
 sub test_interpolation : Tests {
     my $self = shift;
-    my $env  = $self->temp_env(
+    my $poet = $self->temp_env(
         conf => {
             layer  => 'development',
             'a.b'  => 'bar',
@@ -203,7 +203,7 @@ sub test_interpolation : Tests {
             'deep' => { 'e' => 5, 'f' => [ '${c}', ['${a.b}'] ] }
         }
     );
-    my $conf = $env->conf();
+    my $conf = $poet->conf();
     is( $conf->get('c'), '/foo/bar/baz', 'substitution' );
     throws_ok { $conf->get('d') } qr/could not get conf for 'huh'/,
       'bad substitution';
@@ -220,19 +220,19 @@ sub test_interpolation : Tests {
 
 sub test_dynamic_conf : Tests {
     my $self = shift;
-    my $env  = $self->temp_env();
-    write_file( $env->conf_path("dynamic/foo.mc"), "<% 2+2 %>" );
+    my $poet = $self->temp_env();
+    write_file( $poet->conf_path("dynamic/foo.mc"), "<% 2+2 %>" );
     ok(
-        !-d $env->data_path("conf/dynamic"),
+        !-d $poet->data_path("conf/dynamic"),
         "data/conf/dynamic does not exist"
     );
-    run( $env->conf_path("dynamic/gen.pl") );
-    ok( -d $env->data_path("conf/dynamic"),     "data/conf/dynamic exists" );
-    ok( -f $env->data_path("conf/dynamic/foo"), "conf/dynamic/foo exists" );
-    is( read_file( $env->data_path("conf/dynamic/foo") ),
+    run( $poet->conf_path("dynamic/gen.pl") );
+    ok( -d $poet->data_path("conf/dynamic"),     "data/conf/dynamic exists" );
+    ok( -f $poet->data_path("conf/dynamic/foo"), "conf/dynamic/foo exists" );
+    is( read_file( $poet->data_path("conf/dynamic/foo") ),
         4, "foo has correct content" );
     ok(
-        !-f $env->data_path("conf/dynamic/gen.pl"),
+        !-f $poet->data_path("conf/dynamic/gen.pl"),
         "conf/dynamic/gen.pl does not exist"
     );
 }
@@ -242,7 +242,7 @@ sub test_get_secure : Tests {
     my $tempdir     = tempdir_simple('poet-conf-XXXX');
     my $secure_file = "$tempdir/supersecret.cfg";
     write_file( $secure_file, "foo: 7\nbar: 8\nbaz: 9\n" );
-    my $env = $self->temp_env(
+    my $poet = $self->temp_env(
         conf_files => {
             'local.cfg' => {
                 layer                   => 'development',
@@ -251,7 +251,7 @@ sub test_get_secure : Tests {
             }
         }
     );
-    my $conf = $env->conf;
+    my $conf = $poet->conf;
     my $lex = $conf->set_local( { bar => 4 } );
 
     is( $conf->get_secure('foo'),    0,     "foo=0" );

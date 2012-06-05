@@ -7,9 +7,9 @@ use Test::WWW::Mechanize;
 
 sub test_run : Tests {
     my $self = shift;
-    my $env  = $self->temp_env(
+    my $poet = $self->temp_env(
         conf => { layer => 'development', server => { port => 9999 } } );
-    my $root_dir = $env->root_dir;
+    my $root_dir = $poet->root_dir;
     my $run_log  = "$root_dir/logs/run.log";
     if ( my $pid = fork() ) {
         scope_guard { kill( 1, $pid ) };
@@ -30,7 +30,7 @@ sub test_run : Tests {
     else {
         close STDOUT;
         close STDERR;
-        exec( $env->bin_path("run.pl > $run_log 2>&1") );
+        exec( $poet->bin_path("run.pl > $run_log 2>&1") );
     }
 }
 

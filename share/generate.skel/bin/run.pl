@@ -2,13 +2,13 @@
 #
 # Runs plackup with appropriate options
 #
-use Poet::Script qw($conf $env);
+use Poet::Script qw($conf $poet);
 use IPC::System::Simple qw(run);
 use strict;
 use warnings;
 
-my $app_psgi = $env->bin_path("app.psgi");
-my $server = $env->app_class('Server');
+my $app_psgi = $poet->bin_path("app.psgi");
+my $server = $poet->app_class('Server');
 
 # Get plackup options based on config (e.g. server.port) and layer
 #

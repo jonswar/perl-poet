@@ -70,8 +70,8 @@ method share_dir () {
 }
 
 method initialize_temp_env ($class:) {
-    my $env = $class->temp_env(@_);
-    Poet::Environment->initialize_current_environment( env => $env );
+    my $poet = $class->temp_env(@_);
+    Poet::Environment->initialize_current_environment( env => $poet );
 }
 
 method mech ($class:) {

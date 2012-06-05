@@ -6,22 +6,22 @@ use File::Path;
 use Guard;
 use Poet::Tools qw(trim write_file);
 
-my $env = __PACKAGE__->initialize_temp_env(
+my $poet = __PACKAGE__->initialize_temp_env(
     conf => {
         layer                 => 'production',
         'foo.bar'             => 5,
         'server.load_modules' => ['TestApp::Foo']
     }
 );
-unlink( glob( $env->comps_path("*.mc") ) );
+unlink( glob( $poet->comps_path("*.mc") ) );
 write_file(
-    $env->lib_path("TestApp/Foo.pm"),
+    $poet->lib_path("TestApp/Foo.pm"),
     "package TestApp::Foo;\nsub bar {}\n1;\n"
 );
 
 sub mech {
     my $self = shift;
-    my $mech = $self->SUPER::mech( env => $env );
+    my $mech = $self->SUPER::mech( env => $poet );
     @{ $mech->requests_redirectable } = ();
     return $mech;
 }
@@ -30,7 +30,7 @@ sub add_comp {
     my ( $self, %params ) = @_;
     my $path = $params{path} or die "must pass path";
     my $src  = $params{src}  or die "must pass src";
-    my $file = $env->comps_dir . $path;
+    my $file = $poet->comps_dir . $path;
     mkpath( dirname($file), 0, 0775 );
     write_file( $file, $src );
 }
@@ -82,7 +82,7 @@ sub test_get_pl : Tests {
         path => '/getpl.mc',
         src  => 'path = <% $m->req->path %>'
     );
-    my $cmd = sprintf( "%s /getpl", $env->bin_path("get.pl") );
+    my $cmd = sprintf( "%s /getpl", $poet->bin_path("get.pl") );
     my $output = Capture::Tiny::capture_merged { system($cmd) };
     is( $output, 'path = /getpl', "get.pl output" );
 }
@@ -183,12 +183,12 @@ will not be printed
 
 sub test_import : Tests {
     my $self     = shift;
-    my $root_dir = $env->root_dir;
+    my $root_dir = $poet->root_dir;
     $self->try_psgi_comp(
         path => '/import.mc',
         src  => '
 foo.bar = <% $conf->get("foo.bar") %>
-root_dir = <% $env->root_dir %>
+root_dir = <% $poet->root_dir %>
 <% dh_live({baz => "blargh"}) %>
 ',
         expect_content =>
@@ -243,7 +243,7 @@ end
 sub test_cache : Tests {
     my $self = shift;
 
-    my $expected_root_dir = $env->root_dir . "/data/cache";
+    my $expected_root_dir = $poet->root_dir . "/data/cache";
     $self->try_psgi_comp(
         path => '/cache.mc',
         src  => '

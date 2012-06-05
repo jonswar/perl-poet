@@ -295,9 +295,9 @@ method set_local ($pairs) {
 
 method generate_dynamic_conf () {
     require MasonX::ProcessDir;
-    my $env        = Poet::Environment->current_env;
+    my $poet       = Poet::Environment->current_env;
     my $source_dir = $self->conf_dir . "/dynamic";
-    my $dest_dir   = $env->data_path("conf/dynamic");
+    my $dest_dir   = $poet->data_path("conf/dynamic");
     my $pd         = MasonX::ProcessDir->new(
         source_dir    => $source_dir,
         dest_dir      => $dest_dir,

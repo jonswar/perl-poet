@@ -7,9 +7,9 @@ use Test::Class::Most parent => 'Poet::Test::Class';
 __PACKAGE__->initialize_temp_env();
 
 sub test_log_config : Tests {
-    my $env       = Poet::Environment->current_env;
-    my $conf      = $env->conf;
-    my $logs_dir  = $env->logs_dir;
+    my $poet      = Poet::Environment->current_env;
+    my $conf      = $poet->conf;
+    my $logs_dir  = $poet->logs_dir;
     my $temp_dir  = tempdir_simple();
     my $other_dir = "$temp_dir/other";
 
