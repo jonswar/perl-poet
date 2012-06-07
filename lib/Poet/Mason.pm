@@ -203,7 +203,7 @@ A reference to the L<Plack::Response> object. e.g.
 
 =item clear_and_abort (status)
 
-These methods are overriden to set the response status before aborting, if
+These methods are overridden to set the response status before aborting, if
 I<status> is provided. e.g. to send back a FORBIDDEN result:
 
     $m->clear_and_abort(403);

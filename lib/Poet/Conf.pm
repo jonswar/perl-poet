@@ -499,8 +499,8 @@ and in local.cfg you have
 
     cache.defaults.depth: 2
 
-then only C<depth> will be overriden; the C<driver> and C<root_dir> will remain
-as they were set in C<global/cache.cfg>. If instead local.cfg had
+then only C<depth> will be overridden; the C<driver> and C<root_dir> will
+remain as they were set in C<global/cache.cfg>. If instead local.cfg had
 
    cache:
       defaults:

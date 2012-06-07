@@ -246,7 +246,7 @@ You can also get it via
 
 =head1 CONFIGURING ENVIRONMENT SUBDIRECTORIES
 
-Any subdirectories other than conf_dir can be overriden in configuration. e.g.
+Any subdirectories other than conf_dir can be overridden in configuration. e.g.
 
     # Override bin_dir
     env.bin_dir: /some/other/bin/dir
