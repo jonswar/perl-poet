@@ -4,6 +4,10 @@ Revision history for Poet
 
 0.12  Jun 5, 2012
 
+* Fixes
+  - Require Mason::Plugin::Cache 0.04, for $m->cache
+  - Fix pod typos - RT #77676 (Florian)
+
 0.11  Jun 5, 2012
 
 * Improvements
