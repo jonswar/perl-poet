@@ -5,7 +5,10 @@ use Carp;
 use Class::MOP;
 use Config;
 use Fcntl qw( :DEFAULT :seek );
+use File::Basename;
 use File::Find;
+use File::Path;
+use File::Slurp qw(read_dir);
 use File::Spec::Functions ();
 use File::Temp qw(tempdir);
 use Try::Tiny;
@@ -14,7 +17,7 @@ use warnings;
 use base qw(Exporter);
 
 our @EXPORT_OK =
-  qw(can_load catdir catfile checksum find_wanted perl_executable read_file taint_is_on tempdir_simple trim uniq write_file );
+  qw(basename can_load catdir catfile checksum dirname find_wanted mkpath perl_executable read_dir read_file rmtree taint_is_on tempdir_simple trim uniq write_file );
 
 my $Fetch_Flags          = O_RDONLY | O_BINARY;
 my $Store_Flags          = O_WRONLY | O_CREAT | O_BINARY;

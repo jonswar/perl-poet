@@ -18,7 +18,11 @@ sub test_subclassing : Tests {
         join( "\n",
             "package TestApp::Import;",
             "use Poet::Moose;",
-            "extends 'Poet::Import';" )
+            "extends 'Poet::Import';",
+            "no strict 'refs';",
+            "before 'export_to_class' => sub { *{\$_[1] . '::bar'} = sub { 5 } };",
+            "1",
+        )
     );
     write_file(
         "$root_dir/lib/TestApp/Log.pm",
@@ -46,6 +50,7 @@ sub test_subclassing : Tests {
         isa_ok( $Foo::conf, 'TestApp::Conf',     '$conf' );
         isa_ok( $Foo::log,  'TestApp::Logger',   '$log' );
         isa_ok( $Foo::poet, 'Poet::Environment', '$poet' );
+        is( Foo::bar(), 5, 'imported bar' );
     }
 }
 

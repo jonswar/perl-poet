@@ -1,13 +1,10 @@
 package Poet::Environment::Generator;
 use Cwd qw(realpath);
-use File::Basename;
 use File::Find;
-use File::Path;
 use File::ShareDir;
-use File::Slurp qw(read_dir);
 use Mason;
 use Method::Signatures::Simple;
-use Poet::Tools qw(trim write_file);
+use Poet::Tools qw(basename dirname mkpath read_dir trim write_file);
 use strict;
 use warnings;
 
