@@ -2,7 +2,7 @@ Revision history for Poet
 
 ** denotes an incompatible change
 
-0.12  Jun 5, 2012
+0.12  Jun 8, 2012
 
 * Fixes
   - Require Mason::Plugin::Cache 0.04, for $m->cache
