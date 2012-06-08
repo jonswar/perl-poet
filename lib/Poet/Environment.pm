@@ -1,7 +1,5 @@
 package Poet::Environment;
 use Carp;
-use File::Basename;
-use File::Path;
 use File::Slurp;
 use Poet::Moose;
 use Poet::Tools qw(can_load catdir);
@@ -49,14 +47,6 @@ method initialize_current_environment ($class: %params) {
             $current_env->root_dir() );
     }
     $current_env = $params{env} || $class->new(%params);
-    my $root_dir = $current_env->root_dir;
-
-    # Unshift lib dir onto @INC
-    #
-    my $lib_dir = "$root_dir/lib";
-    unless ( $INC[0] eq $lib_dir ) {
-        unshift( @INC, $lib_dir );
-    }
 
     # Initialize logging and caching
     #
@@ -72,6 +62,13 @@ method current_env ($class:) {
 
 method BUILD () {
     my $root_dir = $self->root_dir();
+
+    # Unshift lib dir onto @INC
+    #
+    my $lib_dir = "$root_dir/lib";
+    unless ( $INC[0] eq $lib_dir ) {
+        unshift( @INC, $lib_dir );
+    }
 
     # Initialize configuration
     #
