@@ -503,8 +503,9 @@ Now, any page can place a message in the session, and it'll appear on just the
 next page.
 
 On line 8, we place the POST data in the session so that we can repopulate the
-form with it - we'll do that in the next chapter. C<< $.args >> is a special
-component attribute that contains all the arguments passed to the component.
+form with it - we'll do that in the next chapter. C<< $.args >> is a
+special component attribute that contains all the arguments passed to the
+component.
 
 =head2 Filters
 

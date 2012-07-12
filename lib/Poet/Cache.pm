@@ -1,4 +1,4 @@
-package Poet::Cache;
+package Poet::Cache;    ## no critic (Moose::RequireMakeImmutable)
 use Poet qw($conf $poet);
 use Method::Signatures::Simple;
 use Moose;

@@ -71,7 +71,7 @@ method generate_log4perl_config ($class:) {
             $class->_generate_lines( "log4perl.logger.$_",
                 $class->_flatten_class_name($_),
                 $classes{$_} )
-          } sort( keys(%classes) ),
+        } sort( keys(%classes) ),
     );
 }
 
