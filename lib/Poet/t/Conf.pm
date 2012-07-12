@@ -241,26 +241,26 @@ sub test_get_secure : Tests {
     my $self        = shift;
     my $tempdir     = tempdir_simple('poet-conf-XXXX');
     my $secure_file = "$tempdir/supersecret.cfg";
-    write_file( $secure_file, "foo: 7\nbar: 8\nbaz: 9\n" );
+    write_file( $secure_file, "foo: 7\nbar: 8\n" );
     my $poet = $self->temp_env(
         conf_files => {
             'local.cfg' => {
                 layer                   => 'development',
                 'foo'                   => 0,
+                'baz'                   => 9,
                 'conf.secure_conf_file' => $secure_file
             }
         }
     );
     my $conf = $poet->conf;
-    my $lex = $conf->set_local( { bar => 4 } );
 
-    is( $conf->get_secure('foo'),    0,     "foo=0" );
-    is( $conf->get_secure('bar'),    4,     "bar=4" );
+    is( $conf->get_secure('foo'),    7,     "foo=0" );
+    is( $conf->get_secure('bar'),    8,     "bar=8" );
     is( $conf->get_secure('baz'),    9,     "baz=9" );
     is( $conf->get_secure('blargh'), undef, "blargh=undef" );
 
-    is( $conf->get('baz'), undef, "baz=undef" );
-    ok( ( !grep { /baz/ } $conf->get_keys() ), "no baz in keys" );
+    is( $conf->get('bar'), undef, "bar=undef" );
+    ok( ( !grep { /bar/ } $conf->get_keys() ), "no bar in keys" );
 }
 
 1;
