@@ -51,7 +51,7 @@ _define(
     sub {
         $console_log ||=
           Poet::Environment->current_env->logs_path("console.log");
-        open( my $fh, ">>$console_log" );
+        open( my $fh, ">>", $console_log );
         $fh->print( $_[0] );
     }
 );
