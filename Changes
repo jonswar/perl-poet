@@ -8,6 +8,11 @@ Revision history for Poet
   - Fix overriding of Conf and Import
   - Require Mason::Plugin::Cache 0.04, for $m->cache
   - Fix pod typos - RT #77676 (Florian)
+  - Add missing make_immutable calls
+
+* Documentation
+  - Add Poet::Plack::Request and Poet::Plack::Response to list of potential subclasses
+    (Tomohiro Hosaka)
 
 0.11  Jun 5, 2012
 
