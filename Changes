@@ -11,7 +11,7 @@ Revision history for Poet
   - Add missing make_immutable calls
 
 * Documentation
-  - Add Poet::Plack::Request and Poet::Plack::Response to list of potential subclasses
+  - Add Poet::Plack::Request and Poet::Plack::Response to list of subclasses
     (Tomohiro Hosaka)
 
 0.11  Jun 5, 2012
