@@ -290,7 +290,7 @@ method _get_secure_conf () {
             'conf.secure_conf_file' => $self->conf_dir . "/secure.cfg" );
         $secure_confs{"$self"} =
           ( -f $secure_conf_file )
-          ? YAML::XS::LoadFile($secure_conf_file)
+          ? $self->read_conf_file($secure_conf_file)
           : {};
     }
     return $secure_confs{"$self"};
