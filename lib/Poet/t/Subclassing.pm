@@ -6,13 +6,8 @@ sub test_subclassing : Tests {
     my $self = shift;
 
     my $root_dir = $self->temp_env_dir();
-    write_file(
-        "$root_dir/lib/TestApp/Cache.pm",
-        join( "\n",
-            "package TestApp::Cache;",
-            "use Poet::Moose;",
-            "extends 'Poet::Cache';" )
-    );
+    write_file( "$root_dir/lib/TestApp/Cache.pm",
+        join( "\n", "package TestApp::Cache;", "use Poet::Moose;", "extends 'Poet::Cache';" ) );
     write_file(
         "$root_dir/lib/TestApp/Import.pm",
         join( "\n",
@@ -37,9 +32,9 @@ sub test_subclassing : Tests {
         root_dir => $root_dir,
         app_name => 'TestApp'
     );
-    isa_ok( $poet, 'Poet::Environment', 'env' );    # can't override this yet
-    isa_ok( $poet->importer, 'TestApp::Import', 'import' );
-    isa_ok( $poet->conf,     'TestApp::Conf',   'conf' );
+    isa_ok( $poet,           'Poet::Environment', 'env' );      # can't override this yet
+    isa_ok( $poet->importer, 'TestApp::Import',   'import' );
+    isa_ok( $poet->conf,     'TestApp::Conf',     'conf' );
     is( $poet->app_class('Cache'), 'TestApp::Cache', 'cache' );
 
     {
