@@ -2,7 +2,7 @@ Revision history for Poet
 
 ** denotes an incompatible change
 
-0.12  Jun 8, 2012
+0.12  Aug 15, 2012
 
 * Fixes
   - Fix overriding of Conf and Import
