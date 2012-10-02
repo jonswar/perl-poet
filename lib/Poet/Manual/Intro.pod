@@ -70,7 +70,7 @@ C<conf> - configuration files
 
 =item *
 
-C<data> - transient data such as cache files
+C<data> - data not checked into version control, such as cache and object files
 
 =item *
 
