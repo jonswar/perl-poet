@@ -2,7 +2,7 @@ Revision history for Poet
 
 ** denotes an incompatible change
 
-0.13  Aug 15, 2012
+0.13  Oct 7, 2012
 
 * Improvements
   - Add standard error pages and 500 error response for errors in live mode
