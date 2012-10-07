@@ -148,7 +148,28 @@ will also not be printed
         expect_code    => 302,
         expect_headers => { Location => 'http://www.google.com/' },
     );
-    return;
+    $self->try_psgi_comp(
+        path => '/go_to_redirect.mc',
+        src  => '
+<%init>
+$m->go("/redirect");
+</%init>
+',
+        expect_content => ' ',
+        expect_code    => 302,
+        expect_headers => { Location => 'http://www.google.com/' },
+    );
+    $self->try_psgi_comp(
+        path => '/visit_redirect.mc',
+        src  => '
+<%init>
+$m->visit("/redirect");
+</%init>
+',
+        expect_content => ' ',
+        expect_code    => 302,
+        expect_headers => { Location => 'http://www.google.com/' },
+    );
     $self->try_psgi_comp(
         path => '/redirect_301.mc',
         src  => '
@@ -165,7 +186,7 @@ will not be printed
 will not be printed
 % $m->clear_and_abort(404);
 ',
-        expect_content => ' ',
+        expect_content => qr/Not found/,
         expect_code    => 404,
     );
 }
