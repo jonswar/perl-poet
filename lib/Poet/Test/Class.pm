@@ -59,11 +59,9 @@ method temp_env_dir ($class:) {
 }
 
 method share_dir () {
-    my $dist_root =
-      dirname( dirname( dirname( dirname( realpath(__FILE__) ) ) ) );
+    my $dist_root = dirname( dirname( dirname( dirname( realpath(__FILE__) ) ) ) );
     my ($share_dir) =
-      grep { -d $_ }
-      ( "$dist_root/share", "$dist_root/lib/auto/share/dist/Poet" );
+      grep { -d $_ } ( "$dist_root/share", "$dist_root/lib/auto/share/dist/Poet" );
     return $share_dir;
 }
 

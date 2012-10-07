@@ -48,11 +48,8 @@ method export_var_to_level ($var, $level) {
         *{ $caller . "\::$var" } = \$value;
     }
     else {
-        croak sprintf(
-            "unknown import var '\$$var': valid import vars are %s",
-            join( ", ",
-                map { "'\$$_'" } grep { $_ ne 'env' } @{ $self->valid_vars } )
-        );
+        croak sprintf( "unknown import var '\$$var': valid import vars are %s",
+            join( ", ", map { "'\$$_'" } grep { $_ ne 'env' } @{ $self->valid_vars } ) );
     }
 }
 

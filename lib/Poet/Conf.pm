@@ -144,10 +144,8 @@ method merge_conf_data ($current_data, $new_data, $file) {
             }
             $assign_to_hash = $assign_to_hash->{$first};
             if ( ref($assign_to_hash) ne 'HASH' ) {
-                die sprintf(
-                    "error assigning to '%s' in '%s'; '%s' already has non-hash value",
-                    $orig_key, $file,
-                    substr( $orig_key, 0, -1 * length($rest) - 1 ) );
+                die sprintf( "error assigning to '%s' in '%s'; '%s' already has non-hash value",
+                    $orig_key, $file, substr( $orig_key, 0, -1 * length($rest) - 1 ) );
             }
             $key = $rest;
         }
@@ -209,9 +207,8 @@ method get_list ($key, $default) {
             return $value;
         }
         else {
-            my $error = sprintf(
-                "list value expected for conf key '%s', got non-list '%s'",
-                $key, $value );
+            my $error =
+              sprintf( "list value expected for conf key '%s', got non-list '%s'", $key, $value );
             croak($error);
         }
     }
@@ -229,9 +226,8 @@ method get_hash ($key, $default) {
             return $value;
         }
         else {
-            my $error = sprintf(
-                "hash value expected for conf key '%s', got non-hash '%s'",
-                $key, $value );
+            my $error =
+              sprintf( "hash value expected for conf key '%s', got non-hash '%s'", $key, $value );
             croak($error);
         }
     }
@@ -249,11 +245,7 @@ method get_boolean ($key) {
         ( !ref($value) && $value =~ /^(1|t|true|y|yes)$/i ) ? 1
       : ( !ref($value) && $value =~ /^(0|f|false|n|no)$/i ) ? 0
       : croak(
-        sprintf(
-            "boolean value expected for conf key '%s', got non-boolean '%s'",
-            $key, $value
-        )
-      );
+        sprintf( "boolean value expected for conf key '%s', got non-boolean '%s'", $key, $value ) );
 }
 
 method set_local ($pairs) {
@@ -286,8 +278,8 @@ method get_secure ($key) {
 
 method _get_secure_conf () {
     if ( !$secure_confs{"$self"} ) {
-        my $secure_conf_file = $self->get(
-            'conf.secure_conf_file' => $self->conf_dir . "/secure.cfg" );
+        my $secure_conf_file =
+          $self->get( 'conf.secure_conf_file' => $self->conf_dir . "/secure.cfg" );
         $secure_confs{"$self"} =
           ( -f $secure_conf_file )
           ? $self->read_conf_file($secure_conf_file)

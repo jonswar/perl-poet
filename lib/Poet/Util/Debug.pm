@@ -15,11 +15,10 @@ sub _dump_value_with_caller {
     my ( $value, $func_name ) = @_;
 
     my $dump =
-      Data::Dumper->new( [$value] )->Indent(1)->Sortkeys(1)->Quotekeys(0)
-      ->Terse(1)->Dump();
+      Data::Dumper->new( [$value] )->Indent(1)->Sortkeys(1)->Quotekeys(0)->Terse(1)->Dump();
     my @caller = caller(1);
-    return sprintf( "[%s at %s line %d.] [%d] %s\n",
-        $func_name, $caller[1], $caller[2], $$, $dump );
+    return
+      sprintf( "[%s at %s line %d.] [%d] %s\n", $func_name, $caller[1], $caller[2], $$, $dump );
 }
 
 sub _define {
@@ -49,8 +48,7 @@ sub _define {
 _define(
     'dc',
     sub {
-        $console_log ||=
-          Poet::Environment->current_env->logs_path("console.log");
+        $console_log ||= Poet::Environment->current_env->logs_path("console.log");
         open( my $fh, ">>", $console_log );
         $fh->print( $_[0] );
     }

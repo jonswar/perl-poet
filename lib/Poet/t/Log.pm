@@ -19,8 +19,7 @@ sub test_log_config : Tests {
         is( $log_conf, $expected, encode_json($conf_settings) );
     };
 
-    my $default_layout =
-      "%d{dd/MMM/yyyy:HH:mm:ss.SS} [%p] %c - %m - %F:%L - %P%n";
+    my $default_layout = "%d{dd/MMM/yyyy:HH:mm:ss.SS} [%p] %c - %m - %F:%L - %P%n";
 
     rmtree($_) for ( $logs_dir, $other_dir );
     $test->(
@@ -53,8 +52,7 @@ log4perl.appender.default.filename = $logs_dir/foo.log
             log => {
                 'defaults' => { level => 'info', output => 'foo.log' },
                 'class'    => {
-                    'Bar' =>
-                      { level => 'warn', output => "$other_dir/bar.log" },
+                    'Bar'           => { level  => 'warn', output => "$other_dir/bar.log" },
                     'Bar.Errors'    => { output => 'stderr' },
                     'Bar.NonErrors' => { output => 'stdout' },
                 }

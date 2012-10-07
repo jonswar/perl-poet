@@ -154,8 +154,7 @@ sub write_file {
     #
     {
         my $write_fh;
-        unless ( sysopen( $write_fh, $file, $Store_Flags, $file_create_mode ) )
-        {
+        unless ( sysopen( $write_fh, $file, $Store_Flags, $file_create_mode ) ) {
             croak "write_file '$file' - sysopen: $!";
         }
         my $size_left = length($data);

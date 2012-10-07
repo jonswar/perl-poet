@@ -4,13 +4,11 @@ use Poet::Tools qw(read_file);
 use Poet::Util::Debug qw(:all);
 use Capture::Tiny qw(capture_stderr);
 
-my $poet =
-  __PACKAGE__->initialize_temp_env( conf => { layer => 'development' } );
+my $poet = __PACKAGE__->initialize_temp_env( conf => { layer => 'development' } );
 
 sub test_debug : Tests {
     my $data = { foo => 5, bar => 6 };
-    my $expect =
-      qr|\[d. at .* line .*\] \[\d+\] \{\n  bar => 6,\n  foo => 5\n\}|;
+    my $expect = qr|\[d. at .* line .*\] \[\d+\] \{\n  bar => 6,\n  foo => 5\n\}|;
 
     throws_ok { dd($data) } $expect, "dd";
     like( dh($data), $expect, "dh" );

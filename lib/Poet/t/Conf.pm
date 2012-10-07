@@ -30,8 +30,7 @@ sub test_global : Tests {
     my $poet = $self->temp_env( conf_files => $conf_files );
     my $conf = $poet->conf();
     while ( my ( $key, $value ) = each(%$expected_values) ) {
-        is( $conf->get($key), $value,
-            "$key = " . ( defined($value) ? $value : 'undef' ) );
+        is( $conf->get($key), $value, "$key = " . ( defined($value) ? $value : 'undef' ) );
     }
 }
 
@@ -39,9 +38,8 @@ sub test_duplicate : Tests {
     my $self = shift;
     throws_ok(
         sub {
-            $self->temp_env( conf_files =>
-                  { %$conf_files, 'global/fourth.cfg' => { j => 71, c => 72 } }
-            );
+            $self->temp_env(
+                conf_files => { %$conf_files, 'global/fourth.cfg' => { j => 71, c => 72 } } );
         },
         qr/key 'c' defined in both '.*(first|fourth)\.cfg' and '.*(first|fourth)\.cfg'/,
         'cannot define same key in multiple global config files'
@@ -50,8 +48,7 @@ sub test_duplicate : Tests {
 
 sub test_set_local : Tests {
     my $self = shift;
-    my $poet = $self->temp_env(
-        conf_files => { 'global/foo.cfg' => { a => 5, b => 6, c => 7 } } );
+    my $poet = $self->temp_env( conf_files => { 'global/foo.cfg' => { a => 5, b => 6, c => 7 } } );
     my $conf = $poet->conf();
 
     is( $conf->get('a'), 5, 'a = 5' );
@@ -123,8 +120,7 @@ e:
 
     $check_expected->('initial');
     throws_ok( sub { $conf->get('a.b.c.z') },
-        qr/hash value expected for conf key 'a.b.c', got non-hash '6'/,
-        "a.b.c.z" );
+        qr/hash value expected for conf key 'a.b.c', got non-hash '6'/, "a.b.c.z" );
 
     $conf_files->{'layer/personal.cfg'} = { 'a' => { 'b' => 17 } };
     throws_ok(
@@ -165,11 +161,7 @@ sub test_types : Tests {
     foreach my $key (qw(scalar hash)) {
         throws_ok( sub { $conf->get_list($key) }, qr/list value expected/ );
     }
-    cmp_deeply(
-        $conf->get_hash('hash'),
-        { size => 'large', flavor => 'chocolate' },
-        'hash ok'
-    );
+    cmp_deeply( $conf->get_hash('hash'), { size => 'large', flavor => 'chocolate' }, 'hash ok' );
     foreach my $key (qw(scalar list)) {
         throws_ok( sub { $conf->get_hash($key) }, qr/hash value expected/ );
     }
@@ -178,8 +170,7 @@ sub test_types : Tests {
         is( $conf->get_boolean("falsity.$key"), 0, "$key = false" );
     }
     foreach my $key (qw(scalar list hash)) {
-        throws_ok( sub { $conf->get_boolean($key) },
-            qr/boolean value expected/ );
+        throws_ok( sub { $conf->get_boolean($key) }, qr/boolean value expected/ );
     }
 }
 
@@ -205,8 +196,7 @@ sub test_interpolation : Tests {
     );
     my $conf = $poet->conf();
     is( $conf->get('c'), '/foo/bar/baz', 'substitution' );
-    throws_ok { $conf->get('d') } qr/could not get conf for 'huh'/,
-      'bad substitution';
+    throws_ok { $conf->get('d') } qr/could not get conf for 'huh'/, 'bad substitution';
     cmp_deeply(
         $conf->get('deep'),
         {
@@ -222,19 +212,12 @@ sub test_dynamic_conf : Tests {
     my $self = shift;
     my $poet = $self->temp_env();
     write_file( $poet->conf_path("dynamic/foo.mc"), "<% 2+2 %>" );
-    ok(
-        !-d $poet->data_path("conf/dynamic"),
-        "data/conf/dynamic does not exist"
-    );
+    ok( !-d $poet->data_path("conf/dynamic"), "data/conf/dynamic does not exist" );
     run( $poet->conf_path("dynamic/gen.pl") );
     ok( -d $poet->data_path("conf/dynamic"),     "data/conf/dynamic exists" );
     ok( -f $poet->data_path("conf/dynamic/foo"), "conf/dynamic/foo exists" );
-    is( read_file( $poet->data_path("conf/dynamic/foo") ),
-        4, "foo has correct content" );
-    ok(
-        !-f $poet->data_path("conf/dynamic/gen.pl"),
-        "conf/dynamic/gen.pl does not exist"
-    );
+    is( read_file( $poet->data_path("conf/dynamic/foo") ), 4, "foo has correct content" );
+    ok( !-f $poet->data_path("conf/dynamic/gen.pl"), "conf/dynamic/gen.pl does not exist" );
 }
 
 sub test_get_secure : Tests {

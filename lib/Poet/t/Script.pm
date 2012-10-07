@@ -11,14 +11,12 @@ sub test_script : Tests {
     my $self     = shift;
     my $root_dir = $self->temp_env_dir();
 
-    $self->write_conf_file( "$root_dir/conf/global/server.cfg",
-        { 'foo.bar' => 42 } );
+    $self->write_conf_file( "$root_dir/conf/global/server.cfg", { 'foo.bar' => 42 } );
 
     my $script = "$root_dir/bin/foo/bar.pl";
     mkpath( dirname($script), 0, 0775 );
     my $env_lib_dir = realpath("lib");
-    write_file( $script,
-        sprintf( $script_template, perl_executable(), $env_lib_dir ) );
+    write_file( $script, sprintf( $script_template, perl_executable(), $env_lib_dir ) );
     chmod( 0775, $script );
     my ( $stdout, $stderr ) = capture { system($script) };
     ok( !$stderr, "no stderr" . ( defined($stderr) ? " - $stderr" : "" ) );

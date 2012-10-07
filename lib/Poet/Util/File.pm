@@ -10,10 +10,9 @@ use base qw(Exporter);
 
 File::Path->import( @File::Path::EXPORT, @File::Path::EXPORT_OK );
 
-our @EXPORT_OK = uniq(
-    qw(abs2rel basename canonpath catdir catfile dirname read_file rel2abs write_file),
-    @File::Path::EXPORT, @File::Path::EXPORT_OK
-);
+our @EXPORT_OK =
+  uniq( qw(abs2rel basename canonpath catdir catfile dirname read_file rel2abs write_file),
+    @File::Path::EXPORT, @File::Path::EXPORT_OK );
 our %EXPORT_TAGS = ( 'all' => \@EXPORT_OK );
 
 1;

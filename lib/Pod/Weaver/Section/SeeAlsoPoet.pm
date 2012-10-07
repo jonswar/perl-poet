@@ -12,9 +12,9 @@ sub weave_section {
     for ( my $i = 0 ; $i < $idc->length ; $i++ ) {
         next unless my $para = $idc->[$i];
         return
-          if $para->can('command')
-              && $para->command eq 'head1'
-              && $para->content eq 'SEE ALSO';
+             if $para->can('command')
+          && $para->command eq 'head1'
+          && $para->content eq 'SEE ALSO';
     }
     $document->children->push(
         Pod::Elemental::Element::Nested->new(
@@ -22,9 +22,7 @@ sub weave_section {
                 command  => 'head1',
                 content  => 'SEE ALSO',
                 children => [
-                    Pod::Elemental::Element::Pod5::Ordinary->new(
-                        { content => "L<Poet|Poet>" }
-                    ),
+                    Pod::Elemental::Element::Pod5::Ordinary->new( { content => "L<Poet|Poet>" } ),
                 ],
             }
         ),

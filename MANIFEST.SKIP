@@ -8,8 +8,9 @@
 ^lib/Pod
 ^release
 ^t/make
+^tidyall\.ini
 ^tmp
-^weaver.ini
+^weaver\.ini
 ^NOTES
 ^TODO
 

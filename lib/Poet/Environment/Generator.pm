@@ -19,12 +19,10 @@ method generate_environment_directory ($class: %params) {
 
     die "invalid app_name '$app_name' - must be a valid Perl identifier"
       unless $app_name =~ qr/[[:alpha:]_]\w*/;
-    die
-      "cannot generate environment in $root_dir - directory exists and is non-empty"
+    die "cannot generate environment in $root_dir - directory exists and is non-empty"
       if ( -d $root_dir && @{ read_dir($root_dir) } );
 
-    my $share_dir =
-      realpath( $ENV{POET_SHARE_DIR} || File::ShareDir::dist_dir('Poet') );
+    my $share_dir = realpath( $ENV{POET_SHARE_DIR} || File::ShareDir::dist_dir('Poet') );
     die "cannot find Poet share dir '$share_dir'" unless -d $share_dir;
     my $comp_root = "$share_dir/generate.skel";
     my $interp    = Mason->new(

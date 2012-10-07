@@ -8,8 +8,7 @@ has 'app_name' => ( isa => 'Poet::Types::AppName', is => 'rw', traits => [ 'NoGe
 has 'dir'      => ( isa => 'Str', traits => ['Getopt'], cmd_aliases => 'd', lazy_build => 1, documentation => 'Directory to create; will adapt from app-name if ommitted' );
 has 'quiet'    => ( isa => 'Bool', traits => ['Getopt'], cmd_aliases => 'q', documentation => 'Suppress most messages' );
 
-my $description =
-  'Generates a new Poet environment for an app with the provided name, which
+my $description = 'Generates a new Poet environment for an app with the provided name, which
 should be suitable for use in Perl classnames (e.g. "MyFirstApp"). If not
 provided, a directory is chosen by lowercasing and underscoring the app
 name.
