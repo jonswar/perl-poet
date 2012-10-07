@@ -99,8 +99,8 @@ sub test_not_found : Tests {
     my $self = shift;
     my $mech = $self->mech();
     $mech->get("/does/not/exist");
-    is( $mech->status,  404, "status 404" );
-    is( $mech->content, '',  "blank content" );
+    is( $mech->status, 404, "status 404" );
+    like( $mech->content, qr/Not found/, "default not found page" );
 }
 
 sub test_args : Tests {
