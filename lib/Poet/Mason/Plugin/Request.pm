@@ -6,11 +6,7 @@ use JSON::XS;
 use Try::Tiny;
 
 has 'req' => ( is => 'ro', required => 1, isa => 'Object' );
-has 'res' => ( is => 'ro', lazy_build => 1 );
-
-method _build_res () {
-    return $poet->app_class('Plack::Response')->new();
-}
+has 'res' => ( is => 'ro', required => 1, isa => 'Object' );
 
 around 'run' => sub {
     my $orig = shift;
@@ -18,8 +14,7 @@ around 'run' => sub {
 
     my $result = $self->$orig(@_);
     $self->res->status(200) if !$self->res->status;
-    $self->res->content_type(
-        $conf->get( 'server.default_content_type' => 'text/html' ) )
+    $self->res->content_type( $conf->get( 'server.default_content_type' => 'text/html' ) )
       if !$self->res->content_type();
     $self->res->content( $result->output );
     return $result;
@@ -37,10 +32,8 @@ around 'construct_page_component' => sub {
         # TODO: cache this
         my @array_attrs =
           map { $_->name }
-          grep {
-                 $_->has_type_constraint
-              && $_->type_constraint->is_a_type_of('ArrayRef')
-          } $compc->meta->get_all_attributes;
+          grep { $_->has_type_constraint && $_->type_constraint->is_a_type_of('ArrayRef') }
+          $compc->meta->get_all_attributes;
         foreach my $attr (@array_attrs) {
             $args->{$attr} = [ $orig_args->get_all($attr) ];
         }
