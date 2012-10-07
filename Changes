@@ -4,6 +4,9 @@ Revision history for Poet
 
 0.13  Aug 15, 2012
 
+* Fixes
+  - Retain response object ($m->res) when creating subrequests via $m->go and $m->visit
+
 0.12  Aug 15, 2012
 
 * Fixes

@@ -12,10 +12,7 @@ my $poet = __PACKAGE__->initialize_temp_env(
     }
 );
 unlink( glob( $poet->comps_path("*.mc") ) );
-write_file(
-    $poet->lib_path("TestApp/Foo.pm"),
-    "package TestApp::Foo;\nsub bar {}\n1;\n"
-);
+write_file( $poet->lib_path("TestApp/Foo.pm"), "package TestApp::Foo;\nsub bar {}\n1;\n" );
 
 sub mech {
     my $self = shift;
@@ -38,8 +35,7 @@ sub try_psgi_comp {
     my $path = $params{path} or die "must pass path";
     ( my $uri = $path ) =~ s/\.mc$//;
     my $qs = $params{qs} || '';
-    my $expect_code =
-      defined( $params{expect_code} ) ? $params{expect_code} : 200;
+    my $expect_code = defined( $params{expect_code} ) ? $params{expect_code} : 200;
 
     $self->add_comp(%params);
 
@@ -58,17 +54,12 @@ sub try_psgi_comp {
             $mech->content_like( $expect_content, "$path - content" );
         }
         else {
-            is(
-                trim( $mech->content ),
-                trim($expect_content),
-                "$path - content"
-            );
+            is( trim( $mech->content ), trim($expect_content), "$path - content" );
         }
         is( $mech->status, $expect_code, "$path - code" );
         if ( my $expect_headers = $params{expect_headers} ) {
             while ( my ( $hdr, $value ) = each(%$expect_headers) ) {
-                cmp_deeply( $mech->res->header($hdr),
-                    $value, "$path - header $hdr" );
+                cmp_deeply( $mech->res->header($hdr), $value, "$path - header $hdr" );
             }
         }
     }
@@ -100,7 +91,7 @@ sub test_error : Tests {
         path           => '/error.mc',
         src            => '% die "bleah";',
         expect_code    => 500,
-        expect_content => qr/bleah at/,
+        expect_content => qr/bleah/,
     );
 }
 
@@ -258,9 +249,8 @@ root_dir: $expected_root_dir
 sub test_misc : Tests {
     my $self = shift;
     $self->try_psgi_comp(
-        path => '/misc.mc',
-        src =>
-          'TestApp::Foo = <% TestApp::Foo->can("bar") ? "loaded" : "not loaded" %>',
+        path           => '/misc.mc',
+        src            => 'TestApp::Foo = <% TestApp::Foo->can("bar") ? "loaded" : "not loaded" %>',
         expect_content => 'TestApp::Foo = loaded',
     );
 }

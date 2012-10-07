@@ -13,15 +13,21 @@ builder {
     # Add Plack middleware here
     #
     if ( $conf->is_development ) {
-        enable "Plack::Middleware::StackTrace";
-        enable "Plack::Middleware::Debug";
+        enable "StackTrace";
+        enable "Debug";
     }
 
-    enable "Plack::Middleware::Static",
+    enable "ErrorDocument", map { $_ => $poet->static_path("errors/$_.html") } qw(401 403 404 500);
+
+    if ( $conf->is_live ) {
+        enable "HTTPExceptions", rethrow => 0;
+    }
+
+    enable "Static",
       path => qr{^/static/},
       root => $poet->root_dir;
 
-    enable "Plack::Middleware::Session",
+    enable "Session",
       store => Plack::Session::Store::Cache->new(
         cache => $poet->app_class('Cache')->new( namespace => 'session' ) );
 
