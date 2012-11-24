@@ -4,6 +4,9 @@ Revision history for Poet
 
 0.14  Oct 7, 2012
 
+* Fixes
+  - use Plack::Runner instead of IPC::System::Simple::run - perl-poet/issues/5 (hstaugaard)
+
 0.13  Oct 7, 2012
 
 * Improvements
