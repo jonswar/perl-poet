@@ -3,7 +3,7 @@
 # Runs plackup with appropriate options
 #
 use Poet::Script qw($conf $poet);
-use IPC::System::Simple qw(run);
+use Plack::Runner;
 use strict;
 use warnings;
 
@@ -14,6 +14,8 @@ my $server = $poet->app_class('Server');
 #
 my @options = $server->get_plackup_options();
 
-my @cmd = ("plackup", @options, $app_psgi);
-print "Running " . join(", ", @cmd) . "\n";
-run(@cmd);
+my @argv = (@options, $app_psgi);
+print "Running " . join(", ", "plackup", @argv) . "\n";
+my $runner = Plack::Runner->new;
+$runner->parse_options(@argv);
+$runner->run;
