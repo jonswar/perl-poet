@@ -1,0 +1,34 @@
+TO DO
+
+* Clean up namespaces using namespace::autoclean or similar, otherwise e.g. 'method' keyword interferes with req->method
+* Show full stack of 404 errors in development
+* index.mc refuses urls with trailing slash, very unintuitive
+* Test $m->redirect w/$m->go
+* Poet::Moose includes strict, causes havoc if used in App::Mason::Component
+* Make it easier to call $m->not_found and $m->redirect from a layer outside
+  of components. Overriding Request::run() doesn't work because that isn't
+  inside the catch abort.
+* Scaffolding (some w/plugins):
+  * Use HTTPExceptions (in production) and ErrorDocument
+  * .gitignore, .svnignore
+  * .tidyallrc
+  * starman, Server::Control, and aliases
+  * jquery
+  * Rose, with lib/MyApp/DB.pm and lib/MyApp/DB/Object.pm
+* Look at Data::Printer, replace some/all of Poet::Util::Debug with it
+* Look at psgix.logger and Plack::Middleware::*Logger
+* Mini sessions manual, along with reconfiguring the backing store
+* Allow Poet plugins like Mason plugins
+* Allow Environment to be subclassed as well
+* Put more common utilities into Tools.pm, like run and File::Path and File::Basename, to consolidate use lines
+* Add $poet->lc_app_name, with app name lowercased and underscored
+* Debug panels: Console log, caching
+* Put recursion protection on conf->get and conf->interpolate_value
+* Poet::Mechanize --> $poet->mech?
+* Add to tutorial/documentation
+  * rss example, ignoring default wrapper and caching whole page (how??)
+  * an /admin section for editing blog, with auth and login
+  * how to integrate with mod_perl
+* Test Mason config
+* $poet->temp_dir and $poet->temp_file - create temporary dir or file in data/tmp,
+  auto-clean (by default remove files one day old checking every day)
