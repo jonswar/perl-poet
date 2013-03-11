@@ -115,7 +115,7 @@ Poet::Log -- Poet logging
         level: info
         output: poet.log
         layout: "%d{dd/MMM/yyyy:HH:mm:ss.SS} [%p] %c - %m - %F:%L - %P%n"
-      category:
+      class:
         CHI:
           level: debug
           output: chi.log
