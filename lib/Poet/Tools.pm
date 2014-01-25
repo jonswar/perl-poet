@@ -2,7 +2,7 @@
 #
 package Poet::Tools;
 use Carp;
-use Class::MOP;
+use Class::Load;
 use Config;
 use Fcntl qw( :DEFAULT :seek );
 use File::Basename;
@@ -32,7 +32,7 @@ sub can_load {
 
     my $result;
     try {
-        Class::MOP::load_class($class_name);
+        Class::Load::load_class($class_name);
         $result = 1;
     }
     catch {
