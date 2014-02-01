@@ -3,7 +3,6 @@
 package Poet::t::NoLog4perl;
 
 use Test::Class::Most parent => 'Poet::Test::Class';
-use Module::Mask;
 use Poet::Tools qw(read_file);
 use strict;
 use warnings;
