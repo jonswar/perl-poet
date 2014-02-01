@@ -1,4 +1,5 @@
 package Poet::t::App;
+
 use Test::Class::Most parent => 'Poet::Test::Class';
 
 sub test_app_name_to_dir : Tests {

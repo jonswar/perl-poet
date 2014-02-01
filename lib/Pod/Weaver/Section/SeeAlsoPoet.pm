@@ -1,4 +1,5 @@
 package Pod::Weaver::Section::SeeAlsoPoet;
+
 use Moose;
 use Moose::Autobox;
 with 'Pod::Weaver::Role::Section';

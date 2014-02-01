@@ -1,4 +1,5 @@
 package Poet::Environment::Generator;
+
 use Cwd qw(realpath);
 use File::Find;
 use File::ShareDir;

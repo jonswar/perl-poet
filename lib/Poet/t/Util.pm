@@ -1,4 +1,5 @@
 package Poet::t::Util;
+
 use Test::Class::Most parent => 'Poet::Test::Class';
 use Poet::Tools qw(read_file);
 use Poet::Util::Debug qw(:all);

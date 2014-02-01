@@ -1,4 +1,5 @@
 package Poet::Util::Web;
+
 use Data::Dumper;
 use URI;
 use URI::Escape qw(uri_escape uri_unescape);

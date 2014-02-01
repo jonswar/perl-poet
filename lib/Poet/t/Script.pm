@@ -1,4 +1,5 @@
 package Poet::t::Script;
+
 use Test::Class::Most parent => 'Poet::Test::Class';
 use Capture::Tiny qw(capture);
 use Cwd qw(realpath);

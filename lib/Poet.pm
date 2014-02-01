@@ -1,4 +1,5 @@
 package Poet;
+
 use Poet::Environment;
 use Method::Signatures::Simple;
 use strict;

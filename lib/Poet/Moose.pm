@@ -1,4 +1,5 @@
 package Poet::Moose;    ## no critic (Moose::RequireMakeImmutable)
+
 use Moose                      ();
 use MooseX::HasDefaults::RO    ();
 use MooseX::StrictConstructor  ();

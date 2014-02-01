@@ -1,4 +1,5 @@
 package Poet::Mechanize;
+
 use Poet::Environment;
 use Plack::Util;
 use base qw(Test::WWW::Mechanize::PSGI);

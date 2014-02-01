@@ -1,4 +1,5 @@
 package Poet::Import;
+
 use Carp;
 use Poet::Moose;
 use Try::Tiny;

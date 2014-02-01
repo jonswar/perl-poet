@@ -1,4 +1,5 @@
 package Poet::Util::File;
+
 use File::Basename qw(basename dirname);
 use File::Path qw();
 use File::Slurp qw(read_dir read_file write_file);

@@ -1,4 +1,5 @@
 package Poet::t::Conf;
+
 use Poet::Tools qw(read_file tempdir_simple write_file);
 use IPC::System::Simple qw(run);
 use Test::Class::Most parent => 'Poet::Test::Class';

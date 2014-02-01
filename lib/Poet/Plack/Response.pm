@@ -1,4 +1,5 @@
 package Poet::Plack::Response;
+
 use Poet::Moose;
 extends 'Plack::Response';
 

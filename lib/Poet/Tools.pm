@@ -1,7 +1,9 @@
 # Internal Poet tools
 #
 package Poet::Tools;
+
 use Carp;
+use Class::Load;
 use Class::MOP;
 use Config;
 use Fcntl qw( :DEFAULT :seek );
@@ -32,7 +34,7 @@ sub can_load {
 
     my $result;
     try {
-        Class::MOP::load_class($class_name);
+        Class::Load::load_class($class_name);
         $result = 1;
     }
     catch {

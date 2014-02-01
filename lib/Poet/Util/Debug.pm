@@ -1,4 +1,5 @@
 package Poet::Util::Debug;
+
 use Carp qw(longmess);
 use Data::Dumper;
 use strict;

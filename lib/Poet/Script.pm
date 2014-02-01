@@ -1,4 +1,5 @@
 package Poet::Script;
+
 use Cwd qw(realpath);
 use File::Spec::Functions qw(rel2abs);
 use Method::Signatures::Simple;

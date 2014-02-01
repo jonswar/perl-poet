@@ -1,4 +1,5 @@
 package Poet::Mason::Plugin::Compilation;
+
 use Mason::PluginRole;
 
 # Add 'use Poet qw($conf $poet :web)' at the top of every component

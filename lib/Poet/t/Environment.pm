@@ -1,4 +1,5 @@
 package Poet::t::Environment;
+
 use Test::Class::Most parent => 'Poet::Test::Class';
 use Poet::Tools qw(mkpath tempdir_simple write_file);
 use Poet::Environment::Generator;

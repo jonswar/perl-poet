@@ -1,4 +1,5 @@
 package Poet::Conf;
+
 use Carp;
 use Cwd qw(realpath);
 use Data::Rmap qw(rmap_scalar);

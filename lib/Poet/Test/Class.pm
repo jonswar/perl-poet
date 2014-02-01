@@ -1,4 +1,5 @@
 package Poet::Test::Class;
+
 use Method::Signatures::Simple;
 use Carp;
 use Cwd qw(realpath);

@@ -1,6 +1,8 @@
 package Poet::Server;
+
 use Poet qw($conf $poet);
 use Method::Signatures::Simple;
+use Class::Load;
 use Class::MOP;
 use strict;
 use warnings;
@@ -41,7 +43,7 @@ my $loaded_startup_modules;
 method load_startup_modules () {
     return if $loaded_startup_modules++;
     foreach my $module ( @{ $conf->get_list('server.load_modules') } ) {
-        Class::MOP::load_class($module);
+        Class::Load::load_class($module);
     }
 }
 

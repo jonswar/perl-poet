@@ -1,4 +1,5 @@
 package Poet::t::Subclassing;
+
 use Poet::Tools qw(write_file);
 use Test::Class::Most parent => 'Poet::Test::Class';
 

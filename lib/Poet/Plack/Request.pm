@@ -1,4 +1,5 @@
 package Poet::Plack::Request;
+
 use Poet::Moose;
 extends 'Plack::Request';
 

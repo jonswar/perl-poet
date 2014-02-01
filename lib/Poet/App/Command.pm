@@ -1,4 +1,5 @@
 package Poet::App::Command;
+
 use Poet::Moose;
 use Cwd qw(getcwd);
 use strict;

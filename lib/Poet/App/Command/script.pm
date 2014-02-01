@@ -1,4 +1,5 @@
 package Poet::App::Command::script;
+
 use File::Spec::Functions qw(rel2abs);
 use Poet::Tools qw(write_file);
 use Poet::Moose;

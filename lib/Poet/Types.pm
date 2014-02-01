@@ -1,4 +1,5 @@
 package Poet::Types;
+
 use Moose::Util::TypeConstraints;
 use strict;
 use warnings;

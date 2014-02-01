@@ -1,4 +1,5 @@
 package Poet::Log;
+
 use Poet qw($conf $poet);
 use File::Spec::Functions qw(rel2abs);
 use Log::Any::Adapter;

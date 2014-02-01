@@ -1,4 +1,5 @@
 package Poet::App::Command::new;
+
 use Poet::Moose;
 use Poet::Types;
 

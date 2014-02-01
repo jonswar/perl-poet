@@ -1,4 +1,5 @@
 package Poet::Environment;
+
 use Carp;
 use File::Slurp;
 use Poet::Moose;

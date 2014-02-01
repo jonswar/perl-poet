@@ -1,4 +1,5 @@
 package Poet::t::Run;
+
 use Test::Class::Most parent => 'Poet::Test::Class';
 use Poet::Tools qw(read_file);
 use Guard;

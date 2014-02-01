@@ -1,4 +1,5 @@
 package Poet::t::Import;
+
 use Test::Class::Most parent => 'Poet::Test::Class';
 
 my ( $temp_env, $importer );
