@@ -2,11 +2,12 @@ Revision history for Poet
 
 ** denotes an incompatible change
 
-0.14  Mar 11, 2013
+0.14  Feb 1, 2014
 
 * Fixes
   - use Plack::Runner instead of IPC::System::Simple::run - perl-poet/issues/5 (hstaugaard)
   - fix log documentation - RT #83627 (Allan Engelhardt)
+  - Replace deprecated Class::MOP methods with Class::Load
 
 0.13  Oct 7, 2012
 
