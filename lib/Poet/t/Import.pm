@@ -16,6 +16,7 @@ sub test_valid_vars : Tests {
 sub test_import_vars : Tests {
     {
         package TestImportVars;
+
         BEGIN { $importer->export_to_level( 0, qw($cache $conf $env $poet) ) }
         use Test::Most;
         isa_ok( $cache, 'CHI::Driver',       '$cache' );
@@ -29,6 +30,7 @@ sub test_import_vars : Tests {
 sub test_import_bad_vars : Tests {
     {
         package TestImportVars2;
+
         use Test::Most;
         throws_ok(
             sub { $importer->export_to_level( 0, qw($bad) ) },
@@ -41,6 +43,7 @@ sub test_import_bad_vars : Tests {
 sub test_import_methods : Tests {
     {
         package TestImportMethods1;
+
         BEGIN { $importer->export_to_level(0) }
         use Test::Most;
         ok( TestImportMethods1->can('dp'),        'yes dp' );
@@ -48,6 +51,7 @@ sub test_import_methods : Tests {
     }
     {
         package TestImportMethods2;
+
         BEGIN { $importer->export_to_level( 0, qw(:file) ) }
         use Test::Most;
         foreach my $function (qw(dp basename mkpath rmtree)) {
@@ -56,6 +60,7 @@ sub test_import_methods : Tests {
     }
     {
         package TestImportMethods3;
+
         BEGIN { $importer->export_to_level( 0, qw(:web) ) }
         use Test::Most;
         foreach my $function (qw(dp html_escape uri_escape)) {

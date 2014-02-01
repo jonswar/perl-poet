@@ -40,6 +40,7 @@ sub test_subclassing : Tests {
 
     {
         package Foo;
+
         Poet->import(qw($cache $conf $log $poet));
         use Test::More;
         is( $Foo::cache->chi_root_class, 'TestApp::Cache', '$cache' );
