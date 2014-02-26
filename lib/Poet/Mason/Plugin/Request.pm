@@ -36,7 +36,7 @@ around 'construct_page_component' => sub {
           grep { $_->has_type_constraint && $_->type_constraint->is_a_type_of('ArrayRef') }
           $compc->meta->get_all_attributes;
         foreach my $attr (@array_attrs) {
-            if (my @values = $orig_args->get_all($attr)) {
+            if ( my @values = $orig_args->get_all($attr) ) {
                 $args->{$attr} = \@values;
             }
         }
