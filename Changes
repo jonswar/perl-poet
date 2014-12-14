@@ -4,6 +4,9 @@ Revision history for Poet
 
 0.16  Feb 26, 2014
 
+* Fixes
+  - Fix --access-log in Poet/Server.pm (jomo666)
+
 0.15  Feb 26, 2014
 
 * Fixes
