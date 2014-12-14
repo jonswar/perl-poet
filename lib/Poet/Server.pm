@@ -32,7 +32,7 @@ method get_plackup_options () {
 
         # In live mode, use access log instead of STDERR
         #
-        push( @options, '--access_log', $poet->logs_path("access.log") );
+        push( @options, '--access-log', $poet->logs_path("access.log") );
     }
 
     return @options;
