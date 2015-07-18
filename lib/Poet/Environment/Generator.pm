@@ -43,7 +43,8 @@ method generate_environment_directory ($class: %params) {
         my $output = trim( $interp->run($path)->output );
         ( my $dest = $path ) =~ s{/DOT_}{/.}g;
         $dest = $root_dir . $dest;
-        $dest =~ s|$root_dir/lib/MyApp|$root_dir/lib/$app_name|;
+        my $root_dir_re = quotemeta($root_dir);
+        $dest =~ s|$root_dir_re/lib/MyApp|$root_dir/lib/$app_name|;
         mkpath( dirname($dest), 0, 0775 );
         if ( $path =~ /EMPTY$/ ) {
             $msg->( dirname($dest) );
