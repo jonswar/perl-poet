@@ -22,8 +22,14 @@ sub test_environment : Tests {
         my $file = $poet->lib_path("$app_name/$class.pm");
         ok( -f $file, "$file exists" );
     }
-    ok( -x $poet->bin_path("run.pl"), "run.pl executable" );
-    ok( -x $poet->bin_path("get.pl"), "get.pl executable" );
+    unless ($^O eq 'MSWin32') {
+        ok( -x $poet->bin_path("run.pl"), "run.pl executable" );
+        ok( -x $poet->bin_path("get.pl"), "get.pl executable" );
+    }
+    else {
+        ok( -e $poet->bin_path("run.pl"), "run.pl executable" );
+        ok( -e $poet->bin_path("get.pl"), "get.pl executable" );
+    }
 }
 
 sub test_dot_files_in_share_dir : Tests {

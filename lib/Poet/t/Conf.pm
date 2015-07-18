@@ -1,6 +1,7 @@
 package Poet::t::Conf;
 
 use Poet::Tools qw(read_file tempdir_simple write_file);
+use Config;
 use IPC::System::Simple qw(run);
 use Test::Class::Most parent => 'Poet::Test::Class';
 
@@ -214,7 +215,14 @@ sub test_dynamic_conf : Tests {
     my $poet = $self->temp_env();
     write_file( $poet->conf_path("dynamic/foo.mc"), "<% 2+2 %>" );
     ok( !-d $poet->data_path("conf/dynamic"), "data/conf/dynamic does not exist" );
-    run( $poet->conf_path("dynamic/gen.pl") );
+    # See perlport "Command names versus file pathnames".
+    my @perl = ();
+    if ($^O eq 'MSWin32') {
+        @perl = ($Config{perlpath});
+        $perl[0] .= $Config{_exe} unless $perl[0] =~ m/$Config{_exe}$/i;
+        push(@perl, map { '-I' . $_ } @INC);
+    }
+    run( @perl, $poet->conf_path("dynamic/gen.pl") );
     ok( -d $poet->data_path("conf/dynamic"),     "data/conf/dynamic exists" );
     ok( -f $poet->data_path("conf/dynamic/foo"), "conf/dynamic/foo exists" );
     is( read_file( $poet->data_path("conf/dynamic/foo") ), 4, "foo has correct content" );

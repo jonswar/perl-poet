@@ -1,6 +1,7 @@
 package Poet::t::Log;
 
 use Poet::Tools qw(rmtree tempdir_simple);
+use File::Spec::Functions qw(rel2abs);
 use JSON::XS;
 use Test::Class::Most parent => 'Poet::Test::Class';
 
@@ -29,7 +30,7 @@ sub test_log_config : Tests {
 log4perl.appender.default = Log::Log4perl::Appender::File
 log4perl.appender.default.layout = Log::Log4perl::Layout::PatternLayout
 log4perl.appender.default.layout.ConversionPattern = $default_layout
-log4perl.appender.default.filename = $logs_dir/poet.log
+log4perl.appender.default.filename = @{[ rel2abs('poet.log', $logs_dir) ]}
 "
     );
     ok( -d $logs_dir,   "$logs_dir created" );
@@ -42,7 +43,7 @@ log4perl.appender.default.filename = $logs_dir/poet.log
 log4perl.appender.default = Log::Log4perl::Appender::File
 log4perl.appender.default.layout = Log::Log4perl::Layout::PatternLayout
 log4perl.appender.default.layout.ConversionPattern = $default_layout
-log4perl.appender.default.filename = $logs_dir/foo.log
+log4perl.appender.default.filename = @{[ rel2abs('foo.log', $logs_dir) ]}
 "
     );
     ok( -d $logs_dir,   "$logs_dir created" );
@@ -63,13 +64,13 @@ log4perl.appender.default.filename = $logs_dir/foo.log
 log4perl.appender.default = Log::Log4perl::Appender::File
 log4perl.appender.default.layout = Log::Log4perl::Layout::PatternLayout
 log4perl.appender.default.layout.ConversionPattern = $default_layout
-log4perl.appender.default.filename = $logs_dir/foo.log
+log4perl.appender.default.filename = @{[ rel2abs('foo.log', $logs_dir) ]}
 
 log4perl.logger.Bar = WARN, Bar
 log4perl.appender.Bar = Log::Log4perl::Appender::File
 log4perl.appender.Bar.layout = Log::Log4perl::Layout::PatternLayout
 log4perl.appender.Bar.layout.ConversionPattern = $default_layout
-log4perl.appender.Bar.filename = $other_dir/bar.log
+log4perl.appender.Bar.filename = @{[ rel2abs('bar.log', $other_dir) ]}
 
 log4perl.logger.Bar.Errors = INFO, Bar_Errors
 log4perl.appender.Bar_Errors = Log::Log4perl::Appender::Screen
