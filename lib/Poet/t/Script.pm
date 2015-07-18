@@ -2,6 +2,7 @@ package Poet::t::Script;
 
 use Test::Class::Most parent => 'Poet::Test::Class';
 use Capture::Tiny qw(capture);
+use Config;
 use Cwd qw(realpath);
 use YAML::XS;
 use Poet::Tools qw(dirname mkpath perl_executable tempdir_simple write_file);
@@ -19,7 +20,14 @@ sub test_script : Tests {
     my $env_lib_dir = realpath("lib");
     write_file( $script, sprintf( $script_template, perl_executable(), $env_lib_dir ) );
     chmod( 0775, $script );
-    my ( $stdout, $stderr ) = capture { system($script) };
+    # See perlport "Command names versus file pathnames".
+    my @perl = ();
+    if ($^O eq 'MSWin32') {
+        @perl = ($Config{perlpath});
+        $perl[0] .= $Config{_exe} unless $perl[0] =~ m/$Config{_exe}$/i;
+        push(@perl, map { '-I' . $_ } @INC);
+    }
+    my ( $stdout, $stderr ) = capture { system(@perl, $script) };
     ok( !$stderr, "no stderr" . ( defined($stderr) ? " - $stderr" : "" ) );
 
     my $result = Load($stdout);

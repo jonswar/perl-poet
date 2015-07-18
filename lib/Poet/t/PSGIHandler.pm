@@ -2,7 +2,9 @@ package Poet::t::PSGIHandler;
 
 use Test::Class::Most parent => 'Poet::Test::Class';
 use Capture::Tiny qw();
+use Config;
 use Guard;
+use File::Spec::Functions qw(rel2abs);
 use Poet::Tools qw(dirname mkpath trim write_file);
 
 my $poet = __PACKAGE__->initialize_temp_env(
@@ -72,7 +74,14 @@ sub test_get_pl : Tests {
         path => '/getpl.mc',
         src  => 'path = <% $m->req->path %>'
     );
-    my $cmd = sprintf( "%s /getpl", $poet->bin_path("get.pl") );
+    # See perlport "Command names versus file pathnames".
+    my $perl = '';
+    if ($^O eq 'MSWin32') {
+        $perl = $Config{perlpath};
+        $perl .= $Config{_exe} unless $perl =~ m/$Config{_exe}$/i;
+        $perl = join(' ', $perl, map { '-I' . $_ } @INC);
+    }
+    my $cmd = sprintf( "%s %s /getpl", $perl, $poet->bin_path("get.pl") );
     my $output = Capture::Tiny::capture_merged { system($cmd) };
     is( $output, 'path = /getpl', "get.pl output" );
 }
@@ -257,7 +266,7 @@ end
 sub test_cache : Tests {
     my $self = shift;
 
-    my $expected_root_dir = $poet->root_dir . "/data/cache";
+    my $expected_root_dir = rel2abs("data/cache", $poet->root_dir);
     $self->try_psgi_comp(
         path => '/cache.mc',
         src  => '
